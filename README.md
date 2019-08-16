@@ -2,9 +2,9 @@
 ([OSIsoft](https://www.osisoft.com/)) is a proven leader in enabling operation intelligence.  In this GitHub repo, we provide samples which will help you get started with using the OSIsoft PI System.  The samples are intended to help you get started and are not production applications and libraries.
 
 
-The official OSIsoft samples are organized by technology and accessible through the following table:
+The OSIsoft PI System samples are organized by tasks and accessible through the following table:
 
-Technology|Description
+Task|Description
 ----|-----------  
 **<a href="piwebapi_samples/">PI Web API</a>**  | These samples cover programming against the PI Server via the PI Web API. <a href="piwebapi_samples/">Details</a>  
 
