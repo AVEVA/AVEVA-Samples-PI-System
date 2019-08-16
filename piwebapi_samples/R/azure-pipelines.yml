@@ -1,0 +1,25 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- dev
+
+pool:
+  name: MPIBLDQ
+
+steps:
+- script: Rscript.exe run_tests.R
+  workingDirectory: $(Build.SourcesDirectory)\R
+  continueOnError: 'true'
+  displayName: 'Run R tests'
+
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**\output.xml'
+    searchFolder: $(Build.SourcesDirectory)\R
+    testRunTitle: 'Publish R test results'
+

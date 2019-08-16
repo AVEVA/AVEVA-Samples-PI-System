@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link href="index.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="index.js"></script>
+    <script src="samplePIWebAPI.js"></script>
+    <title>PI Web API</title>
+</head>
+<body>
+  <h1>JQuery PI Web API Calls</h1>
+  <div class="div-left">
+    <form id='frmSampleWebAPI'>
+      <div class="div-leftRow">
+        <label class="label-left">PI Web API Url: </label>
+        <input id="txtPIWebAPIUrl" name="txtPIWebAPIUrl" type="text" pattern='https?://.+' placeholder="https://yourserver/piwebapi"   class="input-Left" oninput="enableSubmit()" />
+      </div>
+      <div class="div-leftRow">
+        <label class="label-left">Asset Server: </label>
+        <input id="txtAssetServer" name="txtAssetServer" type="text"   class="input-Left" oninput="enableSubmit()" />
+      </div>
+      <div class="div-leftRow">
+        <label class="label-left">PI Server: </label>
+        <input id="txtPIServer" name="txtPIServer" type="text"   class="input-Left" oninput="enableSubmit()" />
+      </div>
+      <div style="margin-bottom: 10px">
+        <label class="label-left">Security Method: </label>
+        <select id="selAuthType"  class="input-Left" onchange="enableSubmit()">
+          <option value="Kerberos">Kerberos</option>
+          <option value="Basic">Basic</option>
+        </select>
+      </div> 
+      <div class="div-leftRow">
+        <label class="label-left">User Name: </label>
+        <input id="txtPIWebAPIUser" name="txtPIWebAPIUser" type="text"   class="input-Left" oninput="enableSubmit()" />
+      </div>
+      <div class="div-leftRow">
+          <label class="label-left">Password: </label>
+          <input id="txtPIWebAPIPassword" name="txtPIWebAPIPassword" type="password"  class="input-Left" oninput="enableSubmit()" />
+      </div>
+      <div class="div-leftRow">
+        <label  class="label-left">Action:</label>
+        <select id="selAction" class="input-Left">
+          <option value="Create Database">Create Database</option>
+          <option value="Create Category">Create Category</option>
+          <option value="Create Template">Create Template</option>
+          <option value="Create Element">Create Element</option>
+
+          <option value="-------------------------------------">-------------------------------------</option>
+
+          <option value="Write Single Value">Write Single Value</option>
+          <option value="Write Set Of Values">Write Set of Values</option>
+          <option value="Update Attribute Value">Update Attribute Value</option>
+          <option value="Get Single Value">Get Single Value</option>
+          <option value="Get Set of Values">Get Set of Values</option>
+          <option value="Reduce Payload with Selected Fields">Reduce Payload with Selected Fields</option>         
+          <option value="Batch Writes and Reads">Batch Writes and Reads</option>
+
+          <option value="-------------------------------------">-------------------------------------</option>
+
+          <option value="Delete Element">Delete Element</option>
+          <option value="Delete Template">Delete Template</option>
+          <option value="Delete Category">Delete Category</option>
+          <option value="Delete Database">Delete Database</option>
+        </select>
+      </div>
+      <div style="margin-top: 10px; margin-bottom: 10px;">
+        <input type="button" id="btnRunCode" value="Execute Call" disabled="true" onclick="RunSelected()" />
+      </div>  
+    </form>
+  </div>
+  <div class="div-right">
+    <div class="div-rightRow">
+      <label  class="label-rightStep">Step 1: Create the sandbox</label>
+      <label  class="label-rightText">Execute the following Actions in order: Create Database, Create Category, Create Template and Create Element</label>
+    </div>
+
+    <div class="div-rightRow">
+      <label  class="label-rightStep">Step 2: Write values to the tags</label>
+      <label  class="label-rightText">Execute the following Actions: Write Single Value, Write Set of Values, Update Attribute Value</label>
+    </div>
+
+    <div class="div-rightRow">
+        <label  class="label-rightStep">Step 3: Read the tags</label>
+        <label  class="label-rightText">Execute the following Actions: Get Single Value, Get Set of Values, Reduce Payload with Selected Fields</label>
+    </div>  
+
+    <div class="div-rightRow">
+        <label  class="label-rightStep">Step 4: Perform advanced features</label>
+        <label  class="label-rightText">Execute the following Actions: Batch Writes and Reads</label>
+      </div>             
+  </div>
+  <div style="width:100%;">
+      <label class="label-Output">PI Web API Calls:</label>
+      <textarea id="txtAPI" class="txtArea-Output" readonly></textarea>
+  </div>
+  <div style="width:100%;">
+      <label class="label-Output">Result:</label>
+      <textarea id="txtResult" class="txtArea-Output" readonly></textarea>
+  </div>
+</body>
+</html>

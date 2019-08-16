@@ -1,0 +1,139 @@
+<div class="div-align-center">
+  <h1>
+    {{ title }}
+  </h1>
+</div>
+
+<table>
+    <tr>
+        <td>
+            <table cellspacing="10">
+                <tr>
+                  <td>
+                      PI Web API Url:
+                  </td>
+                  <td>
+                      <input type="text" [(ngModel)]="PIWebAPIUrl" size="50" value="{{ PIWebAPIUrl }}" />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                      Asset Server:
+                  </td>
+                  <td>
+                      <input type="text" [(ngModel)]="assetServer" size="50" value="{{ assetServer }}" />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                      PI Server:
+                  </td>
+                  <td>
+                      <input type="text" [(ngModel)]="piServer" size="50" value="{{ piServer }}"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                      Security Method:
+                  </td>
+                  <td>
+                    <select (change)="onSecurityChange($event)">
+                      <option *ngFor="let d of securityMethods; let i = index;" [value]=d.id>{{d.name}}</option>
+                   </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                      User Name:
+                  </td>
+                  <td colspan="3">
+                      <input type="text" [(ngModel)]="userName" size="50" value="{{ userName }}"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                      Password:
+                  </td>
+                  <td colspan="3">
+                      <input type="password" [(ngModel)]="userPassword" name="password" />
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                      Action:
+                  </td>
+                  <td colspan="3">
+                      <select (change)="onChange($event)">
+                         <ng-container *ngFor="let d of callOptions;">
+                          <option *ngIf="d.id != 'divider'" [value]=d.id>{{d.name}}</option>
+                          <option *ngIf="d.id === 'divider'" disabled="disabled">-------------------------------------------------</option>
+                         </ng-container>
+                      </select>
+                  </td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <table cellspacing="10">
+                <tr>
+                  <td>
+                      Step 1:  Create the sandbox
+                  </td>
+                  <td>
+                      Execute the following Actions in order: Create Database, Create Category, Create Template and Create Element
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                      Step 2:  Write values to the tags
+                  </td>
+                  <td>
+                      Execute the following Actions: Write Single Value, Write Set of Values, Update Attribute Value
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                      Step 3:  Read the tags
+                  </td>
+                  <td>
+                      Execute the following Actions: Get Single Value, Get Set of Values, Reduce Payload with Selected Fields 
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                      Step 4:  Perform advanced features
+                  </td>
+                  <td>
+                      Execute the following Actions: Batch Writes and Reads 
+                  </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<button (click)="onButtonClick()">Execute Call</button>
+
+<table class="table-padding-top" width="100%">
+  <tr>
+      <td width="50%">
+          PI Web API Calls:
+      </td>
+  </tr>
+  <tr>
+      <td height="250px;"><textarea class="textarea" id="txtResult" [(ngModel)]="callURIText" readonly></textarea></td>
+  </tr>
+</table>
+
+<table class="table-padding-top" width="100%">
+  <tr>
+      <td width="50%">
+          Result:
+      </td>
+  </tr>
+  <tr>
+      <td height="250px;"><textarea class="textarea" id="txtResult" [(ngModel)]="codeResult" readonly></textarea></td>
+  </tr>
+</table>
+
+<router-outlet></router-outlet>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp" class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>AngularJS PI Web API Calls</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="lib/html5-boilerplate/dist/css/normalize.css">
+    <link rel="stylesheet" href="lib/html5-boilerplate/dist/css/main.css">
+    <link rel="stylesheet" href="app.css">
+    <script src="lib/html5-boilerplate/dist/js/vendor/modernizr-2.8.3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.8/angular.min.js"></script>
+  </head>
+  <body ng-controller="AppController">
+      <div class="div-align-center">
+          <h1>
+              AngularJS PI Web API Calls
+          </h1>
+        </div>
+        
+        <table>
+            <tr>
+                <td>
+                    <table cellspacing="10">
+                        <tr>
+                          <td>
+                              PI Web API Url:
+                          </td>
+                          <td>
+                              <input type="text" ng-model="piWebAPIUrl" size="50" name="piwebapiurl" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                              Asset Server:
+                          </td>
+                          <td>
+                              <input type="text" ng-model="assetServer" size="50" name="assetServer" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                              PI Server:
+                          </td>
+                          <td>
+                              <input type="text" ng-model="piServerName" size="50" name="piservername" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                              Security Method:
+                          </td>
+                          <td>
+                            <select ng-model="securityMethod">
+                                <option ng-repeat="option in securityMethods" value="{{option.id}}">{{option.name}}</option>
+                          </select>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                              User Name:
+                          </td>
+                          <td colspan="3">
+                              <input type="text" ng-model="userName" size="50" name="user" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                              Password:
+                          </td>
+                          <td colspan="3">
+                              <input type="password" ng-model="userPassword" name="password" />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                              Action:
+                          </td>
+                          <td colspan="3">
+                              <select ng-model="selectedCallOption">
+                                 <option ng-repeat="option in callOptions" value="{{option.id}}">{{option.name}}</option>
+                              </select>
+                          </td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <table cellspacing="10">
+                        <tr>
+                          <td>
+                              Step 1:  Create the sandbox
+                          </td>
+                          <td>
+                              Execute the following Actions in order: Create Database, Create Category, Create Template and Create Element
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                              Step 2:  Write values to the tags
+                          </td>
+                          <td>
+                              Execute the following Actions: Write Single Value, Write Set of Values, Update Attribute Value
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                              Step 3:  Read the tags
+                          </td>
+                          <td>
+                              Execute the following Actions: Get Single Value, Get Set of Values, Reduce Payload with Selected Fields 
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                              Step 4:  Perform advanced features
+                          </td>
+                          <td>
+                              Execute the following Actions: Batch Writes and Reads 
+                          </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        
+        <button ng-click="onButtonClick()">Execute Call</button>
+        
+        <table class="table-padding-top" width="100%">
+          <tr>
+              <td width="50%">
+                  PI Web API Calls:
+              </td>
+          </tr>
+          <tr>
+              <td height="250px;"><textarea class="textarea" id="txtResult" ng-model="callURIText" readonly></textarea></td>
+          </tr>
+        </table>
+        
+        <table style="padding-top: 30px;" width="100%">
+          <tr>
+              <td width="50%">
+                  Result:
+              </td>
+          </tr>
+          <tr>
+              <td height="250px;"><textarea class="textarea" id="txtResult" ng-model="codeResult" readonly></textarea></td>
+          </tr>
+        </table>
+ 
+    <script src="app.js"></script>
+        
+  </body>
+</html>

@@ -1,0 +1,14 @@
+.textarea {
+    height: 100%;
+    width: 100%;
+    border: solid 1px black;
+}
+
+.div-align-center {
+    text-align:center
+}
+
+.table-padding-top {
+    padding-top: 30px;
+    width: 100%;
+}
