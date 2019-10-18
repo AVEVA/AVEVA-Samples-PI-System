@@ -5,6 +5,18 @@
 
 variables:
 - group: LocalServer
+- name: projpath
+  value: /piwebapi_samples/Angular/AngularPIWebAPISample
+- name: CredFile
+  value: appsettings.json
+- name: CredFileLibrary
+  value: prod_omf_appsettings.json
+- name: CredFileLibraryOP
+  value: prod_onprem_omf_appsettings.json
+- name: testpath
+  value: /piwebapi_samples/Angular/AngularPIWebAPISample
+- name: job
+  value: OMF_APIDotNet
 
 trigger:
 - dev
@@ -21,18 +33,17 @@ steps:
 
 - script: npm install -g @angular/cli
   displayName: 'npm install angular'
-  workingDirectory: $(Build.SourcesDirectory)\Angular\AngularPIWebAPISample
+  workingDirectory: $(Build.SourcesDirectory)$(projpath)
 
 - script: |
-    cd $(Build.SourcesDirectory)\Angular\AngularPIWebAPISample
     npm install
     npm install --only=dev
   displayName: 'npm install dev dependencies'
-  workingDirectory: $(Build.SourcesDirectory)\Angular\AngularPIWebAPISample
+  workingDirectory: $(Build.SourcesDirectory)$(projpath)
 
 - script: ng test --watch=false
   displayName: 'run tests'
-  workingDirectory: $(Build.SourcesDirectory)\Angular\AngularPIWebAPISample
+  workingDirectory: $(Build.SourcesDirectory)$(projpath)
 
 - task: PublishTestResults@2
   condition: succeededOrFailed()
