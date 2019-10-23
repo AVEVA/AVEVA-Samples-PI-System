@@ -1,0 +1,243 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description"              : "Security Groups for PI systems when deployed into an existing VPC",
+    "Metadata"                 : {
+		"AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Global Configuration"
+                    },
+                    "Parameters": [
+						"DeployHA",
+                        "NamePrefix"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+                        "VPCCIDR",
+						"VPCID",
+						"BackendSubnet0CIDR",
+						"BackendSubnet1CIDR"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+				"NamePrefix": {
+					"default": "Name Prefix"
+				},
+				"BackendSubnet0CIDR": {
+					"default": "Backend Subnet0 CIDR"
+				},
+				"BackendSubnet1CIDR": {
+					"default": "Backend Subnet1 CIDR"
+				},
+				"VPCID": {
+					"default": "VPC ID"
+				},
+				"DeployHA": {
+                    "default": "Deploy HA"
+                }
+            }
+			},
+
+        "AWS::CloudFormation::Designer" : {
+        }
+    },
+    "Parameters"               : {
+        "NamePrefix"       : {
+            "Type" : "String",
+            "AllowedPattern" : "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription" : "Prefix can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description" : "Prefix used when naming resources, inputs, and outputs. Maximum 24 characters",
+            "MaxLength" : "24"
+        },
+        "DeployHA": {
+            "Type": "String",
+            "Description": "Will deploy two EC2 instances for HA senarios.",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true"
+        },
+        "VPCID"      : {
+            "Description" : "ID of the VPC (e.g., vpc-0343606e)",
+            "Type"        : "AWS::EC2::VPC::Id"
+        },
+        "BackendSubnet0CIDR" : {
+            "AllowedPattern" : "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription" : "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Description"           : "CIDR block for Backend Subnet",
+            "Type"                  : "String"
+        },
+        "BackendSubnet1CIDR" : {
+            "ConstraintDescription" : "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default"               : "",
+            "Description"           : "CIDR block for Backend Subnet",
+            "Type"                  : "String"
+        }
+    },
+    "Conditions": {
+        "CreateHAResources": {
+            "Fn::Equals": [
+                {
+                    "Ref": "DeployHA"
+                },
+                true
+            ]
+        }
+    },
+    "Resources"                : {
+        "PISystemsSG" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "VpcId" : {
+                    "Ref" : "VPCID"
+                },
+				"GroupName" : {"Fn::Sub": "${NamePrefix}-PISystemsSG"},
+                "GroupDescription" : "PI Systems Security Group",
+                "Tags"             : [
+                    {
+                        "Key" : "Name",
+                        "Value" : {
+                            "Fn::Sub" : "${NamePrefix}-PISystemsSecurityGroup"
+                        }
+                    }
+                ],
+                "SecurityGroupIngress" : [
+                    {
+                        "Description" : "PI Software access from PI Clients.",
+                        "IpProtocol"  : "tcp",
+                        "FromPort"    : "5450",
+                        "ToPort"      : "5470",
+                        "SourceSecurityGroupId" : {
+                            "Ref" : "PIClientSG"
+                        }
+                    }
+                ]
+            }
+        },
+        "PISystemsSGIngress" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PISystemsSG"
+                },
+                "IpProtocol"  : "tcp",
+                "FromPort"    : "5450",
+                "ToPort"      : "5470",
+                "SourceSecurityGroupId" : {
+                    "Ref" : "PISystemsSG"
+                }
+            }
+        },
+		"PISystemsSGICMP" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PISystemsSG"
+                },
+                "IpProtocol"  : "icmp",
+                "FromPort"    : "-1",
+                "ToPort"      : "-1",
+                "SourceSecurityGroupId" : {
+                    "Ref" : "PISystemsSG"
+                }
+            }
+        },
+		"PISystemsSGRPC" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PISystemsSG"
+                },
+                "IpProtocol"  : "tcp",
+                "FromPort"    : "0",
+                "ToPort"      : "65535",
+                "SourceSecurityGroupId" : {
+                    "Ref" : "PISystemsSG"
+                }
+            }
+        },
+		"PISystemsSGIngressLB1" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+			"Description" : "AF Server access for LB Probes.",
+            "Condition" : "CreateHAResources",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PISystemsSG"
+                },
+                "IpProtocol"  : "tcp",
+                "FromPort"    : "5457",
+                "ToPort"      : "5457",
+                "CidrIp"      : {
+                    "Ref" : "BackendSubnet0CIDR"
+                }
+            }
+        },
+        "PISystemsSGIngressLB2" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+			"Description" : "AF Server access for LB Probes.",
+            "Condition" : "CreateHAResources",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PISystemsSG"
+                },
+                "IpProtocol"  : "tcp",
+                "FromPort"    : "5457",
+                "ToPort"      : "5457",
+                "CidrIp"      : {
+                    "Ref" : "BackendSubnet1CIDR"
+                }
+            }
+        },
+        "PIClientSG"        : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "VpcId" : {
+                    "Ref" : "VPCID"
+                },
+				"GroupName" : {"Fn::Sub": "${NamePrefix}-PIClientSG"},
+                "GroupDescription" : "PI Clients Security Group",
+                "Tags"             : [
+                    {
+                        "Key" : "Name",
+                        "Value" : {
+                            "Fn::Sub" : "${NamePrefix}-PIClientsSecurityGroup"
+                        }
+                    }
+                ],
+                "SecurityGroupIngress" : [
+                ]
+            }
+        }
+    },
+    "Outputs"                  : {
+        "PISystemsSGID"  : {
+            "Description" : "ID of PI Backend Security Group",
+            "Value"       : {
+                "Ref" : "PISystemsSG"
+            },
+            "Export"      : {
+                "Name" : {
+                    "Fn::Sub" : "${AWS::StackName}-PIServerSGID"
+                }
+            }
+        },
+        "PIClientSGID"  : {
+            "Description" : "ID of PI Clients Security Group",
+            "Value"       : {
+                "Ref" : "PIClientSG"
+            },
+            "Export"      : {
+                "Name" : {
+                    "Fn::Sub" : "${AWS::StackName}-PIClientSGID"
+                }
+            }
+        }
+    }
+}

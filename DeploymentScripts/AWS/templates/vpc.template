@@ -1,0 +1,538 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "VPC with Frontend and Backend Subnets, Security Groups, Internet and NAT Gateway(s), and Routes. Can be deployed across 2 AZs for HA, through duplicate Subnets. vpc-deploysample0",
+    "Metadata": {
+			    "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Global Configuration"
+                    },
+                    "Parameters": [
+						"AvailabilityZones",
+						"DeployHA",
+                        "NamePrefix"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+                        "VPCCIDR",
+						"FrontendSubnet0CIDR",
+						"FrontendSubnet1CIDR",
+						"BackendSubnet0CIDR",
+						"BackendSubnet1CIDR"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+				"NamePrefix": {
+					"default": "Name Prefix"
+				},
+				"AvailabilityZones": {
+					"default": "Availability Zones"
+				},
+				"VPCCIDR": {
+					"default": "VPC CIDR"
+				},
+				"FrontendSubnet0CIDR": {
+					"default": "Frontend Subnet0 CIDR"
+				},
+				"FrontendSubnet1CIDR": {
+					"default": "Frontend Subnet1 CIDR"
+				},
+				"BackendSubnet0CIDR": {
+					"default": "Backend Subnet0 CIDR"
+				},
+				"BackendSubnet1CIDR": {
+					"default": "Backend Subnet1 CIDR"
+				},
+				"DeployHA": {
+                    "default": "Deploy HA"
+                }
+            }
+			},
+        "AWS::CloudFormation::Designer": {}
+    },
+    "Parameters": {
+        "AvailabilityZones": {
+            "Description": "List of Availability Zones to use for the subnets in the VPC. Note: The logical order is preserved.",
+            "Type": "List<AWS::EC2::AvailabilityZone::Name>"
+        },
+        "DeployHA": {
+            "Type": "String",
+            "Description": "Will deploy two pairs of frontend and backend subnets for HA.",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true"
+        },
+        "NamePrefix"       : {
+            "Type" : "String",
+            "AllowedPattern" : "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription" : "Prefix can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description" : "Prefix used when naming resources, inputs, and outputs. Maximum 24 characters",
+            "MaxLength" : "24"
+        },
+        "VPCCIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.0.0/16",
+            "Description": "CIDR block for the VPC",
+            "Type": "String"
+        },
+        "FrontendSubnet0CIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.0.0/24",
+            "Description": "CIDR block for Frontend Subnet",
+            "Type": "String"
+        },
+        "BackendSubnet0CIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.1.0/24",
+            "Description": "CIDR block for Backend Subnet",
+            "Type": "String"
+        },
+        "FrontendSubnet1CIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.10.0/24",
+            "Description": "CIDR block for Frontend Subnet",
+            "Type": "String"
+        },
+        "BackendSubnet1CIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.11.0/24",
+            "Description": "CIDR block for Backend Subnet",
+            "Type": "String"
+        }
+    },
+    "Conditions"               : {
+        "CreateHAResources" : {
+            "Fn::Equals" : [
+                {
+                    "Ref" : "DeployHA"
+                },
+                "true"
+            ]
+        }
+    },
+    "Resources": {
+        "VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "VPCCIDR"
+                },
+				"EnableDnsHostnames" : "true",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-VPC"}
+                    }
+                ]
+            }
+        },
+        "FrontendSubnet0": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": {
+                    "Ref": "FrontendSubnet0CIDR"
+                },
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Ref": "AvailabilityZones"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-FrontEndSubnet0"}
+                    }
+                ]
+            }
+        },
+        "BackendSubnet0": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": {
+                    "Ref": "BackendSubnet0CIDR"
+                },
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Ref": "AvailabilityZones"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-BackEndSubnet0"}
+                    }
+                ]
+            }
+        },
+        "FrontendSubnet1": {
+            "Condition" : "CreateHAResources",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": {
+                    "Ref": "FrontendSubnet1CIDR"
+                },
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Ref": "AvailabilityZones"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-FrontEndSubnet1"}
+                    }
+                ]
+            }
+        },
+        "BackendSubnet1": {
+            "Condition" : "CreateHAResources",
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": {
+                    "Ref": "BackendSubnet1CIDR"
+                },
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Ref": "AvailabilityZones"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-BackEndSubnet1"}
+                    }
+                ]
+            }
+        },
+        "NATGateway0": {
+            "Type": "AWS::EC2::NatGateway",
+            "Properties": {
+                "AllocationId": {
+                    "Fn::GetAtt": [
+                        "NATGateway0EIP",
+                        "AllocationId"
+                    ]
+                },
+                "SubnetId": {
+                    "Ref": "FrontendSubnet0"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-NATGateway0"}
+                    }
+                ]
+            }
+        },
+        "NATGateway0EIP": {
+            "Type": "AWS::EC2::EIP",
+            "Properties": {
+                "Domain": "vpc"            },
+            "DependsOn": [
+                "InternetGatewayAttachment"
+            ]
+        },
+        "NATGateway1": {
+            "Condition" : "CreateHAResources",
+            "Type": "AWS::EC2::NatGateway",
+            "Properties": {
+                "AllocationId": {
+                    "Fn::GetAtt": [
+                        "NATGateway1EIP",
+                        "AllocationId"
+                    ]
+                },
+                "SubnetId": {
+                    "Ref": "FrontendSubnet1"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-NATGAteway1"}
+                    }
+                ]
+            }
+        },
+        "NATGateway1EIP": {
+            "Condition" : "CreateHAResources",
+            "Type": "AWS::EC2::EIP",
+            "Properties": {
+                "Domain": "vpc"
+            },
+            "DependsOn": [
+                "InternetGatewayAttachment"
+            ]
+        },
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-InternetGateway"}
+                    }
+                ]
+            }
+        },
+        "BackendRouteTable0": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-BackendRouteTable0"}
+                    }
+                ]
+            }
+        },
+        "BackendRoute0": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "BackendRouteTable0"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "NatGatewayId": {
+                    "Ref": "NATGateway0"
+                }
+            }
+        },
+        "BackendRouteTable1": {
+            "Condition" : "CreateHAResources",
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-BackendRouteTable1"}
+                    }
+                ]
+            }
+        },
+        "BackendRoute1": {
+            "Condition" : "CreateHAResources",
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "BackendRouteTable1"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "NatGatewayId": {
+                    "Ref": "NATGateway1"
+                }
+            }
+        },
+        "FrontendRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-FrontendRouteTable"}
+                    }
+                ]
+            }
+        },
+        "FrontendRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "FrontendRouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            },
+            "DependsOn": [
+                "InternetGatewayAttachment"
+            ]
+        },
+        "FrontendSubnet0RouteLink": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "FrontendRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "FrontendSubnet0"
+                }
+            }
+        },
+        "BackendSubnet0RouteLink": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "BackendRouteTable0"
+                },
+                "SubnetId": {
+                    "Ref": "BackendSubnet0"
+                }
+            }
+        },
+        "FrontendSubnet1RouteLink": {
+            "Condition" : "CreateHAResources",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "FrontendRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "FrontendSubnet1"
+                }
+            }
+        },
+        "BackendSubnet1RouteLink": {
+            "Condition" : "CreateHAResources",
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "BackendRouteTable1"
+                },
+                "SubnetId": {
+                    "Ref": "BackendSubnet1"
+                }
+            }
+        },
+        "InternetGatewayAttachment": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                },
+                "VpcId": {
+                    "Ref": "VPC"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "VPCID": {
+            "Description": "ID of the Virtual Private Cloud",
+            "Value": {"Ref": "VPC"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-VPCID"}
+            }
+        },
+        "FrontendSubnet0ID": {
+            "Description": "ID of the Frontend Subnet",
+            "Value": {"Ref": "FrontendSubnet0"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-FrontendSubnet0ID"}
+            }
+        },
+		"BackendSubnet0ID": {
+            "Description": "ID of the Backend Subnet",
+            "Value": {"Ref": "BackendSubnet0"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-BackendSubnet0ID"}
+            }
+        },
+        "FrontendSubnet1ID": {
+            "Description": "ID of the Frontend Subnet",
+            "Value": {"Ref": "FrontendSubnet1"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-FrontendSubnet1ID"}
+            },
+			"Condition" : "CreateHAResources"
+        },
+		"BackendSubnet1ID": {
+            "Description": "ID of the Backend Subnet",
+            "Value": {"Ref": "BackendSubnet1"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-BackendSubnet1ID"}
+            },
+			"Condition" : "CreateHAResources"
+        },
+        "VPCCIDR": {
+            "Description": "CIDR of the Virtual Private Cloud",
+            "Value": {"Ref": "VPCCIDR"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-VPCCIDR"}
+            }
+        },
+        "FrontendSubnet0CIDR": {
+            "Description": "CIDR of the Frontend Subnet 0",
+            "Value": {"Ref": "FrontendSubnet0CIDR"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-FrontendSubnet0CIDR"}
+            }
+        },
+        "BackendSubnet0CIDR": {
+            "Description": "CIDR of the Backend Subnet 0",
+            "Value": {"Ref": "BackendSubnet0CIDR"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-BackendSubnet0CIDR"}
+            }
+        },
+        "FrontendSubnet1CIDR": {
+            "Description": "CIDR of the Frontend Subnet 1",
+            "Value": {"Ref": "FrontendSubnet1CIDR"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-FrontendSubnet1CIDR"}
+            },
+			"Condition" : "CreateHAResources"
+        },
+        "BackendSubnet1CIDR": {
+            "Description": "CIDR of the Backend Subnet 1",
+            "Value": {"Ref": "BackendSubnet1CIDR"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-BackendSubnet1CIDR"}
+            },
+			"Condition" : "CreateHAResources"
+        },
+        "VPCStackName": {
+            "Description": "Name of the VPC Stack",
+            "Value": {"Ref": "AWS::StackName"},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-StackName"}
+            }
+        }
+    }
+}

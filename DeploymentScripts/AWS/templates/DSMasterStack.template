@@ -1,0 +1,773 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "This template creates a full Core and PI infrastructure for single-instance or HA deployment of a Windows based Application infrastructure.",
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Global Configuration"
+                    },
+                    "Parameters": [
+                        "AvailabilityZones",
+                        "DeployHA",
+						"NamePrefix",
+                        "KeyPairName"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+                        "RDGWCIDR",
+						"PIInCIDR"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Active Directory Configuration"
+                    },
+                    "Parameters": [
+                        "ADServerInstanceType",
+                        "DomainDNSName",
+                        "DomainNetBIOSName",
+                        "DomainAdminUserName",
+                        "DomainAdminPassword",
+                        "RestoreModePassword"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "SQL Configuration"
+                    },
+                    "Parameters": [
+                        "SQLServiceAccount",
+                        "SQLFileServerInstanceType",
+                        "SQLNodeInstanceType",
+                        "Volume1Size",
+                        "Volume2Size",
+                        "Volume3Size"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Remote Desktop Gateway Configuration"
+                    },
+                    "Parameters": [
+                        "RDGWInstanceType"
+                    ]
+				},
+                {
+                    "Label": {
+                        "default": "PI Parameters"
+                    },
+                    "Parameters": [
+                        "PIDAInstanceType",
+                        "PIDADiskSizeinGB",
+                        "PIAFInstanceType",
+                        "PIVSInstanceType",
+                        "PIANInstanceType"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "AWS Deployment Sample Configuration"
+                    },
+                    "Parameters": [
+                        "DSS3BucketName",
+                        "DSS3KeyPrefix",
+						"DSS3BucketRegion",
+                        "SetupKitsS3BucketName",
+                        "SetupKitsS3KeyPrefix",
+						"SetupKitsS3BucketRegion",
+                        "SetupKitsS3PIFileName",
+                        "SetupKitsS3PIProductID",
+                        "SetupKitsS3VisionFileName",
+                        "TestFileName"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+                "ADServerInstanceType": {
+                    "default": "Domain Controller 1 Instance Type"
+                },
+                "AvailabilityZones": {
+                    "default": "Availability Zones"
+                },
+                "DeployHA": {
+                    "default": "Deploy HA"
+                },
+				"NamePrefix": {
+					"default": "Name Prefix"
+				},
+                "DomainAdminPassword": {
+                    "default": "Domain Admin Password"
+                },
+                "DomainAdminUserName": {
+                    "default": "Domain Admin User Name"
+                },
+                "DomainDNSName": {
+                    "default": "Domain DNS Name"
+                },
+                "DomainNetBIOSName": {
+                    "default": "Domain NetBIOS Name"
+                },
+                "KeyPairName": {
+                    "default": "Key Pair Name"
+                },
+                "DSS3BucketName": {
+                    "default": "Deployment Sample S3 Bucket Name"
+                },
+                "DSS3KeyPrefix": {
+                    "default": "Deployment Sample S3 Root Folder Name"
+                },
+                "DSS3BucketRegion": {
+                    "default": "Region for Deployment Samples S3 Bucket. Used in S3 URL"
+                },
+                "SetupKitsS3BucketName": {
+                    "default": "Setup Kits S3 Bucket Name"
+                },
+                "SetupKitsS3KeyPrefix": {
+                    "default": "Setup Kits S3 Root Folder Name"
+                },
+                "SetupKitsS3BucketRegion": {
+                    "default": "Region for Setup Kits S3 Bucket. Used in S3 URL"
+                },
+                "SetupKitsS3PIFileName": {
+                    "default": "PI Server Setup Kit File Name"
+                },
+                "SetupKitsS3PIProductID": {
+                    "default": "PI Server Setup Kit Product ID"
+                },
+                "SetupKitsS3VisionFileName": {
+                    "default": "PI Vision Setup Kit File Name"
+                },
+                "TestFileName": {
+                    "default": "Test File Name"
+                },
+                "RDGWInstanceType": {
+                    "default": "Remote Desktop Gateway Instance Type"
+                },
+                "RDGWCIDR": {
+                    "default": "Allowed Remote Desktop Gateway External Access CIDR"
+                },
+                "PIInCIDR": {
+                    "default": "Allowed CIDR Block for PI Data Ingress sources"
+                },
+                "RestoreModePassword": {
+                    "default": "AD Restore Mode Password"
+                },
+                "SQLServiceAccount": {
+                    "default": "SQL Service Account Name"
+                },
+                "Volume1Size": {
+                    "default": "SQL Data Volume Size"
+                },
+                "Volume2Size": {
+                    "default": "SQL Logs Volume Size"
+                },
+                "Volume3Size": {
+                    "default": "SQL Backups/TempDB Volume Size"
+                },
+                "SQLFileServerInstanceType": {
+                    "default": "SQL File Server Instance Type"
+                },
+                "SQLNodeInstanceType": {
+                    "default": "SQL Instance Type for Cluster Node 1"
+				},
+                "PIDAInstanceType": {
+                    "default": "PI Data Archive Instance Type"
+                },
+                "PIDADiskSizeinGB": {
+                    "default": "PI DA Disk Size in GB"
+                },
+                "PIAFInstanceType": {
+                    "default": "PI AF Instance Type"
+                },
+                "PIVSInstanceType": {
+                    "default": "PI Vision Instance Type"
+                },
+                "PIANInstanceType": {
+                    "default": "PI Analysis Instance Type"
+                }
+            }
+        }
+    },
+    "Parameters": {
+        "ADServerInstanceType": {
+            "AllowedValues": [
+                "t2.medium",
+                "t2.large",
+				"t3.medium",
+				"t3.large",
+                "m4.large",
+                "m4.xlarge",
+                "m5.large",
+                "m5.xlarge"
+            ],
+            "Default": "t3.medium",
+            "Description": "Amazon EC2 instance type for the Active Directory instances",
+            "Type": "String"
+        },
+        "AvailabilityZones": {
+            "Description": "List of Availability Zones to use for the subnets in the VPC. Note: The logical order is preserved and only 2 AZs are used for this deployment.",
+            "Type": "List<AWS::EC2::AvailabilityZone::Name>"
+        },
+        "DeployHA": {
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true",
+            "Description": "Deploy sets of 2 Instances for High Availability (HA). Note: PI Analysis Service will not be set up in high availability",
+            "Type": "String"
+        },
+        "NamePrefix"       : {
+            "Type" : "String",
+            "AllowedPattern" : "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription" : "Prefix can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description" : "Prefix used when naming resources, inputs, and outputs. Maximum 24 characters",
+            "MaxLength" : "24"
+        },
+		"DomainAdminPassword": {
+            "AllowedPattern": "(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
+            "Description": "Password for the domain admin user. Must be at least 8 characters containing letters, numbers and symbols",
+            "MaxLength": "32",
+            "MinLength": "8",
+            "NoEcho": "true",
+            "Type": "String"
+        },
+        "DomainAdminUserName": {
+            "AllowedPattern": "[a-zA-Z0-9]*",
+            "Default": "piadmin",
+            "Description": "User name for the account that will be added as Domain Administrator. This is separate from the default \"Administrator\" account",
+            "MaxLength": "25",
+            "MinLength": "5",
+            "Type": "String"
+        },
+        "DomainDNSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+\\..+",
+            "Default": "osideploysample.int",
+            "Description": "Fully qualified domain name (FQDN) of the forest root domain e.g. example.com",
+            "MaxLength": "25",
+            "MinLength": "2",
+            "Type": "String"
+        },
+        "DomainNetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "osideploysample",
+            "Description": "NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Windows e.g. EXAMPLE",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "KeyPairName": {
+            "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "DSS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Deployment Samples S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+        "SetupKitsS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Setup Kits S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+		"DSS3BucketName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "Deployment Sample bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "S3 bucket name for the Deployment Sample assets. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "DSS3KeyPrefix": {
+            "AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+            "ConstraintDescription": "Deployment Sample key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+            "Default": "DeploySample",
+            "Description": "Name of the root folder in the S3 Deployment Sample bucket. Root folder name can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+            "Type": "String"
+        },
+        "SetupKitsS3BucketName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "Setup Kits bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "S3 bucket name for the Setup Kit assets. This contains the install media for the PI System. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "SetupKitsS3KeyPrefix": {
+            "AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+            "ConstraintDescription": "Setup Kits key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+            "Default": "osisetupkits",
+            "Description": "Name of the root folder in the S3 Setup Kits bucket. Root folder name can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+            "Type": "String"
+        },
+        "SetupKitsS3PIFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "PI Server Setup Kit File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Default": "PI Server_2018 SP3_.exe",
+            "Description": "File Name for the PI Server Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "SetupKitsS3PIProductID": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "Default": "04a352f8-8231-4fe7-87cb-68b69becc145",
+            "ConstraintDescription": "PI Server Setup Kit Product ID can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "Product ID for the PI Server Setup Kit. Product ID can include numbers, lowercase letters, uppercase letters,and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "SetupKitsS3VisionFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "Default": "PI_Vision_2019_.exe",
+            "ConstraintDescription": "PI Vision Setup Kit File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "File Name for the PI Vision Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "TestFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "Default": "PI-System-Deployment-Tests-master.zip",
+            "ConstraintDescription": "Test File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "File Name for the test file. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "RDGWInstanceType": {
+            "Description": "Amazon EC2 instance type for the Remote Desktop Gateway instances",
+            "Type": "String",
+            "Default": "t3.large",
+            "AllowedValues": [
+                "t2.medium",
+                "t2.large",
+				"t3.medium",
+				"t3.large",
+                "m4.large",
+                "m4.xlarge",
+                "m5.large",
+                "m5.xlarge"
+            ]
+        },
+        "RDGWCIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$",
+            "ConstraintDescription": "IP Address parameter must be in the form x.x.x.x/16-32",
+            "Description": "Allowed CIDR Block for external access to the Remote Desktop Gateways",
+            "Type": "String"
+        },
+        "RestoreModePassword": {
+            "AllowedPattern": "(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
+            "Description": "Password for a separate Administrator account when the domain controller is in Restore Mode. Must be at least 8 characters containing letters, numbers and symbols",
+            "MaxLength": "32",
+            "MinLength": "8",
+            "NoEcho": "True",
+            "Type": "String"
+        },
+        "SQLServiceAccount": {
+            "Default": "svc-sql0",
+            "Description": "User name for the SQL Server Service Account. This Account is a Domain User.",
+            "MaxLength": "25",
+            "MinLength": "5",
+            "Type": "String"
+        },
+        "Volume1Size": {
+            "Default": "500",
+            "Description": "Volume size for the SQL Data drive, in GiB",
+            "MaxValue": "16000",
+            "MinValue": "100",
+            "Type": "Number"
+        },
+        "Volume2Size": {
+            "Default": "500",
+            "Description": "Volume size for the SQL Logs drive, in GiB",
+            "MaxValue": "16000",
+            "MinValue": "100",
+            "Type": "Number"
+        },
+        "Volume3Size": {
+            "Default": "500",
+            "Description": "Volume size for the SQL Backups and TempDB drive, in GiB",
+            "MaxValue": "16000",
+            "MinValue": "100",
+            "Type": "Number"
+        },
+        "SQLFileServerInstanceType": {
+            "AllowedValues": [
+                "t2.small",
+                "t2.medium",
+                "t3.small",
+                "t3.medium"
+            ],
+            "Default": "t3.small",
+            "Description": "Amazon EC2 instance type for a fileserver used to share install media, witness and replication folders",
+            "Type": "String"
+        },
+        "SQLNodeInstanceType": {
+            "AllowedValues": [
+                "m4.large",
+                "m4.xlarge",
+				"m5.large",
+				"m5.xlarge",
+                "r4.xlarge",
+                "r4.2xlarge"
+            ],
+            "Default": "m4.xlarge",
+            "Description": "Amazon EC2 instance type for the first SQL Node",
+            "Type": "String"
+		},
+        "PIDAInstanceType": {
+            "Description": "PI Data Archive EC2 instance type",
+            "Type": "String",
+            "Default": "m5.xlarge",
+            "AllowedValues": [
+                "t2.medium",
+                "t2.large",
+				"t3.medium",
+				"t3.large",
+                "m4.large",
+                "m4.xlarge",
+                "m4.2xlarge",
+                "m4.4xlarge",
+                "m4.10xlarge",
+                "m5.large",
+                "m5.xlarge",
+                "m5.2xlarge",
+                "m5.4xlarge",
+                "m5.10xlarge"
+            ],
+            "ConstraintDescription": "Must be a valid EC2 instance type."
+        },
+        "PIDADiskSizeinGB": {
+            "Type": "String",
+            "Description": "PI Data Archive Disk Size in GB",
+            "AllowedValues": [
+                "128",
+                "256",
+                "512",
+                "1024",
+                "2048",
+                "4096"
+            ],
+            "Default": "128"
+        },
+        "PIAFInstanceType": {
+            "Description": "PI AF EC2 instance type",
+            "Type": "String",
+            "Default": "m5.xlarge",
+            "AllowedValues": [
+                "t2.medium",
+                "t2.large",
+				"t3.medium",
+				"t3.large",
+                "m4.large",
+                "m4.xlarge",
+                "m4.2xlarge",
+                "m5.large",
+                "m5.xlarge",
+                "m5.2xlarge"
+            ],
+            "ConstraintDescription": "Must be a valid EC2 instance type."
+        },
+        "PIVSInstanceType": {
+            "Description": "PI Vision EC2 instance type",
+            "Type": "String",
+            "Default": "t3.medium",
+            "AllowedValues": [
+                "t2.medium",
+                "t2.large",
+				"t3.medium",
+				"t3.large",
+                "m4.large",
+                "m4.xlarge",
+                "m4.2xlarge",
+                "m5.large",
+                "m5.xlarge",
+                "m5.2xlarge"
+            ],
+            "ConstraintDescription": "Must be a valid EC2 instance type."
+        },
+        "PIANInstanceType": {
+            "Description": "PI Analysis Service EC2 instance type",
+            "Type": "String",
+            "Default": "m5.xlarge",
+            "AllowedValues": [
+                "t2.medium",
+                "t2.large",
+				"t3.medium",
+				"t3.large",
+                "m4.large",
+                "m4.xlarge",
+                "m4.2xlarge",
+                "m5.large",
+                "m5.xlarge",
+                "m5.2xlarge"
+            ],
+            "ConstraintDescription": "Must be a valid EC2 instance type."
+        },
+        "PIInCIDR"           : {
+            "AllowedPattern" : "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$",
+            "ConstraintDescription" : "CIDR block parameter must be in the form x.x.x.x/x",
+            "Description"           : "Allowed CIDR Block for allowed PI Data Ingress sources",
+            "Type"                  : "String"
+        }
+    },
+    "Conditions"               : {
+        "CreateHAResources" : {
+            "Fn::Equals" : [
+                {
+                    "Ref" : "DeployHA"
+                },
+                "true"
+            ]
+        }
+    },
+    "Resources": {
+        "CoreStack": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "TemplateURL": {
+                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/templates/DSCoreStack.template"
+                },
+                "Parameters": {
+                    "AvailabilityZones": {
+                        "Fn::Join": [
+                            ",",
+                            {
+                                "Ref": "AvailabilityZones"
+                            }
+                        ]
+                    },
+					"DeployHA": {
+						"Ref": "DeployHA"
+					},
+                    "NamePrefix": {
+                        "Ref": "NamePrefix"
+                    },
+                    "RDGWCIDR": {
+                        "Ref": "RDGWCIDR"
+                    },
+                    "ADServerInstanceType": {
+                        "Ref": "ADServerInstanceType"
+                    },
+                    "DomainAdminPassword": {
+                        "Ref": "DomainAdminPassword"
+                    },
+                    "DomainAdminUserName": {
+                        "Ref": "DomainAdminUserName"
+                    },
+					"RestoreModePassword":{
+						"Ref":"RestoreModePassword"
+					},
+                    "DomainDNSName": {
+                        "Ref": "DomainDNSName"
+                    },
+                    "DomainNetBIOSName": {
+                        "Ref": "DomainNetBIOSName"
+                    },
+                    "KeyPairName": {
+                        "Ref": "KeyPairName"
+                    },
+                    "DSS3BucketName": {
+                        "Ref": "DSS3BucketName"
+                    },
+                    "DSS3KeyPrefix": {
+                        "Ref": "DSS3KeyPrefix"
+                    },
+					"DSS3BucketRegion": {
+                        "Ref": "DSS3BucketRegion"
+                    },
+					"SetupKitsS3BucketRegion": {
+                        "Ref": "SetupKitsS3BucketRegion"
+                    },
+					"RDGWInstanceType":{
+						"Ref" : "RDGWInstanceType"
+					},
+                    "SetupKitsS3BucketName": {
+                        "Ref": "SetupKitsS3BucketName"
+                    },
+                    "SetupKitsS3KeyPrefix": {
+                        "Ref": "SetupKitsS3KeyPrefix"
+                    },
+                    "SetupKitsS3PIFileName": {
+                        "Ref": "SetupKitsS3PIFileName"
+                    },
+                    "SetupKitsS3PIProductID": {
+                        "Ref": "SetupKitsS3PIProductID"
+                    },
+                    "SetupKitsS3VisionFileName": {
+                        "Ref": "SetupKitsS3VisionFileName"
+                    },
+					"SQLServiceAccount": {
+                        "Ref": "SQLServiceAccount"
+                    },
+					"Volume1Size": {
+                        "Ref": "Volume1Size"
+                    },
+					"Volume2Size": {
+                        "Ref": "Volume2Size"
+                    },
+					"Volume3Size": {
+                        "Ref": "Volume3Size"
+                    },
+					"SQLFileServerInstanceType": {
+                        "Ref": "SQLFileServerInstanceType"
+                    },
+					"SQLNodeInstanceType": {
+                        "Ref": "SQLNodeInstanceType"
+                    }
+                }
+            }
+		},
+        "PIStack": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "TemplateURL": {
+                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/templates/DSPIStack.template"
+                },
+                "Parameters": {
+					"DeployHA": {
+						"Ref": "DeployHA"
+					},
+                    "NamePrefix": {
+                        "Ref": "NamePrefix"
+                    },
+                    "PIDAInstanceType": {
+                        "Ref": "PIDAInstanceType"
+                    },
+                    "SQLClientSGID": {
+						"Fn::GetAtt": [
+							"CoreStack",
+							"Outputs.SQLClientSGID"
+						]
+					},
+                    "DomainMemberSGID": {
+						"Fn::GetAtt": [
+							"CoreStack",
+							"Outputs.DomainMemberSGID"
+						]
+					},
+                    "PISystemsSGID": {
+						"Fn::GetAtt": [
+							"CoreStack",
+							"Outputs.PISystemsSGID"
+						]
+					},
+                    "PIClientSGID": {
+						"Fn::GetAtt": [
+							"CoreStack",
+							"Outputs.PIClientSGID"
+						]
+					},
+                    "VPCID": {
+						"Fn::GetAtt": [
+							"CoreStack",
+							"Outputs.VPCID"
+						]
+					},
+                    "BackendSubnet0ID": {
+						"Fn::GetAtt": [
+							"CoreStack",
+							"Outputs.BackendSubnet0ID"
+						]
+					},
+                    "BackendSubnet1ID": {
+						"Fn::If": [
+							"CreateHAResources",
+							{
+								"Fn::GetAtt": [
+									"CoreStack",
+									"Outputs.BackendSubnet1ID"
+								]
+							},
+							{
+								"Fn::GetAtt": [
+									"CoreStack",
+									"Outputs.BackendSubnet0ID"
+								]
+							}
+						]
+					},
+                    "FrontendSubnet0ID": {
+						"Fn::GetAtt": [
+							"CoreStack",
+							"Outputs.FrontendSubnet0ID"
+						]
+					},
+                    "FrontendSubnet1ID": {
+						"Fn::If": [
+							"CreateHAResources",
+							{
+								"Fn::GetAtt": [
+									"CoreStack",
+									"Outputs.FrontendSubnet1ID"
+								]
+							},
+							{
+								"Fn::GetAtt": [
+									"CoreStack",
+									"Outputs.FrontendSubnet0ID"
+								]
+                             }
+						]
+					},
+                    "PIDADiskSizeinGB": {
+                        "Ref": "PIDADiskSizeinGB"
+                    },
+					"DSS3BucketRegion": {
+                        "Ref": "DSS3BucketRegion"
+                    },
+					"SetupKitsS3BucketRegion": {
+                        "Ref": "SetupKitsS3BucketRegion"
+                    },
+                    "DSS3BucketName": {
+                        "Ref": "DSS3BucketName"
+                    },
+                    "DSS3KeyPrefix": {
+                        "Ref": "DSS3KeyPrefix"
+                    },
+                    "SetupKitsS3BucketName": {
+                        "Ref": "SetupKitsS3BucketName"
+                    },
+                    "SetupKitsS3KeyPrefix": {
+                        "Ref": "SetupKitsS3KeyPrefix"
+                    },
+                    "SetupKitsS3PIFileName": {
+                        "Ref": "SetupKitsS3PIFileName"
+                    },
+                    "SetupKitsS3PIProductID": {
+                        "Ref": "SetupKitsS3PIProductID"
+                    },
+                    "SetupKitsS3VisionFileName": {
+                        "Ref": "SetupKitsS3VisionFileName"
+                    },
+                    "TestFileName": {
+                        "Ref": "TestFileName"
+                    },
+					"KeyPairName": {
+                        "Ref": "KeyPairName"
+                    },
+                    "DomainDNSName": {
+                        "Ref": "DomainDNSName"
+                    },
+                    "DomainNetBIOSName": {
+                        "Ref": "DomainNetBIOSName"
+                    },
+                    "DomainAdminUserName": {
+                        "Ref": "DomainAdminUserName"
+                    },
+                    "DomainAdminPassword": {
+                        "Ref": "DomainAdminPassword"
+                    },
+                    "PIAFInstanceType": {
+                        "Ref": "PIAFInstanceType"
+                    },
+                    "PIVSInstanceType": {
+                        "Ref": "PIVSInstanceType"
+                    },
+                    "PIANInstanceType": {
+                        "Ref": "PIANInstanceType"
+                    },
+                    "PIInCIDR": {
+                        "Ref": "PIInCIDR"
+                    }
+                }
+            }
+        }
+    }
+}

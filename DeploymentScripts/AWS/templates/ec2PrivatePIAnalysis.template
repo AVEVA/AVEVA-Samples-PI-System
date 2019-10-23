@@ -1,0 +1,921 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Backend PI Analysis Service EC2 instance (Single Instance only).",
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Global Configuration"
+                    },
+                    "Parameters": [
+						"DeployHA",
+                        "NamePrefix",
+						"KeyPairName"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "PI Analysis Service Configuration"
+                    },
+                    "Parameters": [
+                        "InstanceType",
+						"LatestWindowsAmiId",
+						"PIAN0NetBIOSName",
+						"PIANServiceAccountName"
+                    ]
+                },
+               {
+                    "Label": {
+                        "default": "PI System Parameters"
+                    },
+                    "Parameters": [
+                        "PIDataArchive0NetBIOSName",
+						"PIAF0NetBIOSName"
+                    ]
+                },                
+				{
+                    "Label": {
+                        "default": "Domain Parameters"
+                    },
+                    "Parameters": [
+                        "DomainDNSName",
+                        "DomainNetBIOSName",
+						"DomainControllerServerName",
+                        "DomainAdminUserName"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+						"BackendSubnet0ID"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Security Groups"
+                    },
+                    "Parameters": [
+						"DomainMemberSGID",
+						"PISystemsSGID"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "AWS Deployment Sample Configuration"
+                    },
+                    "Parameters": [
+                        "DSS3BucketName",
+                        "DSS3KeyPrefix",
+						"DSS3BucketRegion",
+						"SetupKitsS3BucketName",
+                        "SetupKitsS3KeyPrefix",
+						"SetupKitsS3BucketRegion",
+                        "SetupKitsS3PIFileName",
+                        "SetupKitsS3PIProductID",
+                        "SetupKitsS3VisionFileName",
+						"TestFileName"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+                "DomainAdminUserName": {
+                    "default": "Domain Admin User Name"
+                },
+                "DomainDNSName": {
+                    "default": "Domain DNS Name"
+                },
+                "DomainNetBIOSName": {
+                    "default": "Domain NetBIOS Name"
+                },
+				"DomainControllerServerName": {
+                    "default": "Domain Controller Server Name"
+                },
+                "KeyPairName": {
+                    "default": "Key Pair Name"
+                },
+                "DSS3BucketName": {
+                    "default": "Deployment Sample S3 Bucket Name"
+                },
+                "DSS3KeyPrefix": {
+                    "default": "Deployment Sample S3 Key Prefix"
+                },
+                "DSS3BucketRegion": {
+                    "default": "Region for Deployment Samples S3 Bucket. Used in S3 URL"
+                },
+                "DeployHA": {
+                    "default": "Deploy HA"
+                },
+				"InstanceType": {
+                    "default": "Instance Type for PI Analysis Service"
+                },
+				"NamePrefix": {
+					"default": "Name Prefix"
+				},
+				"BackendSubnet0ID": {
+					"default": "Backend Subnet0 ID"
+				},
+				"DomainMemberSGID": {
+					"default": "Domain Member SGID"
+				},
+				"PISystemsSGID": {
+					"default": "PI Systems SGID"
+				},
+				"PIDataArchive0NetBIOSName": {
+                    "default": "PI Data Archive 0 NetBIOS Name"
+                },
+				"PIAF0NetBIOSName": {
+                    "default": "PI Asset Framework 0 NetBIOS Name"
+                },
+				"PIAN0NetBIOSName": {
+                    "default": "PI Analysis Service NetBIOS Name"
+                },
+				"PIANServiceAccountName": {
+                    "default": "PI Analysis Service Account Name"
+                },
+				"SetupKitsS3BucketName": {
+                    "default": "Setup Kits S3 Bucket Name"
+                },
+                "SetupKitsS3KeyPrefix": {
+                    "default": "Setup Kits S3 Root Folder Name"
+                },
+                "SetupKitsS3BucketRegion": {
+                    "default": "Region for Setup Kits S3 Bucket. Used in S3 URL"
+                },
+				"SetupKitsS3PIFileName": {
+                    "default": "PI Server Setup Kit File Name"
+                },
+                "SetupKitsS3PIProductID": {
+                    "default": "PI Server Setup Kit Product ID"
+                },
+                "SetupKitsS3VisionFileName": {
+                    "default": "PI Vision Setup Kit File Name"
+                },
+                "TestFileName": {
+                    "default": "Test File Name"
+                },
+                "LatestWindowsAmiId": {
+					"default": "Latest Windows Ami ID"
+				}
+            }
+        }
+    },
+
+	"Parameters": {
+		"InstanceType": {
+			"Description": "EC2 instance type (aka sizing)",
+			"Type": "String",
+			"Default": "m5.xlarge",
+			"AllowedValues": [
+				"t2.medium",
+				"t2.large",
+				"t3.medium",
+				"t3.large",
+				"m4.large",
+				"m4.xlarge",
+				"m5.large",
+				"m5.xlarge"
+			],
+			"ConstraintDescription": "Must be a valid EC2 instance type."
+		},
+		"KeyPairName": {
+			"Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+			"Type": "AWS::EC2::KeyPair::KeyName"
+		},
+        "DeployHA": {
+            "Type": "String",
+            "Description": "Will deploy two EC2 instances for HA senarios.",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true"
+        },        
+		"NamePrefix"       : {
+            "Type" : "String",
+            "AllowedPattern" : "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription" : "Prefix can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description" : "Prefix used when naming resources, inputs, and outputs. Maximum 24 characters",
+            "MaxLength" : "24"
+        },
+        "DSS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Deployment Samples S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+        "SetupKitsS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Setup Kits S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+		"DSS3BucketName": {
+			"AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+			"ConstraintDescription": "Deployment Sample bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Description": "S3 bucket name for the Deployment Sample assets. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Type": "String"
+		},
+		"DSS3KeyPrefix": {
+			"AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+			"ConstraintDescription": "Deployment Sample key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+			"Default": "DeploySample",
+			"Description": "Name of the root folder in the S3 Deployment Sample bucket. Root folder name can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+			"Type": "String"
+		},
+		"SetupKitsS3BucketName": {
+			"AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+			"ConstraintDescription": "Setup Kits bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Description": "S3 bucket name for the Setup Kit assets. This contains the install media for the PI System. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Type": "String"
+		},
+		"SetupKitsS3KeyPrefix": {
+			"AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+			"ConstraintDescription": "Setup Kits key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+			"Default": "osisetupkits",
+			"Description": "Name of the root folder in the S3 Setup Kits bucket. Root folder name can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+			"Type": "String"
+		},
+		"SetupKitsS3PIFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "Default": "PI Server_2018 SP3_.exe",
+            "ConstraintDescription": "PI Server Setup Kit File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "File Name for the PI Server Setup Kit. File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "SetupKitsS3PIProductID": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "Default": "04a352f8-8231-4fe7-87cb-68b69becc145",
+            "ConstraintDescription": "PI Server Setup Kit Product ID can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "Product ID for the PI Server Setup Kit. Product ID can include numbers, lowercase letters, uppercase letters,and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "SetupKitsS3VisionFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "Default": "PI_Vision_2019_.exe",
+            "ConstraintDescription": "PI Vision Setup Kit File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "File Name for the PI Vision Setup Kit. File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "TestFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "Default": "PI-System-Deployment-Tests-master.zip",
+            "ConstraintDescription": "Test File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "File Name for the Test file. File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "DomainDNSName": {
+			"AllowedPattern": "[a-zA-Z0-9]+\\..+",
+			"Default": "osideploysample.int",
+			"Description": "Fully qualified domain name (FQDN) of the forest root domain e.g. example.com",
+			"MaxLength": "25",
+			"MinLength": "3",
+			"Type": "String"
+		},
+		"DomainNetBIOSName": {
+			"AllowedPattern": "[a-zA-Z0-9]+",
+			"Default": "osideploysample",
+			"Description": "NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Windows e.g. EXAMPLE",
+			"MaxLength": "15",
+			"MinLength": "1",
+			"Type": "String"
+		},
+		"DomainAdminUserName": {
+			"Type": "String",
+			"Description": "Username for the domain user with rights to create AD Groups.",
+			"Default": "piadmin"
+		},
+		"PIANServiceAccountName": {
+			"Description": "PI Analysis Service account name",
+			"MinLength": "1",
+			"Type": "String"
+		},
+		"DomainControllerServerName": {
+			"Type": "String",
+			"Description": "Host name of primary domain controller. Used when creating service account, security group, and updating DNS with load balance end point used by AF.",
+			"Default": "DC0"
+		},
+		"PIAN0NetBIOSName": {
+			"AllowedPattern": "[a-zA-Z0-9\\-]+",
+			"Default": "PIAN0",
+			"Description": "NetBIOS name of the PI Analysis Service server (up to 15 characters)",
+			"MaxLength": "15",
+			"MinLength": "1",
+			"Type": "String"
+		},
+		"PIAF0NetBIOSName": {
+			"AllowedPattern": "[a-zA-Z0-9\\-]+",
+			"Default": "PIAF0",
+			"Description": "NetBIOS name of the first PI AF server (up to 15 characters)",
+			"MaxLength": "15",
+			"MinLength": "1",
+			"Type": "String"
+		},
+		"PIDataArchive0NetBIOSName": {
+			"AllowedPattern": "[a-zA-Z0-9\\-]+",
+			"Default": "PIDA0",
+			"Description": "NetBIOS name of the first PI Data Archive server (up to 15 characters)",
+			"MaxLength": "15",
+			"MinLength": "1",
+			"Type": "String"
+		},
+        "DomainMemberSGID"           : {
+            "Description" : "ID of the Domain Member Security Group (e.g., sg-7f16e910).",
+            "Type"        : "AWS::EC2::SecurityGroup::Id"
+        },
+        "PISystemsSGID"              : {
+            "Description" : "ID of the PI Systems Security Group (e.g., sg-7f16e910).",
+            "Type"        : "AWS::EC2::SecurityGroup::Id"
+        },
+        "BackendSubnet0ID"           : {
+            "Description" : "ID of the backend subnet 1 in Availability Zone 1.",
+            "Type"        : "AWS::EC2::Subnet::Id"
+        },
+		"LatestWindowsAmiId": {
+			"Description": "ID for the latest Windows Server 2016 Data Center Amazon Managed Image (AMI). The ID will be looked up from Amazon's public Parameter Store. Provide the full path to the AMI you want to find.",
+			"Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+			"Default": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base"
+		}
+	},
+	"Resources": {
+		"EC2Role": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": [
+									"ec2.amazonaws.com"
+								]
+							},
+							"Action": [
+								"sts:AssumeRole"
+							]
+						}
+					]
+				},
+				"Path": "/",
+				"Policies": [
+					{
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Action": [
+										"s3:GetObject"
+									],
+									"Resource": {
+										"Fn::Sub": "arn:aws:s3:::${DSS3BucketName}/${DSS3KeyPrefix}/*"
+									},
+									"Effect": "Allow"
+								}
+							]
+						},
+						"PolicyName": "aws-deploy-sample-s3-policy"
+					},
+					{
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Action": [
+										"s3:GetObject"
+									],
+									"Resource": {
+										"Fn::Sub": "arn:aws:s3:::${SetupKitsS3BucketName}/${SetupKitsS3KeyPrefix}/*"
+									},
+									"Effect": "Allow"
+								}
+							]
+						},
+						"PolicyName": "aws-setup-kits-s3-policy"
+					},
+					{
+						"PolicyName": "SSM-Parameters-DomainJoin",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [
+										"ssm:GetParameter",
+										"ssm:GetParameters"
+									],
+									"Resource": {
+										"Fn::Sub": "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${NamePrefix}/${DomainAdminUserName}"
+									}
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"ssm:DescribeParameters"
+									],
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"kms:Decrypt"
+									],
+									"Resource": {
+										"Fn::Sub": "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm"
+									}
+								}
+							]
+						}
+					},
+					{
+						"PolicyName": "SSM-Parameters-PIAnalytics",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [
+										"ssm:GetParameter",
+										"ssm:GetParameters"
+									],
+									"Resource": {
+										"Fn::Sub": "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${NamePrefix}/${PIANServiceAccountName}"
+									}
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"ssm:DescribeParameters"
+									],
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"kms:Decrypt"
+									],
+									"Resource": {
+										"Fn::Sub": "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm"
+									}
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"EC2RoleInstanceProfile": {
+			"Type": "AWS::IAM::InstanceProfile",
+			"Properties": {
+				"Path": "/",
+				"Roles": [
+					{
+						"Ref": "EC2Role"
+					}
+				]
+			}
+		},
+		"EC20": {
+			"Type": "AWS::EC2::Instance",
+			"Metadata": {
+				"AWS::CloudFormation::Authentication": {
+					"S3AccessCreds": {
+						"type": "S3",
+						"roleName": {
+							"Ref": "EC2Role"
+						},
+						"buckets": [
+							{
+								"Ref": "DSS3BucketName"
+							}
+						]
+					}
+				},
+				"AWS::CloudFormation::Init": {
+					"configSets": {
+						"config": [
+							"setup",
+							"rename",
+							"pisoftware",
+							"bootstrapDSC",
+							"finalize"
+						]
+					},
+					"setup": {
+						"files": {
+							"c:\\cfn\\cfn-hup.conf": {
+								"content": {
+									"Fn::Join": [
+										"",
+										[
+											"[main]\n",
+											"stack=",
+											{
+												"Ref": "AWS::StackName"
+											},
+											"\n",
+											"region=",
+											{
+												"Ref": "AWS::Region"
+											},
+											"\n"
+										]
+									]
+								}
+							},
+							"c:\\cfn\\hooks.d\\cfn-auto-reloader.conf": {
+								"content": {
+									"Fn::Join": [
+										"",
+										[
+											"[cfn-auto-reloader-hook]\n",
+											"triggers=post.update\n",
+											"path=Resources.EC20.Metadata.AWS::CloudFormation::Init\n",
+											"action=cfn-init.exe -v -c config -s ",
+											{
+												"Ref": "AWS::StackId"
+											},
+											" -r EC20",
+											" --region ",
+											{
+												"Ref": "AWS::Region"
+											},
+											"\n"
+										]
+									]
+								}
+							},
+							"c:\\cfn\\scripts\\Unzip-Archive.ps1": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Unzip-Archive.ps1"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"c:\\cfn\\modules\\AWSQuickStart.zip": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/AWSQuickStart.zip"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"c:\\cfn\\scripts\\CreateWaitHandle.ps1": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/CreateWaitHandle.ps1"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"c:\\cfn\\scripts\\PIAN0.ps1": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/configs/PIAN0.ps1"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"c:\\cfn\\scripts\\IPHelper.psm1": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/IPHelper.psm1"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"c:\\cfn\\scripts\\New-DSCCertificate.ps1": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/New-DSCCertificate.ps1"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"c:\\cfn\\scripts\\Join-Domain.ps1": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Join-Domain.ps1"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"C:\\cfn\\Modules\\xStorage_3.4.zip": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xStorage_3.4.zip"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"C:\\cfn\\Modules\\xActiveDirectory_3.0.zip": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xActiveDirectory_3.0.zip"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"C:\\cfn\\Modules\\xNetworking_5.7.zip": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xNetworking_5.7.zip"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"C:\\cfn\\Modules\\cChoco_2.4.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/cChoco_2.4.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+							"C:\\cfn\\Modules\\xPendingReboot_0.4.zip": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xPendingReboot_0.4.zip"
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"C:\\cfn\\Modules\\xWindowsUpdate-2.8.zip": {
+								"source": {
+									"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xWindowsUpdate-2.8.zip"
+								},
+								"authentication": "S3AccessCreds"
+							}
+						},
+						"services": {
+							"windows": {
+								"cfn-hup": {
+									"enabled": "true",
+									"ensureRunning": "true",
+									"files": [
+										"c:\\cfn\\cfn-hup.conf",
+										"c:\\cfn\\hooks.d\\cfn-auto-reloader.conf"
+									]
+								}
+							}
+						},
+						"commands": {
+							"a-set-execution-policy": {
+								"command": "powershell.exe -command Set-ExecutionPolicy RemoteSigned -Force",
+								"waitAfterCompletion": "0"
+							},
+							"b-unpack-quickstart-module": {
+								"command": "powershell.exe -command c:\\cfn\\scripts\\Unzip-Archive.ps1 -Source c:\\cfn\\modules\\AWSQuickStart.zip -Destination C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules\\",
+								"waitAfterCompletion": "0"
+							},
+							"c-create-waithandle": {
+								"command": {
+									"Fn::Join": [
+										"",
+										[
+											"powershell.exe -command \"c:\\cfn\\scripts\\CreateWaitHandle.ps1 -Handle '",
+											{
+												"Ref": "PIAN0WaitHandle"
+											},
+											"'\""
+										]
+									]
+								},
+								"waitAfterCompletion": "0"
+							},
+							"d-unzip-modules": {
+								"command": "powershell.exe -command \"Get-ChildItem 'C:\\cfn\\Modules' *.zip | Foreach-Object { c:\\cfn\\scripts\\unzip-archive.ps1 -source $_.fullname -destination 'C:\\Program Files\\WindowsPowerShell\\Modules'}\"",
+								"waitAfterCompletion": "0"
+							}
+						}
+					},
+					"pisoftware": {
+						"files": {
+							"c:\\media\\PIServer\\PIServerInstaller.exe": {
+								"source": {
+									"Fn::Sub": "https://${SetupKitsS3BucketName}.s3.${SetupKitsS3BucketRegion}.amazonaws.com/${SetupKitsS3KeyPrefix}/PIServer/${SetupKitsS3PIFileName}"
+								},
+								"authentication": "S3AccessCreds"
+							},
+              "c:\\media\\TestFile.zip": {
+                  "source": {
+                    "Fn::Sub": "https://${SetupKitsS3BucketName}.s3.${SetupKitsS3BucketRegion}.amazonaws.com/${SetupKitsS3KeyPrefix}/${TestFileName}"
+                  },
+                  "authentication": "S3AccessCreds"
+              },
+							"c:\\media\\NetFramework\\windows10.0-kb4486129.msu": {
+								"source": "http://download.windowsupdate.com/c/msdownload/update/software/ftpk/2019/08/windows10.0-kb4486129-x64_bb869dd2cfa4ddde433373e2c72d15e660c2fc8d.msu"
+							}
+						}
+					},
+					"rename": {
+						"commands": {
+							"a-rename-computer": {
+								"command": "powershell.exe -Command Rename-Computer -NewName PIAN0 -Restart",
+								"waitAfterCompletion": "forever"
+							},
+							"b-domain-join": {
+								"command": {
+									"Fn::Join": [
+										"",
+										[
+											"powershell.exe -executionpolicy remotesigned -Command c:\\cfn\\scripts\\Join-Domain.ps1 -DomainName '",
+											{
+												"Ref": "DomainDNSName"
+											},
+											"' -UserName '",
+											{
+												"Ref": "DomainAdminUserName"
+											},
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+											"'"
+										]
+									]
+								},
+								"waitAfterCompletion": "forever"
+							}
+						}
+					},
+					"bootstrapDSC": {
+						"commands": {
+							"a-create-cert": {
+								"command": {
+									"Fn::Join": [
+										"",
+										[
+											"powershell.exe -command c:\\cfn\\scripts\\New-DSCCertificate.ps1"
+										]
+									]
+								},
+								"waitAfterCompletion": "0"
+							},
+							"b-run-dsc-config-first": {
+								"command": {
+									"Fn::Join": [
+										"",
+										[
+											"powershell.exe -Command c:\\cfn\\scripts\\PIAN0.ps1 -DomainNetBiosName '",
+											{
+												"Ref": "DomainNetBIOSName"
+											},
+											"' -DomainAdminUserName '",
+											{
+												"Ref": "DomainAdminUserName"
+											},
+											"' -PIANServiceAccountName '",
+											{
+												"Ref": "PIANServiceAccountName"
+											},
+											"' -DefaultPIAFServer '",
+											{
+												"Ref": "PIAF0NetBIOSName"
+											},
+											"' -DefaultPIDataArchive '",
+											{
+												"Ref": "PIDataArchive0NetBIOSName"
+											},
+											"' -SetupKitsS3PIProductID '",
+                                            {
+                                                "Ref": "SetupKitsS3PIProductID"
+                                            },
+                                            "' -TestFileName '",
+                                            {
+                                                "Ref": "TestFileName"
+                                            },
+                                            "' -DomainControllerServerName '",
+											{
+												"Ref": "DomainControllerServerName"
+											},
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+											"' -DeployHA '",
+                                            {
+                                                "Ref": "DeployHA"
+                                            },
+											"'"
+										]
+									]
+								},
+								"waitAfterCompletion": "forever"
+							}
+						}
+					},
+					"finalize": {
+						"commands": {
+							"a-write-status": {
+								"command": "powershell.exe -command Write-AWSQuickStartStatus",
+								"waitAfterCompletion": "0"
+							}
+						}
+					}
+				}
+			},
+			"Properties": {
+				"InstanceType": {
+					"Ref": "InstanceType"
+				},
+				"IamInstanceProfile": {
+					"Ref": "EC2RoleInstanceProfile"
+				},
+				"UserData": {
+					"Fn::Base64": {
+						"Fn::Join": [
+							"",
+							[
+								"<script>\n",
+								"cfn-init.exe -v -c config -s ",
+								{
+									"Ref": "AWS::StackId"
+								},
+								" -r EC20",
+								" --region ",
+								{
+									"Ref": "AWS::Region"
+								},
+								"\n",
+								"</script>\n"
+							]
+						]
+					}
+				},
+				"ImageId": {
+					"Ref": "LatestWindowsAmiId"
+				},
+				"KeyName": {
+					"Ref": "KeyPairName"
+				},
+				"NetworkInterfaces": [
+					{
+                        "GroupSet"    : [
+                            {
+                                "Ref" : "DomainMemberSGID"
+                            },
+                            {
+                                "Ref" : "PISystemsSGID"
+                            }
+                        ],
+						"DeviceIndex": "0",
+						"DeleteOnTermination": "true",
+                        "SubnetId"            : {
+							"Ref" : "BackendSubnet0ID"
+                        }
+					}
+				],
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": {
+							"Fn::Sub": "${NamePrefix}-${PIAN0NetBIOSName}"
+						}
+					}
+				]
+			}
+		},
+		"EC2VA0Binaries": {
+			"Type": "AWS::EC2::VolumeAttachment",
+			"Properties": {
+				"VolumeId": {
+					"Ref": "VolumeData0Binaries"
+				},
+				"InstanceId": {
+					"Ref": "EC20"
+				},
+				"Device": "xvdf"
+			}
+		},
+		"VolumeData0Binaries": {
+			"Type": "AWS::EC2::Volume",
+			"Metadata": {
+				"Comment": "Data disk to separate program binaries."
+			},
+			"Properties": {
+				"AvailabilityZone": {
+					"Fn::GetAtt": [
+						"EC20",
+						"AvailabilityZone"
+					]
+				},
+				"Size": 32,
+				"VolumeType": "gp2",
+				"Encrypted": true,
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": {
+							"Fn::Sub": "${NamePrefix}-${PIAN0NetBIOSName}-binaries-ebs"
+						}
+					}
+				]
+			}
+		},
+		"PIAN0WaitCondition": {
+			"Type": "AWS::CloudFormation::WaitCondition",
+			"DependsOn": "EC20",
+			"Properties": {
+				"Handle": {
+					"Ref": "PIAN0WaitHandle"
+				},
+				"Count": "2",
+				"Timeout": "2700"
+			}
+		},
+		"PIAN0WaitHandle": {
+			"Type": "AWS::CloudFormation::WaitConditionHandle"
+		}
+	},
+	"Outputs": {
+		"EC20ID": {
+			"Description": "Primary EC2 Server ID",
+			"Value": {
+				"Ref": "EC20"
+			},
+			"Export": {
+				"Name": {
+					"Fn::Sub": "${AWS::StackName}-EC20ID"
+				}
+			}
+		}
+	}
+}
