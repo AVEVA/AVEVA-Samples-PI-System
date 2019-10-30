@@ -8,11 +8,11 @@ variables:
 - name: projpath
   value: /piwebapi_samples/Angular/AngularPIWebAPISample
 - name: CredFile
-  value: appsettings.json
+  value: piwebapi.service.spec.ts
 - name: CredFileLibrary
-  value: prod_omf_appsettings.json
+  value: prod_piwebapi.service.spec.ts
 - name: CredFileLibraryOP
-  value: prod_onprem_omf_appsettings.json
+  value: prod_piwebapi.service.spec.ts
 - name: testpath
   value: /piwebapi_samples/Angular/AngularPIWebAPISample
 - name: job
@@ -30,6 +30,35 @@ steps:
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
+  
+# Download Secure File
+# Download a secure file to a temporary location on the build or release agent
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: $(CredFileLibrary)
+
+# Copy Files basic_samples\OMF_API\CSharp\OMF_API
+# Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(Agent.TempDirectory)
+    contents: $(CredFileLibrary)
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
+    #cleanTargetFolder: false # Optional  
+    overWrite: true # Optional
+    #flattenFolders: false # Optional 
+  displayName: copy file
+
+
+- script: |
+    del $(CredFile)
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file1'
+
+- script: |
+    rename  $(CredFileLibrary)  $(CredFile)
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file'     
 
 - script: npm install -g @angular/cli
   displayName: 'npm install angular'
@@ -40,6 +69,7 @@ steps:
     npm install --only=dev
   displayName: 'npm install dev dependencies'
   workingDirectory: $(Build.SourcesDirectory)$(projpath)
+  
 
 - script: ng test --watch=false
   displayName: 'run tests'
