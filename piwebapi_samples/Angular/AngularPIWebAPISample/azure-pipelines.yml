@@ -14,7 +14,9 @@ variables:
 - name: CredFileLibraryOP
   value: prod_piwebapi.service.spec.ts
 - name: testpath
-  value: /piwebapi_samples/Angular/AngularPIWebAPISample
+  value: /piwebapi_samples/Angular/AngularPIWebAPISample  
+- name: credpath
+  value: /src/app/services
 - name: job
   value: OMF_APIDotNet
 
@@ -43,7 +45,7 @@ steps:
   inputs:
     sourceFolder: $(Agent.TempDirectory)
     contents: $(CredFileLibrary)
-    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)$(credpath)/'
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
@@ -52,12 +54,12 @@ steps:
 
 - script: |
     del $(CredFile)
-  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)$(credpath)'
   displayName: 'rename config file1'
 
 - script: |
     rename  $(CredFileLibrary)  $(CredFile)
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
   displayName: 'rename config file'     
 
 - script: npm install -g @angular/cli
