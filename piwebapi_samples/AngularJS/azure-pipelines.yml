@@ -67,7 +67,7 @@ steps:
   workingDirectory: $(Build.SourcesDirectory)$(projpath)
 
 - task: PublishTestResults@2
-  condition: succeededOrFailed()
   inputs:
-    testRunner: JUnit
-    testResultsFiles: '**/TESTS-*.xml'
+    testResultsFormat: 'JUnit'
+    testResultsFiles: '**\\TEST*.xml'
+    searchFolder: $(Build.SourcesDirectory)$(projpath)
