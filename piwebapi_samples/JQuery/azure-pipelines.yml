@@ -26,6 +26,13 @@ pool:
   demands: USERNAME -equals $(LocalServer)
 
 steps:
+
+  
+- script: |
+    echo %cd%
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: pwd
+
 - task: NodeTool@0
   inputs:
     versionSpec: '10.x'
@@ -60,11 +67,6 @@ steps:
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file'     
 
-  
-- script: |
-    pwd
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
-  displayName: pwd
 
 - script: |
     npm ci
