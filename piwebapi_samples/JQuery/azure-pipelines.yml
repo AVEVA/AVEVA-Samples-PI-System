@@ -1,32 +1,82 @@
-# Node.js
-
-# Build a general Node.js project with npm.
+# Node.js with Angular
+# Build a Node.js project that uses Angular.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+variables:
+- group: LocalServer
+- name: projpath
+  value: /piwebapi_samples/JQuery
+- name: CredFile
+  value: samplePIWebAPI.js
+- name: CredFileLibrary
+  value: prod_samplePIWebAPI.js
+- name: CredFileLibraryOP
+  value: prod_samplePIWebAPI.js
+- name: testpath
+  value: /piwebapi_samples/JQuery/KarmaUnitTests
+- name: job
+  value: OMF_APIDotNet
 
 trigger:
 - dev
 
 pool:
-  name: MPIBLDQ
+  name: 00-OSIManaged-Test
+  demands: USERNAME -equals $(LocalServer)
 
 steps:
 - task: NodeTool@0
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
+  
+# Download Secure File
+# Download a secure file to a temporary location on the build or release agent
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: $(CredFileLibrary)
+
+# Copy Files basic_samples\OMF_API\CSharp\OMF_API
+# Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(Agent.TempDirectory)
+    contents: $(CredFileLibrary)
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
+    #cleanTargetFolder: false # Optional  
+    overWrite: true # Optional
+    #flattenFolders: false # Optional 
+  displayName: copy file
+
 
 - script: |
-    npm install
-  workingDirectory: $(Build.SourcesDirectory)\JQuery\KarmaUnitTests
+    del $(CredFile)
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file1'
+
+- script: |
+    rename  $(CredFileLibrary)  $(CredFile)
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file'     
+
+  
+- script: |
+    pwd
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: pwd
+
+- script: |
+    npm ci
+  workingDirectory: $(Build.SourcesDirectory)$(testpath)
   displayName: "Install packages with NPM"
 
 - script: karma start
   displayName: "run karma"
-  workingDirectory: $(Build.SourcesDirectory)\JQuery\KarmaUnitTests
+  workingDirectory: $(Build.SourcesDirectory)$(testpath)
 
 - task: PublishTestResults@2
   inputs:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**\TEST*.xml'
-    searchFolder: $(Build.SourcesDirectory)\JQuery\KarmaUnitTests
+    searchFolder: $(Build.SourcesDirectory)$(testpath)
