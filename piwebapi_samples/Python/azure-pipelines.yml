@@ -65,7 +65,7 @@ steps:
   inputs:
     sourceFolder: $(Agent.TempDirectory)
     contents: $(CredFileLibrary)
-    targetFolder: '$(Build.SourcesDirectory)$(projpath)$(credpath)/'
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
@@ -75,7 +75,7 @@ steps:
   inputs:
     sourceFolder: $(Agent.TempDirectory)
     contents: $(CredFileLibrarytest_create_sandbox)
-    targetFolder: '$(Build.SourcesDirectory)$(projpath)$(credpath)/'
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
@@ -85,7 +85,7 @@ steps:
   inputs:
     sourceFolder: $(Agent.TempDirectory)
     contents: $(CredFileLibrarytest_read_attributes)
-    targetFolder: '$(Build.SourcesDirectory)$(projpath)$(credpath)/'
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)$/'
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
@@ -104,43 +104,43 @@ steps:
 
 - script: |
     del $(CredFiletest_batch_call)
-  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file1'
   
 - script: |
     del $(CredFiletest_create_sandbox)
-  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file1'
   
 - script: |
     del $(CredFiletest_read_attributes)
-  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file1'
   
 - script: |
     del $(CredFiletest_write_attributes)
-  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file1'
 
 
 - script: |
     rename  $(CredFileLibrary)  $(CredFiletest_batch_call)
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file'       
 
 - script: |
     rename  $(CredFileLibrary)  $(CredFiletest_create_sandbox)
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file'       
 
 - script: |
     rename  $(CredFileLibrary)  $(CredFiletest_read_attributes)
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)$'
   displayName: 'rename config file'     
 
 - script: |
     rename  $(CredFileLibrary)  $(CredFiletest_write_attributes)
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file'     
 
 - script: |
@@ -153,7 +153,7 @@ steps:
 
 - script: |
   python run_all_tests.py 2>&1
-  workingDirectory: $(Build.SourcesDirectory)\Python
+  workingDirectory: $(Build.SourcesDirectory)$(projpath)
   continueOnError: 'true'
   displayName: 'Run Python tests'
   
@@ -162,5 +162,5 @@ steps:
   inputs:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**\output.xml'
-    searchFolder: $(Build.SourcesDirectory)\Python
+    searchFolder: $(Build.SourcesDirectory)$(projpath)
     testRunTitle: 'Publish Python test results'
