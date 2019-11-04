@@ -67,13 +67,3 @@ steps:
     testResultsFiles: '**\output.xml'
     searchFolder: $(Build.SourcesDirectory)$(projpath)
     testRunTitle: 'Publish R test results'
-
-trigger:
-- dev
-
-pool:
-  name: MPIBLDQ
-
-steps:
-
-
