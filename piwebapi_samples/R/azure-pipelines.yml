@@ -1,17 +1,62 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+variables:
+- group: LocalServer
+- name: projpath
+  value: /piwebapi_samples/R
+- name: CredFile
+  value: piwebapi.service.spec.ts
+- name: CredFileLibrary
+  value: prod_piwebapi.service.spec.ts
+- name: CredFileLibraryOP
+  value: prod_piwebapi.service.spec.ts
+- name: testpath
+  value: /piwebapi_samples/R
+- name: job
+  value: OMF_APIDotNet
 
 trigger:
 - dev
 
 pool:
-  name: MPIBLDQ
+  name: 00-OSIManaged-Test
+  demands: USERNAME -equals $(LocalServer)
 
 steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+  
+# Download Secure File
+# Download a secure file to a temporary location on the build or release agent
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: $(CredFileLibrary)
+
+# Copy Files basic_samples\OMF_API\CSharp\OMF_API
+# Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(Agent.TempDirectory)
+    contents: $(CredFileLibrary)
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
+    #cleanTargetFolder: false # Optional  
+    overWrite: true # Optional
+    #flattenFolders: false # Optional 
+  displayName: copy file
+
+
+- script: |
+    del $(CredFile)
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file1'
+
+- script: |
+    rename  $(CredFileLibrary)  $(CredFile)
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file'     
+
 - script: Rscript.exe run_tests.R
-  workingDirectory: $(Build.SourcesDirectory)\R
+  workingDirectory: $(Build.SourcesDirectory)$(projpath)
   continueOnError: 'true'
   displayName: 'Run R tests'
 
@@ -20,6 +65,15 @@ steps:
   inputs:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**\output.xml'
-    searchFolder: $(Build.SourcesDirectory)\R
+    searchFolder: $(Build.SourcesDirectory)$(projpath)
     testRunTitle: 'Publish R test results'
+
+trigger:
+- dev
+
+pool:
+  name: MPIBLDQ
+
+steps:
+
 
