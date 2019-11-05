@@ -1,73 +1,76 @@
 variables:
-- group: LocalServer
-- name: projpath
-  value: /piwebapi_samples/AngularJS
-- name: CredFile
-  value: app.spec.js
-- name: CredFileLibrary
-  value: prod_app.spec.js
-- name: CredFileLibraryOP
-  value: prod_app.spec.js
-- name: testpath
-  value: /piwebapi_samples/AngularJS
-- name: credpath
-  value: /app
-- name: job
-  value: OMF_APIDotNet
+  - group: LocalServer
+  - name: projpath
+    value: /piwebapi_samples/AngularJS
+  - name: CredFile
+    value: app.spec.js
+  - name: CredFileLibrary
+    value: prod_app.spec.js
+  - name: CredFileLibraryOP
+    value: prod_app.spec.js
+  - name: testpath
+    value: /piwebapi_samples/AngularJS
+  - name: credpath
+    value: /app
+  - name: job
+    value: OMF_APIDotNet
 
 trigger:
-- dev
+  - dev
 
 pool:
   name: 00-OSIManaged-Test
   demands: USERNAME -equals $(LocalServer)
 
 steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
-  
-# Download Secure File
-# Download a secure file to a temporary location on the build or release agent
-- task: DownloadSecureFile@1
-  inputs:
-    secureFile: $(CredFileLibrary)
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '10.x'
+    displayName: 'Install Node.js'
 
-# Copy Files basic_samples\OMF_API\CSharp\OMF_API
-# Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
-- task: CopyFiles@2
-  inputs:
-    sourceFolder: $(Agent.TempDirectory)
-    contents: $(CredFileLibrary)
-    targetFolder: '$(Build.SourcesDirectory)$(projpath)$(credpath)/'
-    #cleanTargetFolder: false # Optional  
-    overWrite: true # Optional
-    #flattenFolders: false # Optional 
-  displayName: copy file
+  # Download Secure File
+  # Download a secure file to a temporary location on the build or release agent
+  - task: DownloadSecureFile@1
+    inputs:
+      secureFile: $(CredFileLibrary)
 
+  # Copy Files basic_samples\OMF_API\CSharp\OMF_API
+  # Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Agent.TempDirectory)
+      contents: $(CredFileLibrary)
+      targetFolder: '$(Build.SourcesDirectory)$(projpath)$(credpath)/'
+      #cleanTargetFolder: false # Optional
+      overWrite: true # Optional
+      #flattenFolders: false # Optional
+    displayName: copy file
 
-- script: |
-    del $(CredFile)
-  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)$(credpath)'
-  displayName: 'rename config file1'
+  - script: |
+      del $(CredFile)
+    workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+    displayName: 'rename config file1'
 
-- script: |
-    rename  $(CredFileLibrary)  $(CredFile)
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
-  displayName: 'rename config file'     
+  - script: |
+      del appe.spec.ts
+    workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+    displayName: 'rename config file1'
 
-- script: npm ci
-  displayName: 'npm install what is need'
-  workingDirectory: $(Build.SourcesDirectory)$(projpath)
+  - script: |
+      rename  $(CredFileLibrary)  $(CredFile)
+    workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
+    displayName: 'rename config file'
 
+  - script: npm ci
+    displayName: 'npm install what is need'
+    workingDirectory: $(Build.SourcesDirectory)$(projpath)
 
-- script: karma start
-  displayName: 'run tests'
-  workingDirectory: $(Build.SourcesDirectory)$(projpath)
+  - script: karma start
+    displayName: 'run tests'
+    workingDirectory: $(Build.SourcesDirectory)$(projpath)
 
-- task: PublishTestResults@2
-  inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: '**\\TEST*.xml'
-    searchFolder: $(Build.SourcesDirectory)$(projpath)
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**\\TEST*.xml'
+      searchFolder: $(Build.SourcesDirectory)$(projpath)
