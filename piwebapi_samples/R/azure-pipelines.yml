@@ -3,11 +3,10 @@ variables:
 - name: projpath
   value: /piwebapi_samples/R
 - name: CredFile
-  value: piwebapi.service.spec.ts
 - name: CredFileLibrary
-  value: prod_piwebapi.service.spec.ts
-- name: CredFileLibraryOP
-  value: prod_piwebapi.service.spec.ts
+  value: prod_sampleCode.R
+- name: CredFile
+  value: sampleCode.R
 - name: testpath
   value: /piwebapi_samples/R
 - name: job
