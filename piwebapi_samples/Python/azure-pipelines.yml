@@ -141,7 +141,7 @@ steps:
 - script: |
     rename  $(CredFileLibrarytest_write_attributes)  $(CredFiletest_write_attributes)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file4     
+  displayName: 'rename config file4'     
 
 - script: |
     python -m pip install --upgrade pip
@@ -152,8 +152,7 @@ steps:
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'Install dependencies'
 
-- script: |
-    
+- script: |    
   workingDirectory: $(Build.SourcesDirectory)$(projpath)
   continueOnError: 'true'
   displayName: 'Run Python tests'
