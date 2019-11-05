@@ -64,12 +64,12 @@ steps:
 - task: CopyFiles@2
   inputs:
     sourceFolder: $(Agent.TempDirectory)
-    contents: $(CredFileLibrary)
+    contents: $(CredFileLibrarytest_batch_call)
     targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
-  displayName: copy file
+  displayName: copy file1
 
 - task: CopyFiles@2
   inputs:
@@ -79,7 +79,7 @@ steps:
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
-  displayName: copy file
+  displayName: copy file2
   
 - task: CopyFiles@2
   inputs:
@@ -89,7 +89,7 @@ steps:
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
-  displayName: copy file
+  displayName: copy file3
   
 - task: CopyFiles@2
   inputs:
@@ -99,49 +99,49 @@ steps:
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
-  displayName: copy file
+  displayName: copy file4
 
 
 - script: |
     del $(CredFiletest_batch_call)
   workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file1'
+  displayName: 'del config file1'
   
 - script: |
     del $(CredFiletest_create_sandbox)
   workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file1'
+  displayName: 'del config file2'
   
 - script: |
     del $(CredFiletest_read_attributes)
   workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file1'
+  displayName: 'del config file3'
   
 - script: |
     del $(CredFiletest_write_attributes)
   workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file1'
+  displayName: 'del config file4'
 
 
 - script: |
     rename  $(CredFileLibrarytest_batch_call)  $(CredFiletest_batch_call)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file'       
+  displayName: 'rename config file1'       
 
 - script: |
     rename  $(CredFileLibrarytest_create_sandbox)  $(CredFiletest_create_sandbox)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file'       
+  displayName: 'rename config file2'       
 
 - script: |
     rename  $(CredFileLibrarytest_read_attributes)  $(CredFiletest_read_attributes)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)$'
-  displayName: 'rename config file'     
+  displayName: 'rename config file3'     
 
 - script: |
     rename  $(CredFileLibrarytest_write_attributes)  $(CredFiletest_write_attributes)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file'     
+  displayName: 'rename config file4     
 
 - script: |
     python -m pip install --upgrade pip
