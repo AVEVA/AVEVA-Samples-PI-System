@@ -70,12 +70,12 @@ steps:
 - script: |
     del $(CredFile)
   workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file1'
+  displayName: 'del config file'
 
 - script: |
-    del $(CredFile_launch))
+    del $(CredFile_launch)
   workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file1'
+  displayName: 'del config file1'
 
 - script: |
     rename  $(CredFileLibrary)  $(CredFile)
@@ -85,7 +85,7 @@ steps:
 - script: |
     rename  $(CredFileLibrary_launch)  $(CredFile_launch)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file'   
+  displayName: 'rename config file1'   
 
 
 - script: |
