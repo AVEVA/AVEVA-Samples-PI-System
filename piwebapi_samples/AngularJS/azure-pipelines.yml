@@ -3,7 +3,7 @@ variables:
 - name: projpath
   value: /piwebapi_samples/AngularJS
 - name: CredFile
-  value: appe.spec.js
+  value: app.spec.js
 - name: CredFileLibrary
   value: prod_app.spec.js
 - name: CredFileLibraryOP
