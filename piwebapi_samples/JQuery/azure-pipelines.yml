@@ -11,8 +11,10 @@ variables:
   value: samplePIWebAPI.js
 - name: CredFileLibrary
   value: prod_samplePIWebAPI.js
-- name: CredFileLibraryOP
-  value: prod_samplePIWebAPI.js
+- name: CredFile_launch
+  value: launch.json
+- name: CredFileLibrary_launch
+  value: prod_launch.json
 - name: testpath
   value: /piwebapi_samples/JQuery/KarmaUnitTests
 - name: job
@@ -26,13 +28,7 @@ pool:
   demands: USERNAME -equals $(LocalServer)
 
 steps:
-
   
-- script: |
-    echo %cd%
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
-  displayName: pwd
-
 - task: NodeTool@0
   inputs:
     versionSpec: '10.x'
@@ -44,12 +40,26 @@ steps:
   inputs:
     secureFile: $(CredFileLibrary)
 
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: $(CredFileLibrary_launch)
+
 # Copy Files basic_samples\OMF_API\CSharp\OMF_API
 # Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
 - task: CopyFiles@2
   inputs:
     sourceFolder: $(Agent.TempDirectory)
     contents: $(CredFileLibrary)
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
+    #cleanTargetFolder: false # Optional  
+    overWrite: true # Optional
+    #flattenFolders: false # Optional 
+  displayName: copy file
+  
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(Agent.TempDirectory)
+    contents: $(CredFileLibrary_launch)
     targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
@@ -63,9 +73,19 @@ steps:
   displayName: 'rename config file1'
 
 - script: |
+    del $(CredFile_launch))
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file1'
+
+- script: |
     rename  $(CredFileLibrary)  $(CredFile)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file'     
+
+- script: |
+    rename  $(CredFileLibrary_launch)  $(CredFile_launch)
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file'   
 
 
 - script: |
