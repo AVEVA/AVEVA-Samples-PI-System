@@ -124,22 +124,22 @@ steps:
 
 
 - script: |
-    rename  $(CredFileLibrary)  $(CredFiletest_batch_call)
+    rename  $(CredFileLibrarytest_batch_call)  $(CredFiletest_batch_call)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file'       
 
 - script: |
-    rename  $(CredFileLibrary)  $(CredFiletest_create_sandbox)
+    rename  $(CredFileLibrarytest_create_sandbox)  $(CredFiletest_create_sandbox)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file'       
 
 - script: |
-    rename  $(CredFileLibrary)  $(CredFiletest_read_attributes)
+    rename  $(CredFileLibrarytest_read_attributes)  $(CredFiletest_read_attributes)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)$'
   displayName: 'rename config file'     
 
 - script: |
-    rename  $(CredFileLibrary)  $(CredFiletest_write_attributes)
+    rename  $(CredFileLibrarytest_write_attributes)  $(CredFiletest_write_attributes)
   workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file'     
 
