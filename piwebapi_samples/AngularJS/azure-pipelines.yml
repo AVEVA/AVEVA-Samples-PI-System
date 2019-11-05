@@ -52,7 +52,7 @@ steps:
     displayName: 'rename config file1'
 
   - script: |
-      del appe.spec.ts
+      del appe.spec.js
     workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
     displayName: 'rename config file1'
 
