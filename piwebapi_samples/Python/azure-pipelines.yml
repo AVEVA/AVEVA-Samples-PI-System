@@ -7,10 +7,22 @@ variables:
 - group: LocalServer
 - name: projpath
   value: /piwebapi_samples/Python
-- name: CredFileLibrary
-  value: prod_sampleCode.R
-- name: CredFile
-  value: sampleCode.R
+- name: CredFileLibrarytest_batch_call
+  value: prod_test_batch_call.py
+- name: CredFiletest_batch_call
+  value: test_batch_call.py
+- name: CredFileLibrarytest_create_sandbox
+  value: prod_test_create_sandbox.py
+- name: CredFiletest_create_sandbox
+  value: test_create_sandbox.py
+- name: CredFileLibrarytest_read_attributes
+  value: prod_test_read_attributes.py
+- name: CredFiletest_read_attributes
+  value: test_read_attributes.py
+- name: CredFileLibrarytest_write_attributes
+  value: prod_test_write_attributes.py
+- name: CredFiletest_write_attributes
+  value: test_write_attributes.py
 - name: credpath
   value: /src/app/services
 - name: job
