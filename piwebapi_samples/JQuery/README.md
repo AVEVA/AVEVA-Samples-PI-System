@@ -131,7 +131,7 @@ The functionality included with this sample includes(recommended order of execut
 - Delete the element template
 - Delete the sample database
 
-[![Build Status](https://osisoft.visualstudio.com/NOC/_apis/build/status/PI%20Web%20API%20(JQuery)?branchName=dev)](https://osisoft.visualstudio.com/NOC/_build/latest?definitionId=4624&branchName=dev)   
+[![Build Status](https://osisoft.visualstudio.com/Engineering%20Incubation/_apis/build/status/PI_System/jQuery_PIWebAPISample?branchName=master)](https://osisoft.visualstudio.com/Engineering%20Incubation/_build/latest?definitionId=5283&branchName=master)
 
 For the main PI Web API page [ReadMe](../)<br />
 For the main landing page on master [ReadMe](https://github.com/osisoft/OSI-Samples)
