@@ -85,7 +85,7 @@ steps:
   inputs:
     sourceFolder: $(Agent.TempDirectory)
     contents: $(CredFileLibrarytest_read_attributes)
-    targetFolder: '$(Build.SourcesDirectory)$(projpath)$/'
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
@@ -95,7 +95,7 @@ steps:
   inputs:
     sourceFolder: $(Agent.TempDirectory)
     contents: $(CredFileLibrarytest_write_attributes)
-    targetFolder: '$(Build.SourcesDirectory)$(projpath)$(credpath)/'
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
     #cleanTargetFolder: false # Optional  
     overWrite: true # Optional
     #flattenFolders: false # Optional 
