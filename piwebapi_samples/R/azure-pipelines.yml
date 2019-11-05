@@ -3,6 +3,7 @@ variables:
 - name: projpath
   value: /piwebapi_samples/R
 - name: CredFile
+  value: sampleCode.R
 - name: CredFileLibrary
   value: prod_sampleCode.R
 - name: CredFile
