@@ -153,6 +153,7 @@ steps:
   displayName: 'Install dependencies'
 
 - script: |    
+    python run_all_tests.py 2>&1
   workingDirectory: $(Build.SourcesDirectory)$(projpath)
   continueOnError: 'true'
   displayName: 'Run Python tests'
