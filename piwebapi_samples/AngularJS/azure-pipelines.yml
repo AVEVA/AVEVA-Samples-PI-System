@@ -52,11 +52,6 @@ steps:
     displayName: 'rename config file1'
 
   - script: |
-      del appe.spec.js
-    workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
-    displayName: 'rename config file1'
-
-  - script: |
       rename  $(CredFileLibrary)  $(CredFile)
     workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
     displayName: 'rename config file'
