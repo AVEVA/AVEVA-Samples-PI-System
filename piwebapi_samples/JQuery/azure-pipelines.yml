@@ -74,7 +74,7 @@ steps:
   displayName: "Install packages with NPM"
 
 - script: |
-    "npm install karma –-save-dev"
+    npm install -g karma-cli
   workingDirectory: $(Build.SourcesDirectory)$(testpath)
   displayName: "Install packages with NPM"
 
