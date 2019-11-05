@@ -135,7 +135,7 @@ steps:
 
 - script: |
     rename  $(CredFileLibrarytest_read_attributes)  $(CredFiletest_read_attributes)
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)$'
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
   displayName: 'rename config file3'     
 
 - script: |
