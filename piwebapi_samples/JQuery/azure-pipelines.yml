@@ -74,11 +74,12 @@ steps:
   displayName: "Install packages with NPM"
 
 - script: |
-    npm install karma –-save-dev
+    "npm install karma –-save-dev"
   workingDirectory: $(Build.SourcesDirectory)$(testpath)
   displayName: "Install packages with NPM"
 
-- script: karma start
+- script: |
+    karma start
   displayName: "run karma"
   workingDirectory: $(Build.SourcesDirectory)$(testpath)
 
