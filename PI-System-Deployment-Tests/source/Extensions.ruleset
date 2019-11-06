@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Team-specific ruleset" Description="Team-specific extensions and overrides to the OSIsoft ruleset" ToolsVersion="16.0">
+  <Include Path="osisoft.ruleset" Action="Default" />
+  <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <Rule Id="SA1600" Action="Error" />
+    <Rule Id="SA1602" Action="Error" />
+    <Rule Id="SA1633" Action="None" />
+    <Rule Id="SA1634" Action="Error" />
+    <Rule Id="SA1635" Action="Error" />
+    <Rule Id="SA1636" Action="Error" />
+    <Rule Id="SA1639" Action="Error" />
+    <Rule Id="SA1640" Action="Error" />
+    <Rule Id="SA1641" Action="Error" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.CodeQuality.Analyzers" RuleNamespace="Microsoft.CodeQuality.Analyzers">
+    <Rule Id="CA1031" Action="None" />
+    <Rule Id="CA1822" Action="None" />
+  </Rules>
+  <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
+    <Rule Id="CA1303" Action="None" />
+  </Rules>
+</RuleSet>

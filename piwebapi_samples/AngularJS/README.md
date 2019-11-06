@@ -121,7 +121,7 @@ The functionality included with this sample includes(recommended order of execut
 - Delete the Machine element template
 - Delete the sampleWeb API database
 
-[![Build Status](https://osisoft.visualstudio.com/NOC/_apis/build/status/PI%20Web%20API%20(AngularJS)?branchName=dev)](https://osisoft.visualstudio.com/NOC/_build/latest?definitionId=4657&branchName=dev)
+[![Build Status](https://osisoft.visualstudio.com/Engineering%20Incubation/_apis/build/status/PI_System/AngularPIWebAPISample?branchName=master)](https://osisoft.visualstudio.com/Engineering%20Incubation/_build/latest?definitionId=5236&branchName=master)
 
 For the main PI Web API page [ReadMe](../)  
 For the main landing page on master [ReadMe](https://github.com/osisoft/OSI-Samples)

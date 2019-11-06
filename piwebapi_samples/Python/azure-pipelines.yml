@@ -1,26 +1,160 @@
-# Python package
-# Create and test a Python package on multiple Python versions.
-# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+# Node.js with Angular
+# Build a Node.js project that uses Angular.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+variables:
+- group: LocalServer
+- name: projpath
+  value: /piwebapi_samples/Python
+- name: CredFileLibrarytest_batch_call
+  value: prod_test_batch_call.py
+- name: CredFiletest_batch_call
+  value: test_batch_call.py
+- name: CredFileLibrarytest_create_sandbox
+  value: prod_test_create_sandbox.py
+- name: CredFiletest_create_sandbox
+  value: test_create_sandbox.py
+- name: CredFileLibrarytest_read_attributes
+  value: prod_test_read_attributes.py
+- name: CredFiletest_read_attributes
+  value: test_read_attributes.py
+- name: CredFileLibrarytest_write_attributes
+  value: prod_test_write_attributes.py
+- name: CredFiletest_write_attributes
+  value: test_write_attributes.py
+- name: credpath
+  value: /src/app/services
+- name: job
+  value: OMF_APIDotNet
 
 trigger:
 - dev
 
 pool:
-  name: MPIBLDQ
+  name: 00-OSIManaged-Test
+  demands: USERNAME -equals $(LocalServer)
 
 steps:
-- script: |
-  python -m pip install --upgrade pip
-  pip install requests
-  pip install requests_kerberos
-  pip install unittest
-  pip install unittest-xml-reporting
-  displayName: 'Install dependencies'
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+  
+# Download Secure File
+# Download a secure file to a temporary location on the build or release agent
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: $(CredFileLibrarytest_batch_call)
+
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: $(CredFileLibrarytest_create_sandbox)
+
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: $(CredFileLibrarytest_read_attributes)
+
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: $(CredFileLibrarytest_write_attributes)
+
+# Copy Files basic_samples\OMF_API\CSharp\OMF_API
+# Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(Agent.TempDirectory)
+    contents: $(CredFileLibrarytest_batch_call)
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
+    #cleanTargetFolder: false # Optional  
+    overWrite: true # Optional
+    #flattenFolders: false # Optional 
+  displayName: copy file1
+
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(Agent.TempDirectory)
+    contents: $(CredFileLibrarytest_create_sandbox)
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
+    #cleanTargetFolder: false # Optional  
+    overWrite: true # Optional
+    #flattenFolders: false # Optional 
+  displayName: copy file2
+  
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(Agent.TempDirectory)
+    contents: $(CredFileLibrarytest_read_attributes)
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
+    #cleanTargetFolder: false # Optional  
+    overWrite: true # Optional
+    #flattenFolders: false # Optional 
+  displayName: copy file3
+  
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: $(Agent.TempDirectory)
+    contents: $(CredFileLibrarytest_write_attributes)
+    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
+    #cleanTargetFolder: false # Optional  
+    overWrite: true # Optional
+    #flattenFolders: false # Optional 
+  displayName: copy file4
+
 
 - script: |
-  python run_all_tests.py 2>&1
-  workingDirectory: $(Build.SourcesDirectory)\Python
+    del $(CredFiletest_batch_call)
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'del config file1'
+  
+- script: |
+    del $(CredFiletest_create_sandbox)
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'del config file2'
+  
+- script: |
+    del $(CredFiletest_read_attributes)
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'del config file3'
+  
+- script: |
+    del $(CredFiletest_write_attributes)
+  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'del config file4'
+
+
+- script: |
+    rename  $(CredFileLibrarytest_batch_call)  $(CredFiletest_batch_call)
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file1'       
+
+- script: |
+    rename  $(CredFileLibrarytest_create_sandbox)  $(CredFiletest_create_sandbox)
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file2'       
+
+- script: |
+    rename  $(CredFileLibrarytest_read_attributes)  $(CredFiletest_read_attributes)
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file3'     
+
+- script: |
+    rename  $(CredFileLibrarytest_write_attributes)  $(CredFiletest_write_attributes)
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'rename config file4'     
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install requests
+    pip install requests_kerberos
+    pip install unittest
+    pip install unittest-xml-reporting
+  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
+  displayName: 'Install dependencies'
+
+- script: |    
+    python run_all_tests.py 2>&1
+  workingDirectory: $(Build.SourcesDirectory)$(projpath)
   continueOnError: 'true'
   displayName: 'Run Python tests'
   
@@ -29,5 +163,5 @@ steps:
   inputs:
     testResultsFormat: 'JUnit'
     testResultsFiles: '**\output.xml'
-    searchFolder: $(Build.SourcesDirectory)\Python
+    searchFolder: $(Build.SourcesDirectory)$(projpath)
     testRunTitle: 'Publish Python test results'
