@@ -1,0 +1,773 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "ds",
+            "metadata": {
+                "description": "Name prefix used to seed automatic name creation for most resources in environment deployment. e.g., Default name for PI DA box will be <namePrefix>-pida-vm0"
+            }
+        },
+        "PIVisionPath": {
+            "type": "string",
+            "metadata": {
+                "description": "PIVision executable path"
+            }
+        },
+        "PIPath": {
+            "type": "string",
+            "metadata": {
+                "description": "PI executable path"
+            }
+        },
+        "PIProductID": {
+            "type": "string",
+            "metadata": {
+                "description": "PI version product ID"
+            }
+        },
+        "nameSuffix0": {
+            "type": "string",
+            "defaultValue": "0",
+            "metadata": {
+                "description": "Name suffix appended to primary VMs in roles in high availability deployments (e.g., domaincontroller-<nameSuffix0>, pidataarchive-<nameSuffix0>)"
+            }
+        },
+        "nameSuffix1": {
+            "type": "string",
+            "defaultValue": "1",
+            "metadata": {
+                "description": "Name suffix appended to secondary VMs in roles in high availability deployments (e.g., domaincontroller-<nameSuffix1>, pidataarchive-<nameSuffix1>)"
+            }
+        },
+        "adminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Default local admin of all quickstart VMs"
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for default local admin acct of all quickstart VMs"
+            }
+        },
+        "TestFileName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of file containing PI System Deployment Tests"
+            }
+        },
+        "deploymentStorageAccountName": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Azure stor acct used for storing deployment artifacts (e.g., PI Install kits)"
+            }
+        },
+        "deploymentStorageAccountKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Key for the deployment's Azure stor acct"
+            }
+        },
+        "deploymentStorageAccountFileShareName": {
+            "type": "securestring",
+            "metadata": {
+                "description": "File share used inside of deployment's Azure stor acct"
+            }
+        },
+        "diagnosticsStorageAccountName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-diagacct-',uniqueString(resourceGroup().id))]",
+            "metadata": {
+                "description": "Deployment's diagnostics azure storage account"
+            }
+        },
+        "_artifactRoot": {
+            "type": "string",
+            "metadata": {
+                "description": "Root of URL to artifacts in blob storage"
+            }
+        },
+        "_artifactSasToken": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SAS token to access dsc artifacts in blob storage"
+            }
+        },
+        "EnableMicrosoftTelemetry": {
+            "type": "string",
+            "metadata": {
+                "description": "True to register the deployment with Microsoft "
+            }
+        },
+        "EnableOSIsoftTelemetry": {
+            "type": "string",
+            "metadata": {
+                "description": "True to gather OSIsoft telemetry"
+            }
+        },
+        "deployHA": {
+            "type": "string",
+            "allowedValues": [
+                "true",
+                "false"
+            ],
+            "metadata": {
+                "description": "True to deploy a high availability environment (2 VMs for all roles); false to deploy single VMs for all roles"
+            }
+        },
+        "AFServer": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-piaf-vm0')]",
+            "metadata": {
+                "description": "Name of the AF server(s) to deploy. If HA, last character will be replaced with a '1' for other VM"
+            }
+        },
+        "afServiceAccountUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Username of service account which will be used to run PI AF application service"
+            }
+        },
+        "afServiceAccountPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password of service account which will be used to run PI AF application service"
+            }
+        },
+
+        "ANServer": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-pian-vm0')]",
+            "metadata": {
+                "description": "Name of the PI Analysis server(s) to deploy. If HA, last character will be replaced with a '1' for other VM"
+            }
+        },
+        "anServiceAccountUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Username of service account which will be used to run PI Analysis service"
+            }
+        },
+        "anServiceAccountPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password of service account which will be used to run PI Analysis service"
+            }
+        },
+
+        "PIServer": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-pida-vm0')]",
+            "metadata": {
+                "description": "Name of the PI Data Archive server(s) to deploy. If 2 server collective, last character will be replaced with a '1' for other VM"
+            }
+        },
+
+        "SQLServer": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-sql-vm0')]",
+            "metadata": {
+                "description": "Name of the SQL server(s) to deploy. If deploying SQL always on with 2 servers, last character will be replaced with a '1' for other VM"
+            }
+        },
+        "sqlServiceAccountUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Username of service account which will be used to run PI Analysis service"
+            }
+        },
+        "sqlServiceAccountPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password of service account which will be used to run PI Analysis service"
+            }
+        },
+
+        "VSServer": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-pivs-vm0')]",
+            "metadata": {
+                "description": "Name of the PI Vision server(s) to deploy. If HA, last character will be replaced with a '1' for other VM"
+            }
+        },
+        "vsServiceAccountUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Username of service account which will be used to run PI Web API on the PI Vision server(s)"
+            }
+        },
+        "vsServiceAccountPassword": {
+            "type": "string",
+            "metadata": {
+                "description": "Password of service account which will be used to run PI Web API on the PI Vision server(s)"
+            }
+        }
+    },
+    "variables": {
+        "baseVnetTemplate": "[concat(parameters('_artifactRoot'), '/nested/base/base.vnet.template.json', parameters('_artifactSasToken'))]",
+        "coreInfrastructureTemplate": "[concat(parameters('_artifactRoot'), '/nested/core/core.infrastructure.template.json', parameters('_artifactSasToken'))]",
+        "coreDcTemplate": "[concat(parameters('_artifactRoot'), '/nested/core/vm.DC.template.json', parameters('_artifactSasToken'))]",
+        "coreSqlTemplate": "[concat(parameters('_artifactRoot'), '/nested/core/vm.SQL.template.json', parameters('_artifactSasToken'))]",
+        "coreRdsTemplate": "[concat(parameters('_artifactRoot'), '/nested/core/vm.RDS.template.json', parameters('_artifactSasToken'))]",
+
+        "backendPiafTemplate": "[concat(parameters('_artifactRoot'), '/nested/backend/vm.PIAF.template.json', parameters('_artifactSasToken'))]",
+        "backendPidaTemplate": "[concat(parameters('_artifactRoot'), '/nested/backend/vm.PIDA.template.json', parameters('_artifactSasToken'))]",
+        "backendPianTemplate": "[concat(parameters('_artifactRoot'), '/nested/backend/vm.PIAN.template.json', parameters('_artifactSasToken'))]",
+
+        "frontendPivsTemplate": "[concat(parameters('_artifactRoot'), '/nested/frontend/vm.PIVS.template.json', parameters('_artifactSasToken'))]",
+
+        "OSIsoftTelemetry": "[if(equals(parameters('EnableOSIsoftTelemetry'),'true') ,'1', '0')]"
+    },
+  "resources": [
+    {
+      "condition": "[equals(parameters('EnableMicrosoftTelemetry'),'true')]",
+      "apiVersion": "2017-05-10",
+      "name": "pid-c0d44f6b-e40b-5be3-9bf4-21a60b5137d8",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": []
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "infrastructure",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('coreInfrastructureTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "_artifactRoot": {
+            "value": "[parameters('_artifactRoot')]"
+          },
+          "_artifactSasToken": {
+            "value": "[parameters('_artifactSasToken')]"
+          }
+        }
+      }
+    },
+    {
+      "dependsOn": [ "Microsoft.Resources/deployments/infrastructure" ],
+      "apiVersion": "2017-05-10",
+      "name": "dc",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('coreDcTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "nameSuffix0": {
+            "value": "[parameters('nameSuffix0')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "afUsername": {
+            "value": "[parameters('afServiceAccountUsername')]"
+          },
+          "afPassword": {
+            "value": "[parameters('afServiceAccountPassword')]"
+          },
+          "anUsername": {
+            "value": "[parameters('anServiceAccountUsername')]"
+          },
+          "anPassword": {
+            "value": "[parameters('anServiceAccountPassword')]"
+          },
+          "vsUsername": {
+            "value": "[parameters('vsServiceAccountUsername')]"
+          },
+          "vsPassword": {
+            "value": "[parameters('vsServiceAccountPassword')]"
+          },
+          "sqlUsername": {
+            "value": "[parameters('sqlServiceAccountUsername')]"
+          },
+          "sqlPassword": {
+            "value": "[parameters('sqlServiceAccountPassword')]"
+          },
+          "_artifactRoot": {
+            "value": "[parameters('_artifactRoot')]"
+          },
+          "_artifactSasToken": {
+            "value": "[parameters('_artifactSasToken')]"
+          }
+        }
+      }
+    },
+    {
+      "dependsOn": [ "Microsoft.Resources/deployments/dc" ],
+      "apiVersion": "2017-05-10",
+      "name": "updateDns",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('baseVnetTemplate')  ]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "dnsServerAddress": {
+            "value": [ "[reference('dc','2017-05-10').outputs.dcStaticIp.value]" ]
+          }
+        }
+      }
+    },
+    {
+      "condition": "[equals(parameters('deployHA'),'true')]",
+      "dependsOn": [ "Microsoft.Resources/deployments/updateDNS" ],
+      "apiVersion": "2017-05-10",
+      "name": "HAdc",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('coreDcTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "nameSuffix0": {
+            "value": "[parameters('nameSuffix0')]"
+          },
+          "nameSuffix1": {
+            "value": "[parameters('nameSuffix1')]"
+          },
+          "staticIP": {
+            "value": "10.0.0.121"
+          },
+          "primaryDCIP": {
+            "value": "[reference('dc','2017-05-10').outputs.dcStaticIp.value]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "afUsername": {
+            "value": "[parameters('afServiceAccountUsername')]"
+          },
+          "afPassword": {
+            "value": "[parameters('afServiceAccountPassword')]"
+          },
+          "anUsername": {
+            "value": "[parameters('anServiceAccountUsername')]"
+          },
+          "anPassword": {
+            "value": "[parameters('anServiceAccountPassword')]"
+          },
+          "vsUsername": {
+            "value": "[parameters('vsServiceAccountUsername')]"
+          },
+          "vsPassword": {
+            "value": "[parameters('vsServiceAccountPassword')]"
+          },
+          "sqlUsername": {
+            "value": "[parameters('sqlServiceAccountUsername')]"
+          },
+          "sqlPassword": {
+            "value": "[parameters('sqlServiceAccountPassword')]"
+          },
+          "_artifactRoot": {
+            "value": "[parameters('_artifactRoot')]"
+          },
+          "_artifactSasToken": {
+            "value": "[parameters('_artifactSasToken')]"
+          }
+        }
+      }
+    },
+    {
+      "condition": "[equals(parameters('deployHA'),'true')]",
+      "dependsOn": [ "Microsoft.Resources/deployments/HAdc" ],
+      "apiVersion": "2017-05-10",
+      "name": "HAupdateDns",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('baseVnetTemplate')  ]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "dnsServerAddress": {
+            "value": "[if(equals(parameters('deployHA'),'false'), createArray(reference('dc','2017-05-10').outputs.dcStaticIp.value), createArray(reference('dc','2017-05-10').outputs.dcStaticIp.value, reference('HAdc','2017-05-10').outputs.dcStaticIp.value))]"
+          }
+        }
+      }
+    },
+    {
+      "dependsOn": [ "Microsoft.Resources/deployments/updateDns" ],
+      "apiVersion": "2017-05-10",
+      "name": "rds",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('coreRdsTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "OSIsoftTelemetry": {
+            "value": "[variables('OSIsoftTelemetry')]"
+          },
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "PIPath": {
+            "value": "[parameters('PIPath')]"
+          },
+          "PIProductID": {
+            "value": "[parameters('PIProductID')]"
+          },
+          "nameSuffix0": {
+            "value": "[parameters('nameSuffix0')]"
+          },
+          "deploymentStorageAccountKey": {
+            "value": "[parameters('deploymentStorageAccountKey')]"
+          },
+          "deploymentStorageAccountName": {
+            "value": "[parameters('deploymentStorageAccountName')]"
+          },
+          "deploymentStorageAccountFileShareName": {
+            "value": "[parameters('deploymentStorageAccountFileShareName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "_artifactRoot": {
+            "value": "[parameters('_artifactRoot')]"
+          },
+          "_artifactSasToken": {
+            "value": "[parameters('_artifactSasToken')]"
+          }
+        }
+      }
+    },
+    {
+      "dependsOn": [ "Microsoft.Resources/deployments/updateDNS" ],
+      "apiVersion": "2017-05-10",
+      "name": "pida",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('backendPidaTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "PIPath": {
+            "value": "[parameters('PIPath')]"
+          },
+          "PIProductID": {
+            "value": "[parameters('PIProductID')]"
+          },
+          "nameSuffix0": {
+            "value": "0"
+          },
+          "nameSuffix1": {
+            "value": "1"
+          },
+          "deployHA": {
+            "value": "[parameters('deployHA')]"
+          },
+          "OSIsoftTelemetry": {
+              "value": "[variables('OSIsoftTelemetry')]"
+          },
+          "deploymentStorageAccountKey": {
+            "value": "[parameters('deploymentStorageAccountKey')]"
+          },
+          "deploymentStorageAccountName": {
+            "value": "[parameters('deploymentStorageAccountName')]"
+          },
+          "deploymentStorageAccountFileShareName": {
+            "value": "[parameters('deploymentStorageAccountFileShareName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "_artifactRoot": {
+            "value": "[parameters('_artifactRoot')]"
+          },
+          "_artifactSasToken": {
+            "value": "[parameters('_artifactSasToken')]"
+          }
+        }
+      }
+    },
+    {
+      "dependsOn": [ "Microsoft.Resources/deployments/pida" ],
+      "apiVersion": "2017-05-10",
+      "name": "sql",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('coreSqlTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "nameSuffix0": {
+            "value": "[parameters('nameSuffix0')]"
+          },
+          "nameSuffix1": {
+            "value": "[parameters('nameSuffix1')]"
+          },
+          "deployHA": {
+            "value": "[parameters('deployHA')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "sqlUsername": {
+            "value": "[parameters('sqlServiceAccountUsername')]"
+          },
+          "sqlPassword": {
+            "value": "[parameters('sqlServiceAccountPassword')]"
+          },
+          "_artifactRoot": {
+            "value": "[parameters('_artifactRoot')]"
+          },
+          "_artifactSasToken": {
+            "value": "[parameters('_artifactSasToken')]"
+          }
+        }
+      }
+    },
+    {
+      "dependsOn": [ "Microsoft.Resources/deployments/sql" ],
+      "apiVersion": "2017-05-10",
+      "name": "piaf",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('backendPiafTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+            "namePrefix": {
+                "value": "[parameters('namePrefix')]"
+            },
+            "PIPath": {
+                "value": "[parameters('PIPath')]"
+            },
+            "PIProductID": {
+                "value": "[parameters('PIProductID')]"
+            },
+            "nameSuffix0": {
+                "value": "[parameters('nameSuffix0')]"
+            },
+            "nameSuffix1": {
+                "value": "[parameters('nameSuffix1')]"
+            },
+            "deployHA": {
+                "value": "[parameters('deployHA')]"
+            },
+            "OSIsoftTelemetry": {
+                "value": "[variables('OSIsoftTelemetry')]"
+            },
+            "deploymentStorageAccountKey": {
+                "value": "[parameters('deploymentStorageAccountKey')]"
+            },
+            "deploymentStorageAccountName": {
+                "value": "[parameters('deploymentStorageAccountName')]"
+            },
+            "deploymentStorageAccountFileShareName": {
+                "value": "[parameters('deploymentStorageAccountFileShareName')]"
+            },
+            "adminUsername": {
+                "value": "[parameters('adminUsername')]"
+            },
+            "adminPassword": {
+                "value": "[parameters('adminPassword')]"
+            },
+            "afUsername": {
+                "value": "[parameters('afServiceAccountUsername')]"
+            },
+            "afPassword": {
+                "value": "[parameters('afServiceAccountPassword')]"
+            },
+            "_artifactRoot": {
+                "value": "[parameters('_artifactRoot')]"
+            },
+            "_artifactSasToken": {
+                "value": "[parameters('_artifactSasToken')]"
+            }
+        }
+      }
+    },
+    {
+      "dependsOn": [ "Microsoft.Resources/deployments/piaf" ],
+      "apiVersion": "2017-05-10",
+      "name": "pivs",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('frontendPivsTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "PIVisionPath": {
+            "value": "[parameters('PIVisionPath')]"
+          },
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "nameSuffix0": {
+            "value": "[parameters('nameSuffix0')]"
+          },
+          "nameSuffix1": {
+            "value": "[parameters('nameSuffix1')]"
+          },
+          "deployHA": {
+            "value": "[parameters('deployHA')]"
+          },
+          "deploymentStorageAccountKey": {
+            "value": "[parameters('deploymentStorageAccountKey')]"
+          },
+          "deploymentStorageAccountName": {
+            "value": "[parameters('deploymentStorageAccountName')]"
+          },
+          "deploymentStorageAccountFileShareName": {
+            "value": "[parameters('deploymentStorageAccountFileShareName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "serviceAccountUsername": {
+            "value": "[parameters('vsServiceAccountUsername')]"
+          },
+          "serviceAccountPassword": {
+            "value": "[parameters('vsServiceAccountPassword')]"
+          },
+          "_artifactRoot": {
+            "value": "[parameters('_artifactRoot')]"
+          },
+          "_artifactSasToken": {
+            "value": "[parameters('_artifactSasToken')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "pian",
+      "type": "Microsoft.Resources/deployments",
+      "dependsOn": [
+        "Microsoft.Resources/deployments/piaf",
+        "Microsoft.Resources/deployments/pivs"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('backendPianTemplate')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "OSIsoftTelemetry": {
+            "value": "[variables('OSIsoftTelemetry')]"
+          },
+          "namePrefix": {
+            "value": "[parameters('namePrefix')]"
+          },
+          "PIPath": {
+            "value": "[parameters('PIPath')]"
+          },
+          "PIProductID": {
+            "value": "[parameters('PIProductID')]"
+          },
+          "TestFileName": {
+            "value": "[parameters('TestFileName')]"
+          },
+          "deploymentStorageAccountKey": {
+            "value": "[parameters('deploymentStorageAccountKey')]"
+          },
+          "deploymentStorageAccountName": {
+            "value": "[parameters('deploymentStorageAccountName')]"
+          },
+          "deploymentStorageAccountFileShareName": {
+            "value": "[parameters('deploymentStorageAccountFileShareName')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "serviceAccountUsername": {
+            "value": "[parameters('anServiceAccountUsername')]"
+          },
+          "serviceAccountPassword": {
+            "value": "[parameters('anServiceAccountPassword')]"
+          },
+          "_artifactRoot": {
+            "value": "[parameters('_artifactRoot')]"
+          },
+          "_artifactSasToken": {
+            "value": "[parameters('_artifactSasToken')]"
+          },
+          "deployHA": {
+            "value": "[parameters('deployHA')]"
+          }
+        }
+      }
+    }
+  ],
+    "outputs": {
+        "storageAccountName": {
+            "type": "string",
+            "value": "[reference('infrastructure','2017-05-10').outputs.storageAccountName.value]"
+        }
+    }
+}

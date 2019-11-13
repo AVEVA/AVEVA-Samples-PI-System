@@ -1,0 +1,152 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": ""
+            }
+        },
+        "PIDataArchivePrimary": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of primary data archive to run DSC on"
+            }
+        },
+        "PIDataArchiveSecondary": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of secondary data archive to run DSC on"
+            }
+        },
+        "runAsUserName": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Username for running dsc"
+            }
+        },
+        "runAsPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for running dsc"
+            }
+        },
+        "DomainNetBiosName": {
+            "type": "string",
+            "metadata": {
+                "description": "Url of DSC modules"
+            }
+        },
+        "PrimaryDomainController": {
+            "type": "string",
+            "metadata": {
+                "description": "Url of DSC modules"
+            }
+        },
+        "deployHA": {
+            "type": "string",
+            "allowedValues": [
+                "true",
+                "false"
+            ],
+            "metadata": {
+                "description": "True signifies either only data archive node or primary memeber of collective; false signifies secondary member of collective"
+            }
+        },
+        "OSIsoftTelemetry": {
+            "type": "string",
+            "allowedValues": [
+                "0",
+                "1"
+            ],
+            "metadata": {
+                "description": "Enable OSIsoft to collect telemetry"
+            }
+        },
+        "dscArtifactUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "Url of DSC modules"
+            }
+        },
+        "dscArtifactSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "SAS Token to access dscArtifactUrl"
+            }
+        },
+        "dscConfigurationFileName": {
+            "type": "string",
+            "defaultValue": "PIDA.ps1",
+            "metadata": {
+                "description": "Name of file with DSC configuration"
+            }
+        },
+        "dscConfigurationFunction": {
+            "type": "string",
+            "defaultValue": "PIDA",
+            "metadata": {
+                "description": "DSC Configuration function to call"
+            }
+        },
+        "PIPath": {
+            "type": "string",
+            "metadata": {
+                "description": "PI executable path"
+            }
+        },
+        "PIProductID": {
+            "type": "string",
+            "metadata": {
+                "description": "PI version product ID"
+            }
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'),'/dsc')]",
+            "apiVersion": "2017-03-30",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "wmfVersion": "latest",
+                    "configuration": {
+                        "url": "[parameters('dscArtifactUrl')]",
+                        "script": "[parameters('dscConfigurationFileName')]",
+                        "function": "[parameters('dscConfigurationFunction')]"
+                    },
+                    "configurationArguments": {
+                        "PIDataArchivePrimary": "[parameters('PIDataArchivePrimary')]",
+                        "PIDataArchiveSecondary": "[parameters('PIDataArchiveSecondary')]",
+                        "PrimaryDomainController": "[parameters('PrimaryDomainController')]",
+                        "DomainNetBiosName": "[parameters('DomainNetBiosName')]",
+                        "deployHA": "[parameters('deployHA')]",
+                        "OSIsoftTelemetry": "[parameters('OSIsoftTelemetry')]",
+                        "PIPath": "[parameters('PIPath')]",
+                        "PIProductID": "[parameters('PIProductID')]"
+                    }
+                },
+                "protectedSettings": {
+                    "configurationArguments": {
+                        "Credential": {
+                            "userName": "[parameters('runAsUserName')]",
+                            "password": "[parameters('runAsPassword')]"
+                        }
+                    },
+                    "configurationUrlSasToken": "[parameters('dscArtifactSasToken')]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
