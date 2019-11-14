@@ -3,7 +3,7 @@ The OSIsoft PI System Deployment Script samples are organized by cloud provider 
 | Task                                       | Description                                                                                        |
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
 | **<a href="AWS/">Amazon Web Services</a>** | These samples cover deploying the PI Server to Amazon Web Services EC2. <a href="AWS/">Details</a> |
-| **<a href="Azure/">Microsoft Azure</a>**   | These samples cover deploying the PI Server to Microsoft Azure. <a href="AWS/">Details</a>         |
+| **<a href="Azure/">Microsoft Azure</a>**   | These samples cover deploying the PI Server to Microsoft Azure. <a href="Azure/">Details</a>       |
 
 For the main PI System Samples landing page on master [ReadMe](https://github.com/osisoft/OSI-Samples-PI-System)
 
