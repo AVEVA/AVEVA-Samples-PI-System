@@ -8,7 +8,7 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
 | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **<a href="piwebapi_samples/">PI Web API</a>**                               | These samples cover programming against the PI Server via the PI Web API. <a href="piwebapi_samples/">Details</a>                                     |
 | **<a href="PI-System-Deployment-Tests/">PI System Deployment Tests</a>**     | These test samples are a lightweight sample testing framework for assessing a PI System deployment. <a href="PI-System-Deployment-Tests/">Details</a> |
-| **<a href="PI-System-Deployment-Scripts/">PI System Deployment Scripts</a>** | These samples cover deploying the PI System to web services. <a href="PI-System-Deployment-Scripts/">Details</a>                                      |
+| **<a href="PI-System-Deployment-Samples/">PI System Deployment Samples</a>** | These samples cover deploying the PI System to web services. <a href="PI-System-Deployment-Samples/">Details</a>                                      |
 
 ## About this repo
 
