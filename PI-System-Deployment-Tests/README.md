@@ -1,6 +1,6 @@
 
 
-​																																	<sup>  **Version:** 1.0.0</sup>
+​																																	<sup>  **Version:** 1.0.1</sup>
 
 ![OSIlogo.png](./images/OSIlogo.png)																								
 
@@ -21,7 +21,7 @@ It is expected for users to execute the xUnit test source code 'as is' and unmod
 
 PI System Deployment Tests have been designed and tested on English operating systems.
 
-[![Build Status](https://osisoft.visualstudio.com/Critical%20Operation%20Tests/_apis/build/status/Critical%20Operation%20Tests%20Sprint%20Build?branchName=master)](https://osisoft.visualstudio.com/Critical%20Operation%20Tests/_build/latest?definitionId=4689&branchName=master)
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/PI%20System%20Deployment%20Tests/PI%20System%20Deployment%20Tests%20Sprint%20Build?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=437&branchName=master)
 
 ### Directories
 

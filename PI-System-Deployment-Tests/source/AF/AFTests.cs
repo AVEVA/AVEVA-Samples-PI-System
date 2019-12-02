@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using OSIsoft.AF;
@@ -8,8 +7,6 @@ using OSIsoft.AF.Data;
 using OSIsoft.AF.EventFrame;
 using OSIsoft.AF.Modeling;
 using OSIsoft.AF.Search;
-using OSIsoft.AF.Time;
-using OSIsoft.AF.UnitsOfMeasure;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,6 +19,9 @@ namespace OSIsoft.PISystemDeploymentTests
     [Collection("AF collection")]
     public class AFTests : IClassFixture<AFFixture>
     {
+        internal const string KeySetting = "AFServer";
+        internal const TypeCode KeySettingTypeCode = TypeCode.String;
+
         /// <summary>
         /// Constructor for AFTests Class.
         /// </summary>
@@ -36,7 +36,7 @@ namespace OSIsoft.PISystemDeploymentTests
         private AFFixture Fixture { get; }
 
         private ITestOutputHelper Output { get; }
-
+ 
         /// <summary>
         /// Runs element search queries from Inline query strings.
         /// </summary>
@@ -733,6 +733,17 @@ namespace OSIsoft.PISystemDeploymentTests
             {
                 Fixture.RemoveUOMClassIfExists(UOMClassName, Output);
             }
+        }
+
+        /// <summary>
+        /// Tests to see if the current patch is applied
+        /// </summary>
+        /// <remarks>
+        /// Skips if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [AFFact(AFTestCondition.CURRENTPATCH)]
+        public void HaveLatestPatch()
+        {  
         }
 
         /// <summary>

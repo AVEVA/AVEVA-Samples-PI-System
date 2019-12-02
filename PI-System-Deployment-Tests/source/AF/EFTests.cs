@@ -4,6 +4,7 @@ using System.Globalization;
 using OSIsoft.AF;
 using OSIsoft.AF.Asset;
 using OSIsoft.AF.Data;
+using OSIsoft.AF.Diagnostics;
 using OSIsoft.AF.EventFrame;
 using OSIsoft.AF.Search;
 using Xunit;
@@ -391,6 +392,40 @@ namespace OSIsoft.PISystemDeploymentTests
         {
             Output.WriteLine($"Attempt event frame search with query [{query}].");
             RunEFQuery(query);
+        }
+
+        /// <summary>
+        /// Tests to see if the 2.10.7 patch was correctly applied
+        /// </summary>
+        /// <remarks>
+        /// Checks the server rpc calls to verify the 2.10.7 patch was correctly applied
+        /// </remarks>
+        [AFFact(AFTestCondition.PATCH2107)]
+        public void EventFrameAFSDK2018SP3Patch1Check()
+        {
+            AFEventFrame ef = null;
+            try
+            {
+                AFRpcMetric[] rpcBefore = Fixture.AFDatabase.PISystem.GetClientRpcMetrics();
+                ef = new AFEventFrame(Fixture.AFDatabase, "OSIsoftTests_Patch2107Applied_EF1");
+                ef.CheckIn();
+                ef.SetEndTime("*");
+                ef.CheckIn();
+                AFRpcMetric[] rpcAfter = Fixture.AFDatabase.PISystem.GetClientRpcMetrics();
+                IList<AFRpcMetric> rpcDiff = AFRpcMetric.SubtractList(rpcAfter, rpcBefore);
+                foreach (AFRpcMetric rpcMetric in rpcDiff)
+                {
+                    Assert.False(rpcMetric.Name.Equals("getcheckoutinfo", StringComparison.InvariantCultureIgnoreCase), "Error: GetCheckOutInfo rpc was still called after Checkin with 2018 SP3 Patch 1!");
+                }
+            }
+            finally
+            {
+                if (ef != null)
+                {
+                    ef.Delete();
+                    Fixture.AFDatabase.PISystem.CheckIn();
+                }
+            }
         }
 
         /// <summary>

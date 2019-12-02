@@ -37,7 +37,7 @@ Please review the [requirements](../Requirements.md) before executing the *Run.p
 
 6. To view test results, navigate to the _\PI-System-Deployment-Tests-master\testResults_ folder and double-click the HTML file.
 
-    **Result:** A summary of tests results by test class name are shown
+    **Result:** A summary of tests results by test class name are shown. Don't forget to check the reasons for any skipped tests in the Log Files. A skipped test may indicate that you do not have the latest version of a PI component.
     
     
 
@@ -76,7 +76,7 @@ Test results display information about passed, failed, and skipped tests in an H
 
 ### Skipped Tests
 
-In the test results HTML file, any tests that were not run are listed under the Skipped Tests heading.  Skipped tests occur when a certain optional feature of a PI System component is not installed on your target PI System.  When a script run includes a skipped test, additional information about the reason for the skip is included in the Log Files for that run.
+In the test results HTML file, any tests that were not run are listed under the Skipped Tests heading.  Skipped tests may indicate you do not have the latest version of a component. They can also occur when a certain optional feature of a PI System component is not installed on your target PI System.  When a script run includes a skipped test, additional information about the reason for the skip is included in the Log Files for that run.
 
 
 

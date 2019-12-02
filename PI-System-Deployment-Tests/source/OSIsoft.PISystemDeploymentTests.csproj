@@ -120,6 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AF\AFDataTests.cs" />
+    <Compile Include="AF\AFFactAttribute.cs" />
     <Compile Include="AF\AFTests.cs" />
     <Compile Include="AF\AFTestsConfiguration.cs" />
     <Compile Include="AF\EFTests.cs" />
