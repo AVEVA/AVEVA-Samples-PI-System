@@ -20,7 +20,7 @@ variables:
   - name: projPath
     value: '/piwebapi_samples/Python'
   - name: CredFile
-    value: test-config.py
+    value: test_config.py
   - name: CredFileLibrary
     value: product-readiness.piwebapi_python.py
   - name: covStream
