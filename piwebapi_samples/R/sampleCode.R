@@ -2,14 +2,8 @@ context("TestRSample")
 
 if (!require("pacman")) install.packages("pacman", repos = "https://cran.r-project.org", quiet = TRUE)
 require("pacman", quietly = TRUE)
+source("test_config.R")
 p_load("httr", "jsonlite", "tcltk")
-
-defaultName <- ""
-defaultPassword <- ""
-defaultPIWebAPIUrl <- ""
-defaultAssetServer <- ""
-defaultPIServer <- ""
-defaultAuthorization <- ""
 
 databaseName <- "OSIRDatabase"
 categoryName <- "OSIRCategory"
@@ -20,12 +14,10 @@ tagName <- "OSIRSampleTag"
 attributeSampleTagName <- "OSIRAttributeSampleTag"
 elementName <- "OSIRElement"
 
-
 #Sample application UI
 runPIWebAPISamples <- function(){
   dlg <- tktoplevel()
   ctrlFrame <- tkframe(dlg, borderwidth = 3)
-  
   
   tkwm.title(dlg, "PIWeb.API Calls")
   
@@ -38,9 +30,7 @@ runPIWebAPISamples <- function(){
          side = "right", expand = TRUE,
          ipadx = 5, ipady = 5, fill = "both") 
   
-  
   tkpack(ctrlFrame, expand = TRUE, fill = "both")
-  
   
   #Dialog form variables
   Name <- tclVar(defaultName)
@@ -1071,13 +1061,3 @@ deleteDatabase <- function(PIWebAPIUrl, AssetServer, Name, Password, AuthType){
   
   return(status_code(response))
 }
-
-
-
-
-
-
-
-
-
-

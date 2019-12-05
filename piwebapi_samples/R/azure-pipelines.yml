@@ -1,69 +1,55 @@
-variables:
-- group: LocalServer
-- name: projpath
-  value: /piwebapi_samples/R
-- name: CredFile
-  value: sampleCode.R
-- name: CredFileLibrary
-  value: prod_sampleCode.R
-- name: CredFile
-  value: sampleCode.R
-- name: testpath
-  value: /piwebapi_samples/R
-- name: job
-  value: OMF_APIDotNet
-
 trigger:
-- dev
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/R'
 
-pool:
-  name: 00-OSIManaged-Test
-  demands: USERNAME -equals $(LocalServer)
+pr:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/R'
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
-  
-# Download Secure File
-# Download a secure file to a temporary location on the build or release agent
-- task: DownloadSecureFile@1
-  inputs:
-    secureFile: $(CredFileLibrary)
+variables:
+  - template: '/miscellaneous/build_templates/variables.yml'
+  - name: projpath
+    value: '/piwebapi_samples/R'
+  - name: CredFile
+    value: test_config.R
+  - name: CredFileLibrary
+    value: product-readiness.piwebapi_r.R
+  - name: covStream
+    value: PIWebAPIR
 
-# Copy Files basic_samples\OMF_API\CSharp\OMF_API
-# Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
-- task: CopyFiles@2
-  inputs:
-    sourceFolder: $(Agent.TempDirectory)
-    contents: $(CredFileLibrary)
-    targetFolder: '$(Build.SourcesDirectory)$(projpath)/'
-    #cleanTargetFolder: false # Optional  
-    overWrite: true # Optional
-    #flattenFolders: false # Optional 
-  displayName: copy file
+jobs:
+  - job: Tests
+    pool:
+      name: 00-OSIManaged-Test
+      demands: USERNAME -equals $(covAgent)
+    steps:
+      - template: '/miscellaneous/build_templates/config.yml'
+        parameters:
+          fileOriginal: $(CredFile)
+          fileLibrary: $(CredFileLibrary)
+          filePath: $(projPath)
 
+      - script: Rscript.exe run_tests.R
+        workingDirectory: $(Build.SourcesDirectory)$(projpath)
+        continueOnError: 'true'
+        displayName: 'Run tests'
 
-- script: |
-    del $(CredFile)
-  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file1'
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '**\output.xml'
+          searchFolder: $(Build.SourcesDirectory)$(projpath)
+          testRunTitle: 'Publish R test results'
+        displayName: 'Publish test results'
 
-- script: |
-    rename  $(CredFileLibrary)  $(CredFile)
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)'
-  displayName: 'rename config file'     
-
-- script: Rscript.exe run_tests.R
-  workingDirectory: $(Build.SourcesDirectory)$(projpath)
-  continueOnError: 'true'
-  displayName: 'Run R tests'
-
-- task: PublishTestResults@2
-  condition: succeededOrFailed()
-  inputs:
-    testResultsFormat: 'JUnit'
-    testResultsFiles: '**\output.xml'
-    searchFolder: $(Build.SourcesDirectory)$(projpath)
-    testRunTitle: 'Publish R test results'
+  - template: '/miscellaneous/build_templates/coverity.yml'

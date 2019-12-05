@@ -95,7 +95,3 @@ test_that("deleteDatabase", {
   statusCode <- deleteDatabase(defaultPIWebAPIUrl, defaultAssetServer, defaultName, defaultPassword, defaultAuthorization)
   expect_equal(statusCode, 204)
 })
-
-
-
-

@@ -1,0 +1,6 @@
+defaultName <- ""
+defaultPassword <- ""
+defaultPIWebAPIUrl <- ""
+defaultAssetServer <- ""
+defaultPIServer <- ""
+defaultAuthorization <- ""
