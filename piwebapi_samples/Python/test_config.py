@@ -1,0 +1,6 @@
+PIWEBAPI_URL = ''
+AF_SERVER_NAME = ''
+PI_SERVER_NAME = ''
+USER_NAME = ''
+USER_PASSWORD = ''
+AUTH_TYPE = 'kerberos'
