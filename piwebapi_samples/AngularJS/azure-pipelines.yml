@@ -18,13 +18,13 @@ pr:
 variables:
   - template: '/miscellaneous/build_templates/variables.yml'
   - name: projPath
-    value: /piwebapi_samples/AngularJS
+    value: '/piwebapi_samples/AngularJS'
   - name: CredFile
     value: test-config.js
   - name: CredFileLibrary
     value: product-readiness.piwebapi_angularjs.js
   - name: covStream
-    value: OMF_APIDotNet
+    value: PIWebAPI_AngularJS
 
 jobs:
   - job: Tests
@@ -45,7 +45,7 @@ jobs:
 
       - script: |
           npm ci
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)
         displayName: 'Install dependencies'
 
       - script: |

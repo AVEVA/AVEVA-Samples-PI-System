@@ -24,7 +24,7 @@ variables:
   - name: CredFileLibrary
     value: product-readiness.piwebapi_angular.ts
   - name: covStream
-    value: OMF_APIDotNet
+    value: PIWebAPI_Angular
 
 jobs:
   - job: Tests
