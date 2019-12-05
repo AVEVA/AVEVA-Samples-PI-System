@@ -1,5 +1,7 @@
 # PI Web API R Sample
 
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_R?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=965&branchName=master)
+
 The sample code in this folder demonstrates how to utilize the PI Web API in R. The sample code is dependent on:
 
 - [Downloading R](https://cran.r-project.org/mirrors.html)
@@ -22,40 +24,17 @@ To run the sample code:
 To run the sample tests:
 
 - Install [testthat](https://cran.r-project.org/web/packages/testthat/index.html) if not already installed. From the Console inside RStudio `install.packages("testthat")`
-- Open the file: `sampleCode.R`
-- Search for the text **defaultPIWebAPIUrl**, add your PI Web API Url. For example:
+- Open the file: `test_config.R`
+- Replace the values with your system configuration.
+
+For example:
 
 ```R
-defaultPIWebAPIUrl <- "https://mydomain.com/piwebapi"
-```
-
-- Search for the text **defaultAssetServer**, add your Asset Server Name. For example:
-
-```R
-defaultAssetServer <- "AssetServerName"
-```
-
-- Search for the text **defaultPIServer**, add your PI Server Name. For example:
-
-```R
-defaultPIServer <- "PIServerName"
-```
-
-- Search for the text **defaultName**, add your PI Web API user name. (Not needed for kerberos) For example:
-
-```R
-defaultName <- "MyUserName"
-```
-
-- Search for the text **defaultPassword**, add your PI Web API user password. (Not needed for kerberos) For example:
-
-```R
+defaultName <- "MyUserName" # Or, 'domain\\userName'
 defaultPassword <- "MyUserPassword"
-```
-
-- Search for the text **defaultAuthorization**, add your PI Web API authentication method: `basic` or `gssnegotiate` (for kerberos). For example:
-
-```R
+defaultPIWebAPIUrl <- "https://mydomain.com/piwebapi"
+defaultAssetServer <- "AssetServerName"
+defaultPIServer <- "PIServerName"
 defaultAuthorization <- "basic"
 ```
 
