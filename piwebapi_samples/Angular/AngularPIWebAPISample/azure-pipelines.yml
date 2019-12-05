@@ -24,7 +24,7 @@ variables:
   - name: CredFileLibrary
     value: product-readiness.piwebapi_angular.ts
   - name: covStream
-    value: PIWebAPI_Angular
+    value: PIWebAPIAngular
 
 jobs:
   - job: Tests

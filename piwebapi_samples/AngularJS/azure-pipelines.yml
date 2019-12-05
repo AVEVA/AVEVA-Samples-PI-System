@@ -24,7 +24,7 @@ variables:
   - name: CredFileLibrary
     value: product-readiness.piwebapi_angularjs.js
   - name: covStream
-    value: PIWebAPI_AngularJS
+    value: PIWebAPIAngularJS
 
 jobs:
   - job: Tests
@@ -49,7 +49,7 @@ jobs:
         displayName: 'Install dependencies'
 
       - script: |
-          karma start
+          npm run test-single-run
         workingDirectory: $(Build.SourcesDirectory)$(projPath)
         displayName: 'Run tests'
 
