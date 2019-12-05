@@ -62,5 +62,6 @@ jobs:
         inputs:
           testRunner: JUnit
           testResultsFiles: '**/TESTS-*.xml'
+        displayName: 'Publish test results'
 
   - template: '/miscellaneous/build_templates/coverity.yml'
