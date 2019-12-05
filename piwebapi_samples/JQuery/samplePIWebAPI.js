@@ -7,15 +7,6 @@
   var attributeSampleTagName = 'OSIjQueryAttributeSampleTag'
   var elementName = 'OSIjQueryElement'
 
-  var configDefaults = {
-    'Name': '',
-    'Password': '',
-    'AuthType': '',
-    'PIWebAPIUrl': '',
-    'AssetServer': '',
-    'PIServer': ''
-  }
-
   /**
    * Returns true if AuthType equals kerberos case insensitive
    * @param {*} AuthType string: Authorization type:  basic or kerberos

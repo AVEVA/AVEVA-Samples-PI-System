@@ -1,5 +1,7 @@
 # PI Web API AngularJS Sample
 
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_AngularJS?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=958&branchName=master)
+
 The sample code in this folder demonstrates how to utilize the PI Web API in AngularJS. You must have already [downloaded AngularJS](https://angularjs.org/) to run this sample application.
 
 ## Prerequisites
@@ -24,28 +26,29 @@ To run the sample code:
 
 To run the sample tests:
 
-- Open the test file: `AngularJS\test-config.js`
+- Open the test config file: `AngularJS\test-config.js`
 - Replace the values with your system configuration.
 
 For example:
 
-````javascript
-export const testConfig = {
+```javascript
+var testConfig = {
   piWebApiUrl: 'https://mydomain.com/piwebapi',
   assetServer: 'AssetServerName',
   piServer: 'PIServerName',
-  userName: 'MyUserName', // Or, `domain\\userName`
+  userName: 'MyUserName', // Or, 'domain\\userName'
   userPassword: 'MyUserPassword',
   authType: 'Basic', // Basic or Kerberos
   DEFAULT_TIMEOUT_INTERVAL: null
 };
+```
 
 - In the terminal, use the following command to run the tests: `karma start`
 - If you run into any issues with the Jasmine tests timing out, use the `DEFAULT_TIMEOUT_INTERVAL` setting in `test-config.js` and set it to a higher value. For example:
 
-```typescript
-DEFAULT_TIMEOUT_INTERVAL: 10000;
-````
+```
+DEFAULT_TIMEOUT_INTERVAL: 10000
+```
 
 ## System Configuration
 
