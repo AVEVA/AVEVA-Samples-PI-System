@@ -1,5 +1,7 @@
 # PI Web API Python Sample
 
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=963&branchName=master)
+
 The sample code in this folder demonstrates how to utilize the PI Web API using Python. You must have already [installed Python](https://www.python.org/downloads/release/python-373/) in order to run this sample application.
 
 ## Getting Started
@@ -15,55 +17,24 @@ To run the sample code:
 
 To run the sample tests:
 
+- Open the test config file: `Python\test_config.py`
+- Replace the values with your system configuration.
+
+For example:
+
+```python
+PIWEBAPI_URL = 'https://mydomain.com/piwebapi'
+AF_SERVER_NAME = 'AssetServerName'
+PI_SERVER_NAME = 'PIServerName'
+USER_NAME = 'MyUserName' # Or, 'domain\\userName'
+USER_PASSWORD = 'MyUserPassword'
+AUTH_TYPE = 'basic' # Basic or Kerberos
+```
+
 - Each test file (prefixed as "test\_..."), can be run independently or all the tests can be run in a single instance via the `run_all_tests.py` file.
-- To run a single file:
-  - Open the test file you wish to run: e.g. `.\test_batch.py`
-  - Note the global constants at the top file, and replace with your desired values.
-- To run all tests via `run_all_tests.py`:
-
-  - Open **each** test file.
-  - Note the global constants at the top of each file, and replace with your desired values.
-
-- All of these global constants are not necessary for each file, therefore you may only see one or two per file.
-- Search for the text **PIWEBAPI_URL**, add your PI Web API Url. For example:
-
-```python
-PIWEBAPI_URL = 'https://mydomain.com/piwebapi';
-```
-
-- Search for the text **AF_SERVER_NAME**, add your Asset Server Name. For example:
-
-```python
-AF_SERVER_NAME = 'AssetServerName';
-```
-
-- Search for the text **PI_SERVER_NAME**, add your PI Server Name. For example:
-
-```python
-PI_SERVER_NAME = 'PIServerName';
-```
-
-- Search for the text **OSI_AF_DATABASE**, add your PI Web API database name. For example:
-
-```python
-OSI_AF_DATABASE = 'DatabaseName';
-```
-
-- Search for the text **OSI_AF_ELEMENT**, add your PI Web API element name. For example:
-
-```python
-OSI_AF_ELEMENT = 'Pump1';
-```
-
-- Search for the text **OSI_AF_ATTRIBUTE_TAG**, add your PI Web API attribute tag. For example:
-
-```python
-OSI_AF_ATTRIBUTE_TAG = 'PumpStatus';
-```
+- To run a single file, open the test file you wish to run: e.g. `.\test_batch.py`
 
 - In the terminal, navigate to the test files and use the following command to run all the tests: `python .\run_all_tests.py` or to run a test individually: `python .\test_batch_call.py`
-
-Note: The tests are only configured for kerberos.
 
 Note: The single tests may have expected configurations of PIWebAPI, this will cause the test to fail with a 404 Error if the expected configuration isn't available. See run_all_tests for the order to run the tests in.
 
