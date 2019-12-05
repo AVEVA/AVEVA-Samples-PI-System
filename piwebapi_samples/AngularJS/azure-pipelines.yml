@@ -20,7 +20,7 @@ variables:
   - name: projPath
     value: /piwebapi_samples/AngularJS
   - name: CredFile
-    value: app.spec.js
+    value: test-config.js
   - name: CredFileLibrary
     value: product-readiness.piwebapi_angularjs.js
   - name: covStream
