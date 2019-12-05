@@ -3,8 +3,6 @@
 //      npm install -g karma-cli
 //  To run the test:  karma start
 
-import { testConfig } from '../test-config';
-
 // Increase timeout interval for longer running http calls.
 if (testConfig.DEFAULT_TIMEOUT_INTERVAL) {
   jasmine.DEFAULT_TIMEOUT_INTERVAL = testConfig.DEFAULT_TIMEOUT_INTERVAL;

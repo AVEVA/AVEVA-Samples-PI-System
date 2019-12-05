@@ -1,4 +1,4 @@
-export const testConfig = {
+var testConfig = {
   piWebApiUrl: '',
   assetServer: '',
   piServer: '',
