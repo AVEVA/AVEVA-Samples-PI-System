@@ -22,7 +22,7 @@ variables:
   - name: testPath
     value: '/piwebapi_samples/JQuery/KarmaUnitTests'
   - name: CredFile
-    value: samplePIWebAPI.js
+    value: test-config.js
   - name: CredFileLibrary
     value: product-readiness.piwebapi_jquery.js
   - name: covStream
@@ -53,7 +53,7 @@ jobs:
       - script: |
           npm install -g karma-cli
         workingDirectory: $(Build.SourcesDirectory)$(testPath)
-        displayName: 'Install packages with NPM'
+        displayName: 'Install Karma CLI'
 
       - script: |
           karma start
