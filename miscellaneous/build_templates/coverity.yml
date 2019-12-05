@@ -1,0 +1,22 @@
+jobs:
+  - job: Coverity
+    pool:
+      name: 00-OSIManaged-Test
+      demands: USERNAME -equals $(covAgent)
+    steps:
+      - script: if not exist $(covFolder) mkdir $(covFolder)
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)
+        displayName: 'Make dir'
+        continueOnError: true
+
+      - script: '"$(covPath)cov-build" --dir . --no-command --fs-capture-search ../ '
+        workingDirectory: '$(Build.SourcesDirectory)$(projPath)/$(covFolder)'
+        displayName: 'Build'
+
+      - script: '"$(covPath)cov-analyze" --dir .'
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)
+        displayName: 'Analyze'
+
+      - script: '"$(covPath)cov-commit-defects" --stream "Engineering Incubation - $(covStream)" --host $(covServer) --https-port 8443 --auth-key-file "$(covAuthPath)" --dir .'
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)
+        displayName: 'Upload'

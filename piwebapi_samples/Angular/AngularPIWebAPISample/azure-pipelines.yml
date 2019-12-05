@@ -1,84 +1,66 @@
-# Node.js with Angular
-# Build a Node.js project that uses Angular.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/Angular'
+
+pr:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/Angular'
 
 variables:
-- group: LocalServer
-- name: projpath
-  value: /piwebapi_samples/Angular/AngularPIWebAPISample
-- name: CredFile
-  value: piwebapi.service.spec.ts
-- name: CredFileLibrary
-  value: prod_piwebapi.service.spec.ts
-- name: CredFileLibraryOP
-  value: prod_piwebapi.service.spec.ts
-- name: testpath
-  value: /piwebapi_samples/Angular/AngularPIWebAPISample  
-- name: credpath
-  value: /src/app/services
-- name: job
-  value: OMF_APIDotNet
+  - template: '/miscellaneous/build_templates/variables.yml'
+  - name: projPath
+    value: '/piwebapi_samples/Angular/AngularPIWebAPISample'
+  - name: CredFile
+    value: test-config.ts
+  - name: CredFileLibrary
+    value: product-readiness.piwebapi_angular.ts
+  - name: covStream
+    value: OMF_APIDotNet
 
-trigger:
-- dev
+jobs:
+  - job: Tests
+    pool:
+      name: 00-OSIManaged-Test
+      demands: USERNAME -equals $(covAgent)
+    steps:
+      - template: '/miscellaneous/build_templates/config.yml'
+        parameters:
+          fileOriginal: $(CredFile)
+          fileLibrary: $(CredFileLibrary)
+          filePath: $(projPath)
 
-pool:
-  name: 00-OSIManaged-Test
-  demands: USERNAME -equals $(LocalServer)
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '10.x'
+        displayName: 'Specify Node version'
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
-  
-# Download Secure File
-# Download a secure file to a temporary location on the build or release agent
-- task: DownloadSecureFile@1
-  inputs:
-    secureFile: $(CredFileLibrary)
+      - script: |
+          npm install -g @angular/cli
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Install Angular CLI'
 
-# Copy Files basic_samples\OMF_API\CSharp\OMF_API
-# Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
-- task: CopyFiles@2
-  inputs:
-    sourceFolder: $(Agent.TempDirectory)
-    contents: $(CredFileLibrary)
-    targetFolder: '$(Build.SourcesDirectory)$(projpath)$(credpath)/'
-    #cleanTargetFolder: false # Optional  
-    overWrite: true # Optional
-    #flattenFolders: false # Optional 
-  displayName: copy file
+      - script: |
+          npm ci
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Install dependencies'
 
+      - script: ng test --watch=false
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)
+        displayName: 'Run tests'
 
-- script: |
-    del $(CredFile)
-  workingDirectory:  '$(Build.SourcesDirectory)$(projpath)$(credpath)'
-  displayName: 'rename config file1'
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testRunner: JUnit
+          testResultsFiles: '**/TESTS-*.xml'
 
-- script: |
-    rename  $(CredFileLibrary)  $(CredFile)
-  workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
-  displayName: 'rename config file'     
-
-- script: npm install -g @angular/cli
-  displayName: 'npm install angular'
-  workingDirectory: $(Build.SourcesDirectory)$(projpath)
-
-- script: |
-    npm install
-    npm install --only=dev
-  displayName: 'npm install dev dependencies'
-  workingDirectory: $(Build.SourcesDirectory)$(projpath)
-  
-
-- script: ng test --watch=false
-  displayName: 'run tests'
-  workingDirectory: $(Build.SourcesDirectory)$(projpath)
-
-- task: PublishTestResults@2
-  condition: succeededOrFailed()
-  inputs:
-    testRunner: JUnit
-    testResultsFiles: '**/TESTS-*.xml'
+  - template: '/miscellaneous/build_templates/coverity.yml'
