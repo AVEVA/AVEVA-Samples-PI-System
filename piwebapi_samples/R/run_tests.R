@@ -13,5 +13,3 @@ options(testthat.output_file = paste(path, "\\output.xml", sep = ""))
 test_results <- test_dir(path, env = test_env(), reporter="junit")
 
 Sys.unsetenv("TESTING")
-
-

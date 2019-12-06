@@ -2,8 +2,8 @@
 
 import unittest
 
-PIWEBAPI_URL = ''
-AF_SERVER_NAME = ''
+from test_config import PIWEBAPI_URL, AF_SERVER_NAME, USER_NAME, USER_PASSWORD, AUTH_TYPE
+
 
 class TestStringMethods(unittest.TestCase):
     """
@@ -14,24 +14,26 @@ class TestStringMethods(unittest.TestCase):
         To run a single test:
             python -m unittest test_read_attributes.TestStringMethods.test_readattributesnapshot
     """
+
     def test_readattributesnapshot(self):
         """ Test the read_attribute_snapshot method """
         from read_attributes import read_attribute_snapshot
         self.assertEqual(read_attribute_snapshot(PIWEBAPI_URL,
-                                                 AF_SERVER_NAME, 'na', 'na', 'kerberos'), 200)
+                                                 AF_SERVER_NAME, USER_NAME, USER_PASSWORD, AUTH_TYPE), 200)
 
     def test_readattributestream(self):
         """ Test the read_attribute_stream method """
         from read_attributes import read_attribute_stream
         self.assertEqual(read_attribute_stream(PIWEBAPI_URL,
-                                               AF_SERVER_NAME, 'na', 'na', 'kerberos'), 200)
+                                               AF_SERVER_NAME, USER_NAME, USER_PASSWORD, AUTH_TYPE), 200)
 
     def test_readattributeselectedfields(self):
         """ Test the read_attribute_selected_fields method """
         from read_attributes import read_attribute_selected_fields
         self.assertEqual(read_attribute_selected_fields(PIWEBAPI_URL,
-                                                        AF_SERVER_NAME, 
-                                                        'na', 'na', 'kerberos'), 200)
+                                                        AF_SERVER_NAME,
+                                                        USER_NAME, USER_PASSWORD, AUTH_TYPE), 200)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,71 +1,63 @@
-variables:
-  - group: LocalServer
-  - name: projpath
-    value: /piwebapi_samples/AngularJS
-  - name: CredFile
-    value: app.spec.js
-  - name: CredFileLibrary
-    value: prod_app.spec.js
-  - name: CredFileLibraryOP
-    value: prod_app.spec.js
-  - name: testpath
-    value: /piwebapi_samples/AngularJS
-  - name: credpath
-    value: /app
-  - name: job
-    value: OMF_APIDotNet
-
 trigger:
-  - dev
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/AngularJS'
 
-pool:
-  name: 00-OSIManaged-Test
-  demands: USERNAME -equals $(LocalServer)
+pr:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/AngularJS'
 
-steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: '10.x'
-    displayName: 'Install Node.js'
+variables:
+  - template: '/miscellaneous/build_templates/variables.yml'
+  - name: projPath
+    value: '/piwebapi_samples/AngularJS'
+  - name: CredFile
+    value: test-config.js
+  - name: CredFileLibrary
+    value: product-readiness.piwebapi_angularjs.js
+  - name: covStream
+    value: PIWebAPIAngularJS
 
-  # Download Secure File
-  # Download a secure file to a temporary location on the build or release agent
-  - task: DownloadSecureFile@1
-    inputs:
-      secureFile: $(CredFileLibrary)
+jobs:
+  - job: Tests
+    pool:
+      name: 00-OSIManaged-Test
+      demands: USERNAME -equals $(covAgent)
+    steps:
+      - template: '/miscellaneous/build_templates/config.yml'
+        parameters:
+          fileOriginal: $(CredFile)
+          fileLibrary: $(CredFileLibrary)
+          filePath: $(projPath)
 
-  # Copy Files basic_samples\OMF_API\CSharp\OMF_API
-  # Copy files from source folder to target folder using match patterns (The match patterns will only match file paths, not folder paths)
-  - task: CopyFiles@2
-    inputs:
-      sourceFolder: $(Agent.TempDirectory)
-      contents: $(CredFileLibrary)
-      targetFolder: '$(Build.SourcesDirectory)$(projpath)$(credpath)/'
-      #cleanTargetFolder: false # Optional
-      overWrite: true # Optional
-      #flattenFolders: false # Optional
-    displayName: copy file
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '10.x'
+        displayName: 'Specify Node version'
 
-  - script: |
-      del $(CredFile)
-    workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
-    displayName: 'rename config file1'
+      - script: |
+          npm ci
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)
+        displayName: 'Install dependencies'
 
-  - script: |
-      rename  $(CredFileLibrary)  $(CredFile)
-    workingDirectory: '$(Build.SourcesDirectory)$(projpath)$(credpath)'
-    displayName: 'rename config file'
+      - script: |
+          npm run test-single-run
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)
+        displayName: 'Run tests'
 
-  - script: npm ci
-    displayName: 'npm install what is need'
-    workingDirectory: $(Build.SourcesDirectory)$(projpath)
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '**\\TEST*.xml'
+          searchFolder: $(Build.SourcesDirectory)$(projPath)
+        displayName: 'Publish test results'
 
-  - script: karma start
-    displayName: 'run tests'
-    workingDirectory: $(Build.SourcesDirectory)$(projpath)
-
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**\\TEST*.xml'
-      searchFolder: $(Build.SourcesDirectory)$(projpath)
+  - template: '/miscellaneous/build_templates/coverity.yml'

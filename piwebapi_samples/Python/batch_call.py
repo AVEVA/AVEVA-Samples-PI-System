@@ -153,7 +153,8 @@ def do_batch_call(piwebapiurl, asset_server, user_name, user_password, piwebapi_
             print('5: Write a set of recorded values to the sample tag')
             print(json.dumps(data['5'], indent=4, sort_keys=True))
 
-            print('6: Get the sample tag\'s last 10 recorded values, only returning the value and timestamp')
+            print(
+                '6: Get the sample tag\'s last 10 recorded values, only returning the value and timestamp')
             print(json.dumps(data['6'], indent=4, sort_keys=True))
 
         else:
@@ -170,7 +171,8 @@ def main():
     af_server_name = str(input('Enter the Asset Server Name: '))
     piwebapi_user = str(input('Enter the user name: '))
     piwebapi_password = str(getpass.getpass('Enter the password: '))
-    piwebapi_security_method = str(input('Enter the security method,  Basic or Kerberos:'))
+    piwebapi_security_method = str(
+        input('Enter the security method,  Basic or Kerberos:'))
     piwebapi_security_method = piwebapi_security_method.lower()
 
     do_batch_call(piwebapi_url, af_server_name, piwebapi_user, piwebapi_password,
