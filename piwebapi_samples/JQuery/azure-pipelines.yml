@@ -67,5 +67,5 @@ jobs:
 
   - template: '/miscellaneous/build_templates/analysis.yml'
     parameters:
-      language: nodejs
+      language: javascript
       web: true
