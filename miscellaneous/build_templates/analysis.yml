@@ -24,7 +24,6 @@ jobs:
         condition: eq('${{ parameters.language }}', 'dotnet')
 
       # - Java
-        condition: eq('${{ parameters.language }}', 'java')
       - script: |
           echo Install
           call mvn install -f pom.xml -DskipTests
