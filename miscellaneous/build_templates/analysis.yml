@@ -138,7 +138,7 @@ jobs:
       # - Angular
       - script: '"$(covPath)cov-build" --dir . --no-command --fs-capture-search ../src'
         workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
-        displayName: 'Coverity (Default): Build'
+        displayName: 'Coverity (Angular): Build'
         condition: eq('${{ parameters.language }}', 'angular')
 
       # - Default
