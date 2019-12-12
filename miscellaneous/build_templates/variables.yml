@@ -1,2 +1,2 @@
 variables:
-  - group: product-readiness.coverity
+  - group: product-readiness

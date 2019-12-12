@@ -25,12 +25,14 @@ variables:
     value: product-readiness.piwebapi_python.py
   - name: covStream
     value: PIWebAPIPython
+  - name: bdProject
+    value: PIWebAPI_Python
 
 jobs:
   - job: Tests
     pool:
       name: 00-OSIManaged-Test
-      demands: USERNAME -equals $(covAgent)
+      demands: USERNAME -equals $(buildAgent)
     steps:
       - template: '/miscellaneous/build_templates/config.yml'
         parameters:
@@ -39,18 +41,16 @@ jobs:
           filePath: $(projPath)
 
       - script: |
-          python -m pip install --upgrade pip
-          pip install requests
-          pip install requests_kerberos
-          pip install unittest
-          pip install unittest-xml-reporting
-        workingDirectory: '$(Build.SourcesDirectory)$(projPath)'
-        displayName: 'Install dependencies'
-
-      - script: |
-          python run_all_tests.py 2>&1
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)
-        continueOnError: 'true'
+          echo Install pip
+          call python -m pip install --upgrade pip
+          echo Install dependencies
+          call pip install requests
+          call pip install requests_kerberos
+          call pip install unittest
+          call pip install unittest-xml-reporting
+          echo Run tests
+          call python run_all_tests.py 2>&1
+          echo Complete
         displayName: 'Run tests'
 
       - task: PublishTestResults@2
@@ -61,4 +61,6 @@ jobs:
           searchFolder: $(Build.SourcesDirectory)$(projPath)
           testRunTitle: 'Publish test results'
 
-  - template: '/miscellaneous/build_templates/coverity.yml'
+  - template: '/miscellaneous/build_templates/analysis.yml'
+    parameters:
+      language: python
