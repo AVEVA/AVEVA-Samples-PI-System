@@ -44,7 +44,7 @@ jobs:
           echo Requirements
           call pip install -r requirements.txt
           echo Complete
-        workingDirectory: $(Build.SourcesDirectory)$(testPath)/
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
         displayName: 'Build (Python): Install dependencies'
         condition: eq('${{ parameters.language }}', 'python')
 
