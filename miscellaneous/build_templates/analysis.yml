@@ -1,0 +1,156 @@
+parameters:
+  language: ''
+  web: false
+  skipBinSkim: false
+
+jobs:
+  - job: Analysis
+    pool:
+      name: 00-OSIManaged-Test
+      demands: USERNAME -equals $(buildAgent)
+    steps:
+      # Build Sample
+      # - DotNet
+      - script: |
+          echo Clean
+          call dotnet clean
+          echo Restore
+          call dotnet restore --ignore-failed-sources
+          echo Build
+          call dotnet msbuild -p:HIGHENTROPYVA=true
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Build (DotNet)'
+        condition: eq('${{ parameters.language }}', 'dotnet')
+
+      # - Java
+      - script: |
+          echo Install
+          call mvn install -f pom.xml -DskipTests
+          echo Compile
+          call mvn compile
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Build (Java)'
+        condition: eq('${{ parameters.language }}', 'java')
+
+      # - Python
+      - script: |
+          echo Install
+          call pip install setuptools wheel
+          call pip install unittest-xml-reporting    
+          call pip install pytest
+          call pip install pytest-cov
+          echo Requirements
+          call pip install -r requirements.txt
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Build (Python): Install dependencies'
+        condition: eq('${{ parameters.language }}', 'python')
+
+      # - Angular
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '10.x'
+        displayName: 'Build (Angular): Specify Node version'
+        condition: eq('${{ parameters.language }}', 'angular')
+      - script: |
+          echo Angular CLI
+          call npm install -g @angular/cli
+          echo NPM CI
+          call npm ci
+          echo Build
+          call npm run build
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Build (Angular)'
+        condition: eq('${{ parameters.language }}', 'angular')
+
+      # - NodeJS
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '10.x'
+        displayName: 'Build (NodeJS): Specify Node version'
+        condition: eq('${{ parameters.language }}', 'nodejs')
+      - script: npm ci
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Build (NodeJS): Install dependencies'
+        condition: eq('${{ parameters.language }}', 'nodejs')
+
+      # BinSkim
+      - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-binskim.BinSkim@3
+        displayName: 'BinSkim (DotNet): Analyze'
+        inputs:
+          AnalyzeTarget: '$(Build.SourcesDirectory)\*.dll;$(Build.SourcesDirectory)\*.exe'
+        condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
+
+      - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-postanalysis.PostAnalysis@1
+        displayName: 'BinSkim (DotNet): Post-Analysis'
+        inputs:
+          BinSkim: true
+          BinSkimBreakOn: WarningAbove
+        condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
+
+      # Synopsys
+      - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
+        inputs:
+          Products: BD
+          BlackDuckService: 'product-readiness.BlackDuck'
+          DetectArguments: |
+            --detect.project.name="product-readiness.$(bdProject)"
+            --detect.project.version.name="$(Build.SourceBranchName)"
+            --detect.source.path=$(Build.SourcesDirectory)$(projPath)/
+            --detect.code.location.name="code_location_$(bdProject)_$(Build.SourceBranchName)"
+            --detect.bom.aggregate.name="bom_$(bdProject)_$(Build.SourceBranchName)"
+        condition: succeeded()
+        displayName: 'Synopsys: Detect'
+
+      # Coverity
+      - script: if not exist $(covFolder) mkdir $(covFolder)
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Coverity: Make dir'
+        continueOnError: true
+
+      # - DotNet
+      - script: |
+          echo Clean
+          call dotnet clean
+          echo Restore
+          call dotnet restore
+          echo Build
+          "$(covPath)cov-build" --dir $(covFolder) dotnet build
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Coverity (DotNet): Build'
+        condition: eq('${{ parameters.language }}', 'dotnet')
+
+      # - Java
+      - script: |
+          echo Clean
+          call mvn clean
+          echo Build
+          "$(covPath)cov-build" --dir $(covFolder) mvn compile
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        displayName: 'Coverity (Java): Build'
+        condition: eq('${{ parameters.language }}', 'java')
+
+      # - Angular
+      - script: '"$(covPath)cov-build" --dir . --no-command --fs-capture-search ../src'
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
+        displayName: 'Coverity (Angular): Build'
+        condition: eq('${{ parameters.language }}', 'angular')
+
+      # - Default
+      - script: '"$(covPath)cov-build" --dir . --no-command --fs-capture-search ../'
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
+        displayName: 'Coverity (Default): Build'
+        condition: and(ne('${{ parameters.language }}', 'angular'), or(and(ne('${{ parameters.language }}', 'dotnet'), ne('${{ parameters.language }}', 'java')), eq(${{ parameters.web }}, true)))
+
+      - script: '"$(covPath)cov-analyze" --dir .'
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
+        displayName: 'Coverity: Analyze'
+
+      - script: '"$(covPath)cov-commit-defects" --stream "Engineering Incubation - $(covStream)" --host $(covServer) --https-port 8443 --auth-key-file "$(covAuthPath)" --dir .'
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
+        displayName: 'Coverity: Upload'

@@ -25,12 +25,14 @@ variables:
     value: product-readiness.piwebapi_angularjs.js
   - name: covStream
     value: PIWebAPIAngularJS
+  - name: bdProject
+    value: PIWebAPI_AngularJS
 
 jobs:
   - job: Tests
     pool:
       name: 00-OSIManaged-Test
-      demands: USERNAME -equals $(covAgent)
+      demands: USERNAME -equals $(buildAgent)
     steps:
       - template: '/miscellaneous/build_templates/config.yml'
         parameters:
@@ -44,14 +46,13 @@ jobs:
         displayName: 'Specify Node version'
 
       - script: |
-          npm ci
+          echo NPM CI
+          call npm ci
+          echo Run tests
+          call npm run test-single-run
+          echo Complete
         workingDirectory: $(Build.SourcesDirectory)$(projPath)
         displayName: 'Install dependencies'
-
-      - script: |
-          npm run test-single-run
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)
-        displayName: 'Run tests'
 
       - task: PublishTestResults@2
         inputs:
@@ -60,4 +61,7 @@ jobs:
           searchFolder: $(Build.SourcesDirectory)$(projPath)
         displayName: 'Publish test results'
 
-  - template: '/miscellaneous/build_templates/coverity.yml'
+  - template: '/miscellaneous/build_templates/analysis.yml'
+    parameters:
+      language: nodejs
+      web: true
