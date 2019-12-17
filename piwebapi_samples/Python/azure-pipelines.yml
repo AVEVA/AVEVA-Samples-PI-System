@@ -32,7 +32,7 @@ jobs:
   - job: Tests
     pool:
       name: 00-OSIManaged-Test
-      demands: USERNAME -equals $(buildAgent)
+      demands: COMPUTERNAME -equals $(buildAgent)
     steps:
       - template: '/miscellaneous/build_templates/config.yml'
         parameters:
