@@ -7,7 +7,7 @@ jobs:
   - job: Analysis
     pool:
       name: 00-OSIManaged-Test
-      demands: USERNAME -equals $(buildAgent)
+      demands: COMPUTERNAME -equals $(buildAgent)
     steps:
       # Build Sample
       # - DotNet

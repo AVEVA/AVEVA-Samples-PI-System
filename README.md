@@ -11,7 +11,7 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
 
 ## About this repo
 
-There is a [style guide](StyleGuide.md) that helps explain the organization of the repo and helps explain the code samples provided. There is also a [test guide](test_guide.md) that goes into more details about the included automated tests.
+The [style guide](https://github.com/osisoft/OSI-Samples/blob/master/STYLE_GUIDE.md) describes the organization of the repo and the code samples provided. The [test guide](https://github.com/osisoft/OSI-Samples/blob/master/TEST_GUIDE.md) goes into detail about the included automated tests. The [on prem testing](https://github.com/osisoft/OSI-Samples/blob/master/miscellaneous/ON_PREM_TESTING.md) document describes the software installed on our internal OSIsoft build agent.
 
 ## Feedback
 
@@ -25,10 +25,10 @@ If your support question or issue is related to a non-modified sample (or test) 
 
 ## Contributions
 
-If you wish to contribute please take a look at the [contribution guide](CONTRIBUTING.md).
+If you wish to contribute please take a look at the [contribution guide](https://github.com/osisoft/OSI-Samples/blob/master/CONTRIBUTING.md).
 
 ## License
 
-[OSI Samples](https://github.com/osisoft/OSI-Samples) are licensed under the [Apache 2 license](LICENSE.md).
+[OSI Samples](https://github.com/osisoft/OSI-Samples) are licensed under the [Apache 2 license](LICENSE).
 
 For the main samples landing page on master [ReadMe](https://github.com/osisoft/OSI-Samples)
