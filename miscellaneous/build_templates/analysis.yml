@@ -11,6 +11,8 @@ jobs:
     steps:
       # Build Sample
       # - DotNet
+      # - Note: --ignore-failed-sources is sometimes necessary for build agent to overcome old
+      #         cached NuGet sources that no longer exist on the machine
       - script: |
           echo Clean
           call dotnet clean
