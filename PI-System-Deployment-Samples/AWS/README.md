@@ -76,7 +76,7 @@ PI System Deployment Sample for AWS require that you have access to:
 * PI Server install kit
 * PI Vision install kit
 * Temporary PI license
-* PI System Deployment Tests zip file: You can find this available at the [OSIsoft GitHub Repository](https://github.com/osisoft/PI-System-Deployment-Tests)
+* PI System Deployment Tests zip file: You can find this available at the [OSIsoft GitHub Repository](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Tests)
 
 >**Note:** The deployment sample will first use the temporary PI license to deploy a  PI System on AWS. After the deployment is finished, you must generate a full PI license file through the OSIsoft Customer Portal using the Machine Signature File created from your deployed PI Data Archive(s) in your AWS VPC. This process is discussed later in this guide.
 
@@ -123,7 +123,7 @@ Appropriate licensing for SQL Server is essential for a successful deployment.
 For more information on this, see the Costs and licenses section of [SQL Server on AWS](https://aws.amazon.com/quickstart/architecture/sql/).
 
 ### Step 3: Set Up the Deployment Sample Code
-To deploy the OSIsoft PI System Deployment Sample for AWS, you will need to download and stage the associated modules, scripts, and AWS CloudFormation templates which are available in the [OSIsoft GitHub repository](https://github.com/osisoft/OSI-Samples-PI-System/DeploymentScripts/AWS).
+To deploy the OSIsoft PI System Deployment Sample for AWS, you will need to download and stage the associated modules, scripts, and AWS CloudFormation templates which are available in the [OSIsoft GitHub repository](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Samples/AWS).
 
 Your PI System on AWS deployment is based on the AWS stack. A stack is the collection of the AWS resources associated with a PI System deployment. 
 
@@ -142,7 +142,7 @@ These files and folders must be stored in an S3 bucket in your AWS account for t
 1.	Click **Storage** > **S3** on the [Amazon S3 console](https://s3.console.aws.amazon.com/s3/) to access the list of S3 buckets for your AWS account.
 2.	Click **Create bucket** to create an S3 bucket and name it with a *BucketName*, such as `s3bucket-osideploymentsamples-username`. For instructions, see the [Amazon S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html). Record the *BucketName*. You will need it when filling out the AWS template. Take care as *BucketName* is case-sensitive!
 2. Click **Create folder** to create a folder in this bucket and name it with a *FolderName* such as `DeploymentSample` into which you will upload the files. Record the *FolderName*. You will need it when filling out the AWS template.
-3. Separately, browse onto the OSIsoft GitHub repository for AWS [here](https://github.com/osisoft/OSI-Samples-PI-System/PI-System-Deployment-Samples/AWS).
+3. Separately, browse onto the OSIsoft GitHub repository for AWS [here](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Samples/AWS).
 4. Click **Download as Zip** to download the contents of this GitHub repository, and select the target location on your local machine. 
 5. Extract the contents of this zip file onto your local machine. Take note of this location as you will need to upload a local copy of the `DSMasterStack.template` in the `template` folder in a later step. 
 5. Upload the extracted contents into the newly-created folder in your S3 bucket. 
@@ -204,7 +204,7 @@ The deployment sample must have access to the aforementioned files in an S3 buck
 6. Upload your PI Vision installer into the `PIVision` folder.
 
 #### Download and Stage PI System Deployment Tests File
-1. Go to the OSIsoft GitHub repository for PI System Deployment Tests at this [page](https://github.com/osisoft/PI-System-Deployment-Tests).
+1. Go to the OSIsoft GitHub repository for PI System Deployment Tests at this [page](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Tests).
 2. Click **Download as Zip** to download the contents of this GitHub repository onto your local machine as a zip file. The deployment samples will configure and run the deployment tests for your environment.
 3. Upload this zip file into the *SetupKitsFolderName* folder in your S3 bucket on the [Amazon Management Console](https://s3.console.aws.amazon.com/s3/). 
 
