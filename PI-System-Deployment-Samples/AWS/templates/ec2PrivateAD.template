@@ -1,0 +1,1539 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Backend AD server EC2 Instance(s), also assume the DHCP roles for the VPC. Can be deployed as a pair for HA.",
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Global Configuration"
+                    },
+                    "Parameters": [
+						"DeployHA",
+                        "NamePrefix",
+						"KeyPairName"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Active Directory Configuration"
+                    },
+                    "Parameters": [
+                        "ADServerInstanceType",
+						"LatestWindowsAmiId",
+                        "ADServer1NetBIOSName",
+                        "ADServer1PrivateIP",
+                        "ADServer2NetBIOSName",
+                        "ADServer2PrivateIP",
+                        "DomainDNSName",
+                        "DomainNetBIOSName",
+                        "DomainAdminUserName",
+						"DomainAdminPassword",
+                        "RestoreModePassword"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+						"VPCID",
+						"FrontendSubnet0CIDR",
+						"FrontendSubnet1CIDR",
+						"BackendSubnet0CIDR",
+						"BackendSubnet1CIDR",
+						"BackendSubnet0ID",
+						"BackendSubnet1ID"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Security Groups"
+                    },
+                    "Parameters": [
+                        "DCSGID",
+						"DCIngressSGID"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "AWS Deployment Sample Configuration"
+                    },
+                    "Parameters": [
+                        "DSS3BucketName",
+                        "DSS3KeyPrefix",
+						"DSS3BucketRegion"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+                "ADServerInstanceType": {
+                    "default": "Domain Controller Instance Type"
+                },
+                "ADServer1NetBIOSName": {
+                    "default": "Domain Controller 1 NetBIOS Name"
+                },
+                "ADServer1PrivateIP": {
+                    "default": "Domain Controller 1 Private IP Address"
+                },
+                "ADServer2NetBIOSName": {
+                    "default": "Domain Controller 2 NetBIOS Name"
+                },
+                "ADServer2PrivateIP": {
+                    "default": "Domain Controller 2 Private IP Address"
+                },
+                "DomainAdminPassword": {
+                    "default": "Domain Admin Password"
+                },
+                "DomainAdminUserName": {
+                    "default": "Domain Admin User Name"
+                },
+                "DomainDNSName": {
+                    "default": "Domain DNS Name"
+                },
+                "DomainNetBIOSName": {
+                    "default": "Domain NetBIOS Name"
+                },
+                "KeyPairName": {
+                    "default": "Key Pair Name"
+                },
+				"NamePrefix": {
+					"default": "Name Prefix"
+				},
+                "DSS3BucketName": {
+                    "default": "Deployment Sample S3 Bucket Name"
+                },
+                "DSS3KeyPrefix": {
+                    "default": "Deployment Sample S3 Root Folder Name"
+                },
+                "DSS3BucketRegion": {
+                    "default": "Region for Deployment Samples S3 Bucket. Used in S3 URL"
+                },
+                "DeployHA": {
+                    "default": "Deploy HA"
+                },
+                "RestoreModePassword": {
+                    "default": "Restore Mode Password"
+                },
+				"VPCID": {
+					"default": "VPC ID"
+				},
+				"FrontendSubnet0CIDR": {
+					"default": "Frontend Subnet0 CIDR"
+				},
+				"FrontendSubnet1CIDR": {
+					"default": "Frontend Subnet1 CIDR"
+				},
+				"BackendSubnet0CIDR": {
+					"default": "Backend Subnet0 CIDR"
+				},
+				"BackendSubnet1CIDR": {
+					"default": "Backend Subnet1 CIDR"
+				},
+				"BackendSubnet0ID": {
+					"default": "Backend Subnet0 ID"
+				},
+				"BackendSubnet1ID": {
+					"default": "Backend Subnet1 ID"
+				},
+				"LatestWindowsAmiId": {
+					"default": "Latest Windows Ami ID"
+				}
+            }
+        }
+    },
+    "Parameters": {
+        "ADServerInstanceType": {
+            "AllowedValues": [
+                "t2.medium",
+                "t2.large",
+				"t3.medium",
+				"t3.large",
+                "m4.large",
+                "m4.xlarge",
+                "m5.large",
+                "m5.xlarge"
+            ],
+            "Default": "t3.medium",
+            "Description": "Amazon EC2 instance type for the Active Directory instances",
+            "Type": "String"
+        },
+        "ADServer1NetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "DC0",
+            "Description": "NetBIOS name of the first Active Directory server (up to 15 characters)",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "ADServer1PrivateIP": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+            "Default": "10.0.1.10",
+            "Description": "Fixed private IP for the first Active Directory server located in Availability Zone 1",
+            "Type": "String"
+        },
+        "ADServer2NetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "DC1",
+            "Description": "NetBIOS name of the second Active Directory server (up to 15 characters)",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "ADServer2PrivateIP": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+            "Default": "10.0.11.10",
+            "Description": "Fixed private IP for the second Active Directory server located in Availability Zone 2",
+            "Type": "String"
+        },
+        "DomainAdminPassword": {
+            "AllowedPattern": "(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
+            "Description": "Password for the domain admin user. Must be at least 8 characters containing letters, numbers and symbols",
+            "MaxLength": "32",
+            "MinLength": "8",
+            "NoEcho": "true",
+            "Type": "String"
+        },
+        "DomainAdminUserName": {
+            "AllowedPattern": "[a-zA-Z0-9]*",
+            "Default": "piadmin",
+            "Description": "User name for the account that will be added as Domain Administrator. This is separate from the default \"Administrator\" account",
+            "MaxLength": "25",
+            "MinLength": "5",
+            "Type": "String"
+        },
+        "DomainDNSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+\\..+",
+            "Default": "osideploysample.int",
+            "Description": "Fully qualified domain name (FQDN) of the forest root domain e.g. example.com",
+            "MaxLength": "255",
+            "MinLength": "2",
+            "Type": "String"
+        },
+        "DomainNetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "osideploysample",
+            "Description": "NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Windows e.g. EXAMPLE",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "KeyPairName": {
+            "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "NamePrefix"       : {
+            "Type" : "String",
+            "AllowedPattern" : "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription" : "Prefix can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description" : "Prefix used when naming resources, inputs, and outputs. Maximum 24 characters",
+            "MaxLength" : "24"
+        },
+        "DSS3BucketName": {
+            "Description": "S3 bucket name for the Deployment Sample assets. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "DSS3KeyPrefix": {
+            "AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+            "Default": "DeploySample",
+            "Description": "Name of the root folder in the S3 Deployment Sample bucket. Root folder name can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+            "Type": "String"
+        },
+        "DSS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Deployment Samples S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+        "DeployHA": {
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true",
+            "Description": "Deploy 2 AD Domain Controllers for HA",
+            "Type": "String"
+        },
+        "RestoreModePassword": {
+            "AllowedPattern": "(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
+            "Description": "Password for a separate Administrator account when the domain controller is in Restore Mode. Must be at least 8 characters containing letters, numbers and symbols",
+            "MaxLength": "32",
+            "MinLength": "8",
+            "NoEcho": "True",
+            "Type": "String"
+        },
+        "VPCID"                      : {
+            "Description" : "ID of the VPC (e.g., vpc-0343606e)",
+            "Type"        : "AWS::EC2::VPC::Id"
+        },
+        "DCSGID"           : {
+            "Description" : "ID of the DCs Security Group (e.g., sg-7f16e910).",
+            "Type"        : "AWS::EC2::SecurityGroup::Id"
+        },
+        "DCIngressSGID"              : {
+            "Description" : "ID of the DC Ingress Security Group (e.g., sg-7f16e910).",
+            "Type"        : "AWS::EC2::SecurityGroup::Id"
+        },
+        "BackendSubnet0ID"           : {
+            "Description" : "ID of the backend subnet 1 in Availability Zone 1.",
+            "Type"        : "AWS::EC2::Subnet::Id"
+        },
+        "BackendSubnet1ID"           : {
+            "Description" : "ID of the backend subnet 2 in Availability Zone 2.",
+            "Type"        : "AWS::EC2::Subnet::Id"
+        },
+        "FrontendSubnet0CIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.0.0/24",
+            "Description": "CIDR block for Frontend Subnet",
+            "Type": "String"
+        },
+        "BackendSubnet0CIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.1.0/24",
+            "Description": "CIDR block for Backend Subnet",
+            "Type": "String"
+        },
+        "FrontendSubnet1CIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.10.0/24",
+            "Description": "CIDR block for Frontend Subnet",
+            "Type": "String"
+        },
+        "BackendSubnet1CIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Default": "10.0.11.0/24",
+            "Description": "CIDR block for Backend Subnet",
+            "Type": "String"
+        },
+        "LatestWindowsAmiId": {
+            "Description": "ID for the latest Windows Server 2016 Data Center Amazon Managed Image (AMI). The ID will be looked up from Amazon's public Parameter Store. Provide the full path to the AMI you want to find.",
+            "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base"
+        }
+    },
+    "Conditions": {
+        "IsTwoNode": {
+            "Fn::Equals": [
+                {
+                    "Ref": "DeployHA"
+                },
+                "true"
+            ]
+        },
+        "IsSingleNode": {
+            "Fn::Equals": [
+                {
+                    "Ref": "DeployHA"
+                },
+                "false"
+            ]
+        }
+    },
+    "Resources": {
+        "DHCPOptionsSI": {
+            "Type": "AWS::EC2::DHCPOptions",
+            "Condition": "IsSingleNode",
+            "DependsOn": [
+                "DomainController1WaitCondition"
+            ],
+            "Properties": {
+                "DomainName": {
+                    "Ref": "DomainDNSName"
+                },
+                "DomainNameServers": [
+                    {
+                        "Ref": "ADServer1PrivateIP"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Domain",
+                        "Value": {
+                            "Ref": "DomainDNSName"
+                        }
+                    }
+                ]
+            }
+        },
+        "VPCDHCPOptionsAssociationSI": {
+            "Type": "AWS::EC2::VPCDHCPOptionsAssociation",
+            "Condition": "IsSingleNode",
+            "Properties": {
+                "VpcId": {
+					"Ref" : "VPCID"
+                },
+                "DhcpOptionsId": {
+                    "Ref": "DHCPOptionsSI"
+                }
+            }
+        },
+        "DHCPOptions": {
+            "Type": "AWS::EC2::DHCPOptions",
+            "Condition": "IsTwoNode",
+            "DependsOn": [
+                "DomainController1WaitCondition",
+                "DomainController2WaitCondition"
+            ],
+            "Properties": {
+                "DomainName": {
+                    "Ref": "DomainDNSName"
+                },
+                "DomainNameServers": [
+                    {
+                        "Ref": "ADServer1PrivateIP"
+                    },
+                    {
+                        "Ref": "ADServer2PrivateIP"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Domain",
+                        "Value": {
+                            "Ref": "DomainDNSName"
+                        }
+                    }
+                ]
+            }
+        },
+        "VPCDHCPOptionsAssociation": {
+            "Type": "AWS::EC2::VPCDHCPOptionsAssociation",
+            "Condition": "IsTwoNode",
+            "Properties": {
+                "VpcId": {
+					"Ref" : "VPCID"
+                },
+                "DhcpOptionsId": {
+                    "Ref": "DHCPOptions"
+                }
+            }
+        },
+        "ADServerRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Policies": [
+                    {
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "s3:GetObject"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:s3:::${DSS3BucketName}/${DSS3KeyPrefix}/*"
+                                    },
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        },
+                        "PolicyName": "aws-deploy-sample-s3-policy"
+                    },
+                    {
+                        "PolicyName": "AD-SSM-Parameters",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ssm:PutParameter",
+                                        "ssm:DeleteParameter",
+                                        "ssm:GetParameter"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*"
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ssm:DescribeParameters"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
+                ],
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Effect": "Allow"
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                }
+            }
+        },
+        "ADServerProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Roles": [
+                    {
+                        "Ref": "ADServerRole"
+                    }
+                ],
+                "Path": "/"
+            }
+        },
+        "ADPassword": {
+            "Type": "AWS::SSM::Parameter",
+            "Properties": {
+                "Type": "String",
+                "Name" : {
+					"Fn::Sub" : "/${NamePrefix}/${DomainAdminUserName}"
+				},
+                "Value": {
+                    "Ref": "DomainAdminPassword"
+                },
+                "Description": "The SSM Parameter for Active Directory password."
+            }
+        },
+        "DomainController1": {
+            "Type": "AWS::EC2::Instance",
+            "Metadata": {
+                "AWS::CloudFormation::Authentication": {
+                    "S3AccessCreds": {
+                        "type": "S3",
+                        "roleName": {
+                            "Ref": "ADServerRole"
+                        },
+                        "buckets": [
+                            {
+                                "Ref": "DSS3BucketName"
+                            }
+                        ]
+                    }
+                },
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "config": [
+                            "setup",
+                            "rename",
+                            "installADDS",
+                            {
+                                "Fn::If": [
+                                    "IsTwoNode",
+                                    "configureSites",
+                                    {"Ref": "AWS::NoValue"}
+                                ]
+                            },
+                            "installADCS",
+                            "finalize"
+                        ]
+                    },
+                    "setup": {
+                        "files": {
+                            "c:\\cfn\\cfn-hup.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[main]\n",
+                                            "stack=",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "\n",
+                                            "region=",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[cfn-auto-reloader-hook]\n",
+                                            "triggers=post.update\n",
+                                            "path=Resources.DomainController1.Metadata.AWS::CloudFormation::Init\n",
+                                            "action=cfn-init.exe -v -c config -s ",
+                                            {
+                                                "Ref": "AWS::StackId"
+                                            },
+                                            " -r DomainController1",
+                                            " --region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "c:\\cfn\\scripts\\Set-StaticIP.ps1": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "$netip = Get-NetIPConfiguration;",
+                                            "$ipconfig = Get-NetIPAddress | ?{$_.IpAddress -eq $netip.IPv4Address.IpAddress};",
+                                            "Get-NetAdapter | Set-NetIPInterface -DHCP Disabled;",
+                                            "Get-NetAdapter | New-NetIPAddress -AddressFamily IPv4 -IPAddress $netip.IPv4Address.IpAddress -PrefixLength $ipconfig.PrefixLength -DefaultGateway $netip.IPv4DefaultGateway.NextHop;",
+                                            "Get-NetAdapter | Set-DnsClientServerAddress -ServerAddresses $netip.DNSServer.ServerAddresses;",
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "C:\\cfn\\scripts\\Add-DNSEntry.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Add-DNSEntry.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\modules\\AWSQuickStart.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/AWSQuickStart.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Create-AdminUser.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Create-AdminUser.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\ConvertTo-EnterpriseAdmin.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/ConvertTo-EnterpriseAdmin.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Configure-Sites.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Configure-Sites.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Disable-WindowsFirewall.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Disable-WindowsFirewall.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Install-ADDSForest.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Install-ADDSForest.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Install-Prereqs.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Install-Prereqs.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\New-CertificateAuthority.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/New-CertificateAuthority.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Rename-Computer.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Rename-Computer.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\xAdcsDeployment_1.4.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xAdcsDeployment_1.4.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Unzip-Archive.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Unzip-Archive.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Update-DNSServers.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Update-DNSServers.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Create-ServiceAccounts.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Create-ServiceAccounts.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            }
+                        },
+                        "services": {
+                            "windows": {
+                                "cfn-hup": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true",
+                                    "files": [
+                                        "c:\\cfn\\cfn-hup.conf",
+                                        "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf"
+                                    ]
+                                }
+                            }
+                        },
+                        "commands": {
+                            "a-disable-win-fw": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Disable-WindowsFirewall.ps1"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-set-execution-policy": {
+                                "command": "powershell.exe -command Set-ExecutionPolicy RemoteSigned -Force",
+                                "waitAfterCompletion": "0"
+                            },
+                            "c-unpack-dsc-resource": {
+                                "command": "powershell.exe -command c:\\cfn\\scripts\\Unzip-Archive.ps1 -Source c:\\cfn\\modules\\xAdcsDeployment_1.4.zip -Destination 'C:\\Program Files\\WindowsPowerShell\\Modules'",
+                                "waitAfterCompletion": "0"
+                            },
+                            "d-unpack-quickstart-module": {
+                                "command": "powershell.exe -Command C:\\cfn\\scripts\\Unzip-Archive.ps1 -Source C:\\cfn\\modules\\AWSQuickStart.zip -Destination 'C:\\Program Files\\WindowsPowerShell\\Modules'",
+                                "waitAfterCompletion": "0"
+                            },
+                            "e-init-quickstart-module": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"",
+                                            "New-AWSQuickStartWaitHandle -Handle '",
+                                            {
+                                                "Ref": "DomainController1WaitHandle"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "rename": {
+                        "commands": {
+                            "a-set-static-ip": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -ExecutionPolicy RemoteSigned -Command c:\\cfn\\scripts\\Set-StaticIP.ps1"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "45"
+                            },
+                            "b-execute-powershell-script-RenameComputer": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Rename-Computer.ps1 -NewName ",
+                                            {
+                                                "Ref": "ADServer1NetBIOSName"
+                                            },
+                                            " -Restart"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            }
+                        }
+                    },
+                    "installADDS": {
+                        "commands": {
+                            "1-install-prereqs": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Install-Prereqs.ps1 "
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "30"
+                            },
+                            "2-install-adds": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Install-ADDSForest.ps1 -DomainNetBIOSName ",
+                                            {
+                                                "Ref": "ADServer1NetBIOSName"
+                                            },
+                                            " -DomainAdminUser ",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            " -DomainDNSName ",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            " -SSMParamName ",
+                                            {
+                                                "Ref": "ADPassword"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            },
+                            "3-restart-service": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command Restart-Service NetLogon -EA 0"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "180"
+                            },
+                            "4-create-adminuser": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Create-AdminUser.ps1 -Server ",
+                                            {
+                                                "Ref": "ADServer1NetBIOSName"
+                                            },
+                                            ".",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            " -DomainAdminUser ",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            " -DomainDNSName ",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            " -SSMParamName ",
+                                            {
+                                                "Ref": "ADPassword"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "30"
+                            },
+                            "5-update-adminuser": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -ExecutionPolicy RemoteSigned -Command c:\\cfn\\scripts\\ConvertTo-EnterpriseAdmin.ps1 -Members ",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "10"
+                            },
+							"6-create-server-accounts": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -command c:\\cfn\\scripts\\Create-ServiceAccounts.ps1 -NamePrefix ",
+                                            {
+                                                "Ref": "NamePrefix"
+                                            },
+                                            " -DomainDNSName ",
+                                            {
+												"Ref" : "DomainDNSName"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+							}
+                        }
+                    },
+                    "configureSites": {
+                        "commands": {
+                            "a-rename-default-site": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Configure-Sites.ps1 -PublicSubnet1CIDR ",
+                                            {
+												"Ref" : "FrontendSubnet0CIDR"
+                                            },
+                                            " -PublicSubnet2CIDR ",
+                                            {
+												"Ref" : "FrontendSubnet1CIDR"
+                                            },
+                                            " -PrivateSubnet1CIDR ",
+                                            {
+												"Ref" : "BackendSubnet0CIDR"
+                                            },
+                                            " -PrivateSubnet2CIDR ",
+                                            {
+												"Ref" : "BackendSubnet1CIDR"
+                                            },
+                                            " -Server ",
+                                            {
+                                                "Ref": "ADServer1NetBIOSName"
+                                            },
+                                            ".",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "installADCS": {
+                        "commands": {
+                            "a-install-ca": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\New-CertificateAuthority.ps1 -Username ",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            " -DomainDNSName ",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            " -SSMParamName ",
+                                            {
+                                                "Ref": "ADPassword"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "finalize": {
+                        "commands": {
+                            "a-signal-success": {
+                                "command": "powershell.exe -Command \"Write-AWSQuickStartStatus\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "ImageId": {
+                    "Ref" : "LatestWindowsAmiId"
+                },
+                "IamInstanceProfile": {
+                    "Ref": "ADServerProfile"
+                },
+                "InstanceType": {
+                    "Ref": "ADServerInstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "DeleteOnTermination": "true",
+                        "DeviceIndex": 0,
+                        "SubnetId"            : {
+							"Ref" : "BackendSubnet0ID"
+                        },
+                        "PrivateIpAddresses": [
+                            {
+                                "Primary": "true",
+                                "PrivateIpAddress": {
+                                    "Ref": "ADServer1PrivateIP"
+                                }
+                            }
+                        ],
+                        "GroupSet"    : [
+                            {
+                                "Ref" : "DCSGID"
+                            },
+                            {
+                                "Ref" : "DCIngressSGID"
+                            }
+                        ],
+						"Description": "DC0-NIC0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${ADServer1NetBIOSName}"
+                        }
+                    }
+                ],
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeSize": "100",
+                            "VolumeType": "gp2"
+                        }
+                    }
+                ],
+                "KeyName": {
+                    "Ref": "KeyPairName"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "<script>\n",
+                                "cfn-init.exe -v -c config -s ",
+                                {
+                                    "Ref": "AWS::StackId"
+                                },
+                                " -r DomainController1",
+                                " --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "</script>\n"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "DomainController2": {
+            "Type": "AWS::EC2::Instance",
+            "Condition": "IsTwoNode",
+            "DependsOn": [
+                "DomainController1WaitCondition"
+            ],
+            "Metadata": {
+                "AWS::CloudFormation::Authentication": {
+                    "S3AccessCreds": {
+                        "type": "S3",
+                        "roleName": {
+                            "Ref": "ADServerRole"
+                        },
+                        "buckets": [
+                            {
+                                "Ref": "DSS3BucketName"
+                            }
+                        ]
+                    }
+                },
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "config": [
+                            "setup",
+                            "rename",
+                            "addDomainController",
+                            "installADCS",
+                            "finalize"
+                        ]
+                    },
+                    "setup": {
+                        "files": {
+                            "c:\\cfn\\cfn-hup.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[main]\n",
+                                            "stack=",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "\n",
+                                            "region=",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[cfn-auto-reloader-hook]\n",
+                                            "triggers=post.update\n",
+                                            "path=Resources.DomainController2.Metadata.AWS::CloudFormation::Init\n",
+                                            "action=cfn-init.exe -v -c config -s ",
+                                            {
+                                                "Ref": "AWS::StackId"
+                                            },
+                                            " -r DomainController2",
+                                            " --region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "c:\\cfn\\scripts\\Set-StaticIP.ps1": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "$netip = Get-NetIPConfiguration;",
+                                            "$ipconfig = Get-NetIPAddress | ?{$_.IpAddress -eq $netip.IPv4Address.IpAddress};",
+                                            "Get-NetAdapter | Set-NetIPInterface -DHCP Disabled;",
+                                            "Get-NetAdapter | New-NetIPAddress -AddressFamily IPv4 -IPAddress $netip.IPv4Address.IpAddress -PrefixLength $ipconfig.PrefixLength -DefaultGateway $netip.IPv4DefaultGateway.NextHop;",
+                                            "Get-NetAdapter | Set-DnsClientServerAddress -ServerAddresses ",
+                                            {
+                                                "Ref": "ADServer1PrivateIP"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "C:\\cfn\\scripts\\Add-DNSEntry.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Add-DNSEntry.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\modules\\AWSQuickStart.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/AWSQuickStart.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Disable-WindowsFirewall.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Disable-WindowsFirewall.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Install-Prereqs.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Install-Prereqs.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Install-ADDSDC.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Install-ADDSDC.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\New-CertificateAuthority.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/New-CertificateAuthority.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Rename-Computer.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Rename-Computer.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\xAdcsDeployment_1.4.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xAdcsDeployment_1.4.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Unzip-Archive.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Unzip-Archive.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Update-DNSServers.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Update-DNSServers.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            }
+                        },
+                        "services": {
+                            "windows": {
+                                "cfn-hup": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true",
+                                    "files": [
+                                        "c:\\cfn\\cfn-hup.conf",
+                                        "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf"
+                                    ]
+                                }
+                            }
+                        },
+                        "commands": {
+                            "a-disable-win-fw": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Disable-WindowsFirewall.ps1"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-set-execution-policy": {
+                                "command": "powershell.exe -command Set-ExecutionPolicy RemoteSigned -Force",
+                                "waitAfterCompletion": "0"
+                            },
+                            "c-unpack-dsc-resource": {
+                                "command": "powershell.exe -command c:\\cfn\\scripts\\Unzip-Archive.ps1 -Source c:\\cfn\\modules\\xAdcsDeployment_1.4.zip -Destination 'C:\\Program Files\\WindowsPowerShell\\Modules'",
+                                "waitAfterCompletion": "0"
+                            },
+                            "d-unpack-quickstart-module": {
+                                "command": "powershell.exe -Command C:\\cfn\\scripts\\Unzip-Archive.ps1 -Source C:\\cfn\\modules\\AWSQuickStart.zip -Destination 'C:\\Program Files\\WindowsPowerShell\\Modules'",
+                                "waitAfterCompletion": "0"
+                            },
+                            "e-init-quickstart-module": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"",
+                                            "New-AWSQuickStartWaitHandle -Handle '",
+                                            {
+                                                "Ref": "DomainController2WaitHandle"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "rename": {
+                        "commands": {
+                            "a-set-static-ip": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -ExecutionPolicy RemoteSigned -Command c:\\cfn\\scripts\\Set-StaticIP.ps1"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "45"
+                            },
+                            "b-execute-powershell-script-RenameComputer": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Rename-Computer.ps1 -NewName ",
+                                            {
+                                                "Ref": "ADServer2NetBIOSName"
+                                            },
+                                            " -Restart"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            }
+                        }
+                    },
+                    "addDomainController": {
+                        "commands": {
+                            "1-install-prereqs": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Install-Prereqs.ps1"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "2-add-dc": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Install-ADDSDC.ps1 -DomainNetBIOSName ",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            " -DomainAdminUser ",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            " -DomainDNSName ",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            " -SSMParamName ",
+                                            {
+                                                "Ref": "ADPassword"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            }
+                        }
+                    },
+                    "installADCS": {
+                        "commands": {
+                            "a-install-ca": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\New-CertificateAuthority.ps1 -Username ",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            " -DomainDNSName ",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            " -SSMParamName ",
+                                            {
+                                                "Ref": "ADPassword"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "finalize": {
+                        "commands": {
+                            "a-update-dns-servers-dc2": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Update-DNSServers.ps1 -ADServer1PrivateIP ",
+                                            {
+                                                "Ref": "ADServer1PrivateIP"
+                                            },
+                                            " -ADServer2PrivateIP ",
+                                            {
+                                                "Ref": "ADServer2PrivateIP"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-update-dns-servers-dc1": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\Add-DNSEntry.ps1 -ADServer1NetBIOSName ",
+                                            {
+                                                "Ref": "ADServer1NetBIOSName"
+                                            },
+                                            " -DomainAdminUser ",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            " -DomainDNSName ",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            " -DomainNetBIOSName ",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            " -ADServer1PrivateIP ",
+                                            {
+                                                "Ref": "ADServer1PrivateIP"
+                                            },
+                                            " -ADServer2PrivateIP ",
+                                            {
+                                                "Ref": "ADServer2PrivateIP"
+                                            },
+                                            " -SSMParamName ",
+                                            {
+                                                "Ref": "ADPassword"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "c-signal-success": {
+                                "command": "powershell.exe -Command \"Write-AWSQuickStartStatus\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "ImageId": {
+                    "Ref" : "LatestWindowsAmiId"
+                },
+                "IamInstanceProfile": {
+                    "Ref": "ADServerProfile"
+                },
+                "InstanceType": {
+                    "Ref": "ADServerInstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "DeleteOnTermination": "true",
+                        "DeviceIndex": 0,
+                        "SubnetId"            : {
+							"Ref" : "BackendSubnet1ID"
+                        },
+                        "PrivateIpAddresses": [
+                            {
+                                "Primary": "true",
+                                "PrivateIpAddress": {
+                                    "Ref": "ADServer2PrivateIP"
+                                }
+                            }
+                        ],
+                        "GroupSet"    : [
+                            {
+                                "Ref" : "DCSGID"
+                            },
+                            {
+                                "Ref" : "DCIngressSGID"
+                            }
+                        ],
+						"Description": "DC1-NIC0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${ADServer2NetBIOSName}"
+                        }
+                    }
+                ],
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeSize": "100",
+                            "VolumeType": "gp2"
+                        }
+                    }
+                ],
+                "KeyName": {
+                    "Ref": "KeyPairName"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "<script>\n",
+                                "cfn-init.exe -v -c config -s ",
+                                {
+                                    "Ref": "AWS::StackId"
+                                },
+                                " -r DomainController2",
+                                " --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "</script>\n"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "DomainController1WaitCondition": {
+            "Type": "AWS::CloudFormation::WaitCondition",
+            "DependsOn": "DomainController1",
+            "Properties": {
+                "Handle": {
+                    "Ref": "DomainController1WaitHandle"
+                },
+                "Timeout": "3600"
+            }
+        },
+        "DomainController1WaitHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle"
+        },
+        "DomainController2WaitCondition": {
+            "Type": "AWS::CloudFormation::WaitCondition",
+            "Condition": "IsTwoNode",
+            "DependsOn": "DomainController2",
+            "Properties": {
+                "Handle": {
+                    "Ref": "DomainController2WaitHandle"
+                },
+                "Timeout": "3600"
+            }
+        },
+        "DomainController2WaitHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle",
+            "Condition": "IsTwoNode"
+        }
+    },
+    "Outputs": {
+        "DomainAdmin": {
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        {
+                            "Ref": "DomainNetBIOSName"
+                        },
+                        "\\",
+                        {
+                            "Ref": "DomainAdminUserName"
+                        }
+                    ]
+                ]
+            },
+            "Description": "Domain administrator account"
+        },
+        "ADPasswordParamName": {
+            "Value": {
+                "Ref": "ADPassword"
+            }
+        }
+    }
+}

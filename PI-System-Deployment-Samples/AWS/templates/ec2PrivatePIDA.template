@@ -1,0 +1,1848 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Backend PI Server EC2 instance(s). Optional HA deploytment, i.e. 2x EC2.",
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Global Configuration"
+                    },
+                    "Parameters": [
+						"DeployHA",
+                        "NamePrefix",
+						"KeyPairName"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "PI Data Archive Configuration"
+                    },
+                    "Parameters": [
+                        "InstanceType",
+						"LatestWindowsAmiId",
+						"PIDataArchive0NetBIOSName",
+						"PIDataArchive1NetBIOSName",
+						"DiskSizeinGB",
+						"EnableAdGroupCreation",
+						"PIAdministratorsADGroup",
+						"PIBuffersADGroup",
+						"PIConnectorRelaysADGroup",
+						"PIDataCollectionManagersADGroup",
+						"PIInterfacesADGroup",
+						"PIPointsAnalysisCreatorADGroup",
+						"PIUsersADGroup",
+						"PIWebAppsADGroup"
+                    ]
+                },
+                
+				{
+                    "Label": {
+                        "default": "Domain Parameters"
+                    },
+                    "Parameters": [
+                        "DomainDNSName",
+                        "DomainNetBIOSName",
+						"DomainControllerServerName",
+                        "DomainAdminUserName"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+						"VPCID",
+						"BackendSubnet0ID",
+						"BackendSubnet1ID"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Security Groups"
+                    },
+                    "Parameters": [
+						"DomainMemberSGID",
+						"PISystemsSGID"
+                    ]
+                },
+
+                {
+                    "Label": {
+                        "default": "AWS Deployment Sample Configuration"
+                    },
+                    "Parameters": [
+                        "DSS3BucketName",
+                        "DSS3KeyPrefix",
+						"DSS3BucketRegion",
+						"SetupKitsS3BucketName",
+                        "SetupKitsS3KeyPrefix",
+						"SetupKitsS3BucketRegion",
+                        "SetupKitsS3PIFileName",
+                        "SetupKitsS3PIProductID",
+                        "SetupKitsS3VisionFileName"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+                "DomainAdminUserName": {
+                    "default": "Domain Admin User Name"
+                },
+                "DomainDNSName": {
+                    "default": "Domain DNS Name"
+                },
+                "DomainNetBIOSName": {
+                    "default": "Domain NetBIOS Name"
+                },
+				"DomainControllerServerName": {
+                    "default": "Domain Controller Server Name"
+                },
+                "KeyPairName": {
+                    "default": "Key Pair Name"
+                },
+                "DSS3BucketName": {
+                    "default": "Deployment Sample S3 Bucket Name"
+                },
+                "DSS3KeyPrefix": {
+                    "default": "Deployment Sample S3 Key Prefix"
+                },
+                "DSS3BucketRegion": {
+                    "default": "Region for Deployment Samples S3 Bucket. Used in S3 URL"
+                },
+                "DeployHA": {
+                    "default": "Deploy HA"
+                },
+				"EnableAdGroupCreation": {
+                    "default": "Enable AD Group Creataion"
+                },
+				"InstanceType": {
+                    "default": "Instance Type for PI Data Archive"
+                },
+				"NamePrefix": {
+					"default": "Name Prefix"
+				},
+				"DiskSizeinGB": {
+					"default": "Disk Size in GB"
+				},
+				"BackendSubnet0ID": {
+					"default": "Backend Subnet0 ID"
+				},
+				"BackendSubnet1ID": {
+					"default": "Backend Subnet1 ID"
+				},
+				"DomainMemberSGID": {
+					"default": "Domain Member SGID"
+				},
+				"PISystemsSGID": {
+					"default": "PI Systems SGID"
+				},
+				"VPCID": {
+					"default": "VPC ID"
+				},
+				"PIDataArchive0NetBIOSName": {
+                    "default": "PI Data Archive 0 NetBIOS Name"
+                },
+				"PIDataArchive1NetBIOSName": {
+                    "default": "PI Data Archive 1 NetBIOS Name"
+                },
+				"PIAdministratorsADGroup": {
+					"default": "PI Administrators AD Group"
+				},
+				"PIBuffersADGroup": {
+					"default": "PIBuffers AD Group"
+				},
+				"PIConnectorRelaysADGroup": {
+					"default": "PIConnectorRelays AD Group"
+				},
+				"PIDataCollectionManagersADGroup": {
+					"default": "PIDataCollectionManagers AD Group"
+				},
+				"PIInterfacesADGroup": {
+					"default": "PIInterfaces AD Group"
+				},
+				"PIPointsAnalysisCreatorADGroup": {
+					"default": "PIPointsAnalysisCreator AD Group"
+				},
+				"PIUsersADGroup": {
+					"default": "PIUsers AD Group"
+				},
+				"PIWebAppsADGroup": {
+					"default": "PIWebApps AD Group"
+				},
+				"SetupKitsS3BucketName": {
+                    "default": "Setup Kits S3 Bucket Name"
+                },
+                "SetupKitsS3KeyPrefix": {
+                    "default": "Setup Kits S3 Root Folder Name"
+                },
+                "SetupKitsS3BucketRegion": {
+                    "default": "Region for Setup Kits S3 Bucket. Used in S3 URL"
+                },
+				"SetupKitsS3PIFileName": {
+                    "default": "PI Server Setup Kit File Name"
+                },
+                "SetupKitsS3PIProductID": {
+                    "default": "PI Server Setup Kit Product ID"
+                },
+                "SetupKitsS3VisionFileName": {
+                    "default": "PI Vision Setup Kit File Name"
+                },
+                "LatestWindowsAmiId": {
+					"default": "Latest Windows Ami ID"
+				}
+            }
+        }
+    },
+    "Parameters": {
+        "InstanceType": {
+            "Description": "EC2 instance type (aka sizing)",
+            "Type": "String",
+            "Default": "m5.xlarge",
+            "AllowedValues": [
+                "t2.medium",
+                "t2.large",
+				"t3.medium",
+				"t3.large",
+                "m4.large",
+                "m4.xlarge",
+                "m5.large",
+                "m5.xlarge"
+            ],
+            "ConstraintDescription": "Must be a valid EC2 instance type."
+        },
+        "PIDataArchive0NetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "PIDA0",
+            "Description": "NetBIOS name of the first PI Data Archive server (up to 15 characters)",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "PIDataArchive1NetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "PIDA1",
+            "Description": "NetBIOS name of the second PI Data Archive server (up to 15 characters)",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "DeployHA": {
+            "Type": "String",
+            "Description": "Will deploy two EC2 instances for HA senarios.",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true"
+        },
+        "DiskSizeinGB": {
+            "Type": "String",
+            "Description": "Data disk size in GB for Archive and Backup volumes. (For PI Data Archive only)",
+            "AllowedValues": [
+                "128",
+                "256",
+                "512",
+                "1024",
+                "2048",
+                "4096"
+            ],
+            "Default": "128"
+        },
+        "DSS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Deployment Samples S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+        "SetupKitsS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Setup Kits S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+        "DSS3BucketName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "Deploment Sample bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "S3 bucket name for the Deployment Sample assets. Deployment Sample bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "DSS3KeyPrefix": {
+            "AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+            "ConstraintDescription": "Deployment Sample key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+            "Default": "DeploySample",
+            "Description": "Name of the root folder in the S3 Deployment Sample bucket. Can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+            "Type": "String"
+        },
+        "SetupKitsS3BucketName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "Setup Kits bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "S3 bucket name for the Setup Kit assets. This contains the install media for the PI System.",
+            "Type": "String"
+        },
+        "SetupKitsS3KeyPrefix": {
+            "AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+            "ConstraintDescription": "Setup Kits key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+            "Default": "osisetupkits",
+            "Description": "Name of the root folder in the S3 Install Kits bucket. This contains the install media for the PI System.",
+            "Type": "String"
+        },
+        "SetupKitsS3PIFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "PI Server Setup Kit File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "File Name for the PI Server Setup Kit. File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "SetupKitsS3PIProductID": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "PI Server Setup Kit Product ID can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "Product ID for the PI Server Setup Kit. Product ID can include numbers, lowercase letters, uppercase letters,and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "SetupKitsS3VisionFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "PI Vision Setup Kit File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "File Name for the PI Vision Setup Kit. File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "KeyPairName": {
+            "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "NamePrefix"       : {
+            "Type" : "String",
+            "AllowedPattern" : "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription" : "Prefix can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description" : "Prefix used when naming resources, inputs, and outputs. Maximum 24 characters",
+            "MaxLength" : "24"
+        },
+        "DomainDNSName": {
+            "AllowedPattern": "[a-zA-Z0-9]+\\..+",
+            "Default": "osideploysample.int",
+            "Description": "Fully qualified domain name (FQDN) of the forest root domain e.g. example.com",
+            "MaxLength": "25",
+            "MinLength": "3",
+            "Type": "String"
+        },
+        "DomainNetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9]+",
+            "Default": "osideploysample",
+            "Description": "NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Windows e.g. EXAMPLE",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "DomainAdminUserName": {
+            "Type": "String",
+            "Description": "Username for the domain user with rights to create AD Groups.",
+            "Default": "piadmin"
+        },
+        "EnableAdGroupCreation": {
+            "Type": "String",
+            "Description": "If set to true, will create AD security groups for OSIsoft FS Technical Standards. If false, will use existing groups.",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "false"
+        },
+        "PIAdministratorsADGroup": {
+            "Type": "String",
+            "Description": "OSIsoft Field Service Technical Standards - Management task in the PI Data Archive.",
+            "Default": "PIAdmins"
+        },
+        "PIUsersADGroup": {
+            "Type": "String",
+            "Description": "OSIsoft Field Service Technical Standards - Read access to PI Points data. This group replaces PIWorld.",
+            "Default": "Domain Users"
+        },
+        "PIBuffersADGroup": {
+            "Type": "String",
+            "Description": "OSIsoft Field Service Technical Standards - Read and write access on PI Point data. This group includes PI Buffer Subsystem and PI Buffer Server.",
+            "Default": "PIBuffers"
+        },
+        "PIInterfacesADGroup": {
+            "Type": "String",
+            "Description": "OSIsoft Field Service Technical Standards - Read access on PI Point configuration. This group includes buffered PI Interfaces. Ex: PI Interface for OPC DA.",
+            "Default": "PIInterfaces"
+        },
+        "PIPointsAnalysisCreatorADGroup": {
+            "Type": "String",
+            "Description": "OSIsoft Field Service Technical Standards - PI Point creation rights. This group includes users creating analysis in PI AF, which in most cases will be creating PI Points to store the results of their calculations.",
+            "Default": "PIPointsAnalysisCreator"
+        },
+        "PIWebAppsADGroup": {
+            "Type": "String",
+            "Description": "OSIsoft Field Service Technical Standards - PI Vision, PI WebAPI, and PI Web Crawler.",
+            "Default": "PIWebApps"
+        },
+        "PIConnectorRelaysADGroup": {
+            "Type": "String",
+            "Description": "OSIsoft Field Service Technical Standards - PI Connectors and Relays.",
+            "Default": "PIConnectorRelays"
+        },
+        "PIDataCollectionManagersADGroup": {
+            "Type": "String",
+            "Description": "OSIsoft Field Service Technical Standards - PI Data Collection Managers",
+            "Default": "PIDataCollectionManagers"
+        },
+        "DomainControllerServerName": {
+            "Type": "String",
+            "Description": "Host name of primary domain controller. Used when creating service account, security group, and updating DNS with load balance end point used by AF.",
+            "Default": "DC0"
+        },
+        "DomainMemberSGID"           : {
+            "Description" : "ID of the Domain Member Security Group (e.g., sg-7f16e910).",
+            "Type"        : "AWS::EC2::SecurityGroup::Id"
+        },
+        "PISystemsSGID"              : {
+            "Description" : "ID of the PI Systems Security Group (e.g., sg-7f16e910).",
+            "Type"        : "AWS::EC2::SecurityGroup::Id"
+        },
+        "VPCID"                      : {
+            "Description" : "ID of the VPC (e.g., vpc-0343606e)",
+            "Type"        : "AWS::EC2::VPC::Id"
+        },
+        "BackendSubnet0ID"           : {
+            "Description" : "ID of the backend subnet 1 in Availability Zone 1.",
+            "Type"        : "AWS::EC2::Subnet::Id"
+        },
+        "BackendSubnet1ID"           : {
+            "Description" : "ID of the backend subnet 2 in Availability Zone 2.",
+            "Type"        : "AWS::EC2::Subnet::Id"
+        },
+        "LatestWindowsAmiId": {
+            "Description": "ID for the latest Windows Server 2016 Data Center Amazon Managed Image (AMI). The ID will be looked up from Amazon's public Parameter Store. Provide the full path to the AMI you want to find.",
+            "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default": "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base"
+        }
+    },
+    "Conditions": {
+        "CreateHAResources": {
+            "Fn::Equals": [
+                {
+                    "Ref": "DeployHA"
+                },
+                true
+            ]
+        }
+    },
+    "Resources": {
+        "EC2Role": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "s3:GetObject"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:s3:::${DSS3BucketName}/${DSS3KeyPrefix}/*"
+                                    },
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        },
+                        "PolicyName": "aws-deploy-sample-s3-policy"
+                    },
+                    {
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "s3:GetObject"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:s3:::${SetupKitsS3BucketName}/${SetupKitsS3KeyPrefix}/*"
+                                    },
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        },
+                        "PolicyName": "aws-setup-kits-s3-policy"
+                    },
+                    {
+                        "PolicyName": "SSM-Parameters-DomainJoin",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ssm:GetParameter",
+                                        "ssm:GetParameters"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${NamePrefix}/${DomainAdminUserName}"
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ssm:DescribeParameters"
+                                    ],
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "kms:Decrypt"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "EC2RoleInstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "EC2Role"
+                    }
+                ]
+            }
+        },
+        "EC20": {
+            "Type": "AWS::EC2::Instance",
+            "Metadata": {
+                "AWS::CloudFormation::Authentication": {
+                    "S3AccessCreds": {
+                        "type": "S3",
+                        "roleName": {
+                            "Ref": "EC2Role"
+                        },
+                        "buckets": [
+                            {
+                                "Ref": "DSS3BucketName"
+                            }
+                        ]
+                    }
+                },
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "config": [
+                            "setup",
+                            "rename",
+                            "pisoftware",
+                            "bootstrapDSC",
+                            "finalize"
+                        ]
+                    },
+                    "setup": {
+                        "files": {
+                            "c:\\cfn\\cfn-hup.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[main]\n",
+                                            "stack=",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "\n",
+                                            "region=",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[cfn-auto-reloader-hook]\n",
+                                            "triggers=post.update\n",
+                                            "path=Resources.EC20.Metadata.AWS::CloudFormation::Init\n",
+                                            "action=cfn-init.exe -v -c config -s ",
+                                            {
+                                                "Ref": "AWS::StackId"
+                                            },
+                                            " -r EC20",
+                                            " --region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "c:\\cfn\\scripts\\Unzip-Archive.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Unzip-Archive.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\AWSQuickStart.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/AWSQuickStart.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\CreateWaitHandle.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/CreateWaitHandle.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\PIDA0.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/configs/PIDA0.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\IPHelper.psm1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/IPHelper.psm1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\New-DSCCertificate.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/New-DSCCertificate.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Join-Domain.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Join-Domain.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\PIDA\\PIDA_Scripts.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/PIDA/PIDA_Scripts.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xStorage_3.4.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xStorage_3.4.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xNetworking_5.7.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xNetworking_5.7.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xPendingReboot_0.4.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xPendingReboot_0.4.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\PSDSSupportPIDA.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/PSDSSupportPIDA.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xActiveDirectory_3.0.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xActiveDirectory_3.0.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xWindowsUpdate-2.8.zip": {
+                                "source" : {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xWindowsUpdate-2.8.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            }
+                        },
+                        "services": {
+                            "windows": {
+                                "cfn-hup": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true",
+                                    "files": [
+                                        "c:\\cfn\\cfn-hup.conf",
+                                        "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf"
+                                    ]
+                                }
+                            }
+                        },
+                        "commands": {
+                            "a-set-execution-policy": {
+                                "command": "powershell.exe -command Set-ExecutionPolicy RemoteSigned -Force",
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-unpack-quickstart-module": {
+                                "command": "powershell.exe -command c:\\cfn\\scripts\\Unzip-Archive.ps1 -Source c:\\cfn\\modules\\AWSQuickStart.zip -Destination C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules\\",
+                                "waitAfterCompletion": "0"
+                            },
+                            "c-create-waithandle": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -command \"c:\\cfn\\scripts\\CreateWaitHandle.ps1 -Handle '",
+                                            {
+                                                "Ref": "PIDA0WaitHandle"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "d-unzip-modules": {
+                                "command": "powershell.exe -command \"Get-ChildItem 'C:\\cfn\\Modules' *.zip | Foreach-Object { c:\\cfn\\scripts\\unzip-archive.ps1 -source $_.fullname -destination 'C:\\Program Files\\WindowsPowerShell\\Modules'}\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "pisoftware": {
+                        "files": {
+                            "c:\\media\\PIServer\\PIServerInstaller.exe": {
+                                "source": {
+                                    "Fn::Sub": "https://${SetupKitsS3BucketName}.s3.${SetupKitsS3BucketRegion}.amazonaws.com/${SetupKitsS3KeyPrefix}/PIServer/${SetupKitsS3PIFileName}"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\media\\PIServer\\pilicense.dat": {
+                                "source": {
+                                    "Fn::Sub": "https://${SetupKitsS3BucketName}.s3.${SetupKitsS3BucketRegion}.amazonaws.com/${SetupKitsS3KeyPrefix}/PIServer/pilicense.dat"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\media\\PIDA\\PIDA_Scripts.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/PIDA/PIDA_Scripts.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\media\\NETFramework\\windows10.0-kb4486129.msu": {
+                                "source" : "http://download.windowsupdate.com/c/msdownload/update/software/ftpk/2019/08/windows10.0-kb4486129-x64_bb869dd2cfa4ddde433373e2c72d15e660c2fc8d.msu"
+                            }
+                        },
+                        "commands": {
+                            "a-unpack-pida-scripts": {
+                                "command": "powershell.exe -command c:\\cfn\\scripts\\Unzip-Archive.ps1 -Source c:\\media\\PIDA\\PIDA_Scripts.zip -Destination c:\\media\\PIDA\\",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "rename": {
+                        "commands": {
+                            "a-rename-computer": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command Rename-Computer -Restart -NewName '",
+                                            {
+                                                "Ref": "PIDataArchive0NetBIOSName"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            },
+                            "b-domain-join": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -executionpolicy remotesigned -Command c:\\cfn\\scripts\\Join-Domain.ps1 -DomainName '",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            "' -UserName '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            }
+                        }
+                    },
+                    "bootstrapDSC": {
+                        "commands": {
+                            "a-create-cert": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -command c:\\cfn\\scripts\\New-DSCCertificate.ps1"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-run-dsc-config-first": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\PIDA0.ps1 -DomainNetBiosName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUserName '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -SetupKitsS3PIProductID '",
+                                            {
+                                                "Ref": "SetupKitsS3PIProductID"
+                                            },
+                                            "' -PIDataArchivePrimary '",
+                                            {
+                                                "Ref": "PIDataArchive0NetBIOSName"
+                                            },
+                                            "' -PIDataArchiveSecondary '",
+                                            {
+                                                "Ref": "PIDataArchive1NetBIOSName"
+                                            },
+                                            "' -PrimaryDomainController '",
+                                            {
+                                                "Ref": "DomainControllerServerName"
+                                            },
+                                            "' -DeployHA '",
+                                            {
+                                                "Ref": "DeployHA"
+                                            },
+                                            "' -PIAdministratorsADGroup '",
+                                            {
+                                                "Ref": "PIAdministratorsADGroup"
+                                            },
+                                            "' -PIUsersADGroup '",
+                                            {
+                                                "Ref": "PIUsersADGroup"
+                                            },
+                                            "' -PIBuffersADGroup '",
+                                            {
+                                                "Ref": "PIBuffersADGroup"
+                                            },
+                                            "' -PIInterfacesADGroup '",
+                                            {
+                                                "Ref": "PIInterfacesADGroup"
+                                            },
+                                            "' -PIPointsAnalysisCreatorADGroup '",
+                                            {
+                                                "Ref": "PIPointsAnalysisCreatorADGroup"
+                                            },
+                                            "' -PIWebAppsADGroup '",
+                                            {
+                                                "Ref": "PIWebAppsADGroup"
+                                            },
+                                            "' -PIConnectorRelaysADGroup '",
+                                            {
+                                                "Ref": "PIConnectorRelaysADGroup"
+                                            },
+                                            "' -PIDataCollectionManagersADGroup '",
+                                            {
+                                                "Ref": "PIDataCollectionManagersADGroup"
+                                            },
+                                            "' -EnableAdGroupCreation '",
+                                            {
+                                                "Ref": "EnableAdGroupCreation"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            }
+                        }
+                    },
+                    "finalize": {
+                        "commands": {
+                            "a-write-status": {
+                                "command": "powershell.exe -command Write-AWSQuickStartStatus",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "IamInstanceProfile": {
+                    "Ref": "EC2RoleInstanceProfile"
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "ImageId": {
+                    "Ref": "LatestWindowsAmiId"
+                },
+                "KeyName": {
+                    "Ref": "KeyPairName"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "<script>\n",
+                                "cfn-init.exe -v -c config -s ",
+                                {
+                                    "Ref": "AWS::StackId"
+                                },
+                                " -r EC20",
+                                " --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "</script>\n"
+                            ]
+                        ]
+                    }
+                },
+                "NetworkInterfaces": [
+                    {
+                        "GroupSet"    : [
+                            {
+                                "Ref" : "DomainMemberSGID"
+                            },
+                            {
+                                "Ref" : "PISystemsSGID"
+                            },
+                            {
+                                "Ref" : "PIDASG"
+                            }
+                        ],
+                        "DeviceIndex": "0",
+                        "DeleteOnTermination": "true",
+                        "SubnetId"            : {
+							"Ref" : "BackendSubnet0ID"
+                        }
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive0NetBIOSName}"
+                        }
+                    }
+                ]
+            }
+        },
+        "EC20VA0Binaries": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Properties": {
+                "VolumeId": {
+                    "Ref": "EC20VolumeData0Binaries"
+                },
+                "InstanceId": {
+                    "Ref": "EC20"
+                },
+                "Device": "xvdf"
+            }
+        },
+        "EC20VA0Archives": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Properties": {
+                "VolumeId": {
+                    "Ref": "EC20VolumeData0Archives"
+                },
+                "InstanceId": {
+                    "Ref": "EC20"
+                },
+                "Device": "xvdg"
+            }
+        },
+        "EC20VA0Queues": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Properties": {
+                "VolumeId": {
+                    "Ref": "EC20VolumeData0Queues"
+                },
+                "InstanceId": {
+                    "Ref": "EC20"
+                },
+                "Device": "xvdh"
+            }
+        },
+        "EC20VA0Backups": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Properties": {
+                "VolumeId": {
+                    "Ref": "EC20VolumeData0Backups"
+                },
+                "InstanceId": {
+                    "Ref": "EC20"
+                },
+                "Device": "xvdi"
+            }
+        },
+        "EC20VolumeData0Binaries": {
+            "Type": "AWS::EC2::Volume",
+            "Metadata": {
+                "Comment": "Data disk to separate program binaries."
+            },
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "EC20",
+                        "AvailabilityZone"
+                    ]
+                },
+                "Size": 32,
+                "VolumeType": "gp2",
+                "Encrypted": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive0NetBIOSName}-binaries-ebs"
+                        }
+                    }
+                ]
+            }
+        },
+        "EC20VolumeData0Archives": {
+            "Type": "AWS::EC2::Volume",
+            "Metadata": {
+                "Comment": "Data disk dedicated to PI Data Archive archive files."
+            },
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "EC20",
+                        "AvailabilityZone"
+                    ]
+                },
+                "Size": {
+                    "Ref": "DiskSizeinGB"
+                },
+                "VolumeType": "gp2",
+                "Encrypted": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive0NetBIOSName}-archives-ebs"
+                        }
+                    }
+                ]
+            }
+        },
+        "EC20VolumeData0Queues": {
+            "Type": "AWS::EC2::Volume",
+            "Metadata": {
+                "Comment": "Data disk dedicated to PI Data Archive queue files."
+            },
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "EC20",
+                        "AvailabilityZone"
+                    ]
+                },
+                "Size": 128,
+                "VolumeType": "gp2",
+                "Encrypted": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive0NetBIOSName}-queues-ebs"
+                        }
+                    }
+                ]
+            }
+        },
+        "EC20VolumeData0Backups": {
+            "Type": "AWS::EC2::Volume",
+            "Metadata": {
+                "Comment": "Data disk dedicated to PI Data Archive backup files."
+            },
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "EC20",
+                        "AvailabilityZone"
+                    ]
+                },
+                "Size": {
+                    "Ref": "DiskSizeinGB"
+                },
+                "VolumeType": "gp2",
+                "Encrypted": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive0NetBIOSName}-backups-ebs"
+                        }
+                    }
+                ]
+            }
+        },
+        "PIDA0WaitCondition": {
+            "Type": "AWS::CloudFormation::WaitCondition",
+            "DependsOn": "EC20",
+            "Properties": {
+                "Handle": {
+                    "Ref": "PIDA0WaitHandle"
+                },
+                "Count": "2",
+                "Timeout": "3600"
+            }
+        },
+        "PIDA0WaitHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle"
+        },
+        "EC21": {
+            "Type": "AWS::EC2::Instance",
+            "Condition": "CreateHAResources",
+            "Metadata": {
+                "AWS::CloudFormation::Authentication": {
+                    "S3AccessCreds": {
+                        "type": "S3",
+                        "roleName": {
+                            "Ref": "EC2Role"
+                        },
+                        "buckets": [
+                            {
+                                "Ref": "DSS3BucketName"
+                            }
+                        ]
+                    }
+                },
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "config": [
+                            "setup",
+                            "rename",
+                            "pisoftware",
+                            "bootstrapDSC",
+                            "finalize"
+                        ]
+                    },
+                    "setup": {
+                        "files": {
+                            "c:\\cfn\\cfn-hup.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[main]\n",
+                                            "stack=",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "\n",
+                                            "region=",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[cfn-auto-reloader-hook]\n",
+                                            "triggers=post.update\n",
+                                            "path=Resources.EC21.Metadata.AWS::CloudFormation::Init\n",
+                                            "action=cfn-init.exe -v -c config -s ",
+                                            {
+                                                "Ref": "AWS::StackId"
+                                            },
+                                            " -r EC21",
+                                            " --region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "c:\\cfn\\scripts\\Unzip-Archive.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Unzip-Archive.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\AWSQuickStart.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/AWSQuickStart.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\CreateWaitHandle.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/CreateWaitHandle.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\PIDA0.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/configs/PIDA0.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\IPHelper.psm1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/IPHelper.psm1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\New-DSCCertificate.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/New-DSCCertificate.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\Join-Domain.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Join-Domain.ps1"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xStorage_3.4.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xStorage_3.4.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xNetworking_5.7.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xNetworking_5.7.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\PSDSSupportPIDA.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/PSDSSupportPIDA.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xPendingReboot_0.4.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xPendingReboot_0.4.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xActiveDirectory_3.0.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xActiveDirectory_3.0.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xWindowsUpdate-2.8.zip": {
+                                "source" : {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xWindowsUpdate-2.8.zip"
+                                },
+                                "authentication": "S3AccessCreds"
+                            }
+                        },
+                        "services": {
+                            "windows": {
+                                "cfn-hup": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true",
+                                    "files": [
+                                        "c:\\cfn\\cfn-hup.conf",
+                                        "c:\\cfn\\hooks.d\\cfn-auto-reloader.conf"
+                                    ]
+                                }
+                            }
+                        },
+                        "commands": {
+                            "a-set-execution-policy": {
+                                "command": "powershell.exe -command Set-ExecutionPolicy RemoteSigned -Force",
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-unpack-quickstart-module": {
+                                "command": "powershell.exe -command c:\\cfn\\scripts\\Unzip-Archive.ps1 -Source c:\\cfn\\modules\\AWSQuickStart.zip -Destination C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules\\",
+                                "waitAfterCompletion": "0"
+                            },
+                            "c-create-waithandle": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -command \"c:\\cfn\\scripts\\CreateWaitHandle.ps1 -Handle '",
+                                            {
+                                                "Ref": "PIDA1WaitHandle"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "d-unzip-modules": {
+                                "command": "powershell.exe -command \"Get-ChildItem 'C:\\cfn\\Modules' *.zip | Foreach-Object { c:\\cfn\\scripts\\unzip-archive.ps1 -source $_.fullname -destination 'C:\\Program Files\\WindowsPowerShell\\Modules'}\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "pisoftware": {
+                        "files": {
+                            "c:\\media\\PIServer\\PIServerInstaller.exe": {
+                                "source": {
+                                    "Fn::Sub": "https://${SetupKitsS3BucketName}.s3.${SetupKitsS3BucketRegion}.amazonaws.com/${SetupKitsS3KeyPrefix}/PIServer/${SetupKitsS3PIFileName}"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },
+                            "c:\\media\\PIServer\\pilicense.dat": {
+                                "source": {
+                                    "Fn::Sub": "https://${SetupKitsS3BucketName}.s3.${SetupKitsS3BucketRegion}.amazonaws.com/${SetupKitsS3KeyPrefix}/PIServer/pilicense.dat"
+                                },
+                                "authentication": "S3AccessCreds"
+                            },                            
+                            "C:\\media\\NETFramework\\windows10.0-kb4486129.msu": {
+                                "source" : "http://download.windowsupdate.com/c/msdownload/update/software/ftpk/2019/08/windows10.0-kb4486129-x64_bb869dd2cfa4ddde433373e2c72d15e660c2fc8d.msu"
+                            }
+                        }
+                    },
+                    "rename": {
+                        "commands": {
+                            "a-rename-computer": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command Rename-Computer -Restart -NewName '",
+                                            {
+                                                "Ref": "PIDataArchive1NetBIOSName"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            },
+                            "b-domain-join": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -executionpolicy remotesigned -Command c:\\cfn\\scripts\\Join-Domain.ps1 -DomainName '",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            "' -UserName '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            }
+                        }
+                    },
+                    "bootstrapDSC": {
+                        "commands": {
+                            "a-create-cert": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -command c:\\cfn\\scripts\\New-DSCCertificate.ps1"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-run-dsc-config-first": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\PIDA0.ps1 -DomainNetBiosName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUserName '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -SetupKitsS3PIProductID '",
+                                            {
+                                                "Ref": "SetupKitsS3PIProductID"
+                                            },
+                                            "' -PIDataArchivePrimary '",
+                                            {
+                                                "Ref": "PIDataArchive0NetBIOSName"
+                                            },
+                                            "' -PIDataArchiveSecondary '",
+                                            {
+                                                "Ref": "PIDataArchive1NetBIOSName"
+                                            },
+                                            "' -PrimaryDomainController '",
+                                            {
+                                                "Ref": "DomainControllerServerName"
+                                            },
+                                            "' -DeployHA '",
+                                            {
+                                                "Ref": "DeployHA"
+                                            },
+                                            "' -PIAdministratorsADGroup '",
+                                            {
+                                                "Ref": "PIAdministratorsADGroup"
+                                            },
+                                            "' -PIUsersADGroup '",
+                                            {
+                                                "Ref": "PIUsersADGroup"
+                                            },
+                                            "' -PIBuffersADGroup '",
+                                            {
+                                                "Ref": "PIBuffersADGroup"
+                                            },
+                                            "' -PIInterfacesADGroup '",
+                                            {
+                                                "Ref": "PIInterfacesADGroup"
+                                            },
+                                            "' -PIPointsAnalysisCreatorADGroup '",
+                                            {
+                                                "Ref": "PIPointsAnalysisCreatorADGroup"
+                                            },
+                                            "' -PIWebAppsADGroup '",
+                                            {
+                                                "Ref": "PIWebAppsADGroup"
+                                            },
+                                            "' -PIConnectorRelaysADGroup '",
+                                            {
+                                                "Ref": "PIConnectorRelaysADGroup"
+                                            },
+                                            "' -PIDataCollectionManagersADGroup '",
+                                            {
+                                                "Ref": "PIDataCollectionManagersADGroup"
+                                            },
+                                            "' -EnableAdGroupCreation '",
+                                            {
+                                                "Ref": "EnableAdGroupCreation"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            }
+                        }
+                    },
+                    "finalize": {
+                        "commands": {
+                            "a-write-status": {
+                                "command": "powershell.exe -command Write-AWSQuickStartStatus",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "IamInstanceProfile": {
+                    "Ref": "EC2RoleInstanceProfile"
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "ImageId": {
+                    "Ref": "LatestWindowsAmiId"
+                },
+                "KeyName": {
+                    "Ref": "KeyPairName"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "<script>\n",
+                                "cfn-init.exe -v -c config -s ",
+                                {
+                                    "Ref": "AWS::StackId"
+                                },
+                                " -r EC21",
+                                " --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "</script>\n"
+                            ]
+                        ]
+                    }
+                },
+                "NetworkInterfaces": [
+                    {
+                        "GroupSet"    : [
+                            {
+                                "Ref" : "DomainMemberSGID"
+                            },
+                            {
+                                "Ref" : "PISystemsSGID"
+                            },
+                            {
+                                "Ref" : "PIDASG"
+                            }
+                        ],
+                        "DeviceIndex": "0",
+                        "DeleteOnTermination": "true",
+                        "SubnetId"            : {
+							"Ref" : "BackendSubnet1ID"
+                        }
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive1NetBIOSName}"
+                        }
+                    }
+                ]
+            }
+        },
+        "EC21VA0Binaries": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Condition": "CreateHAResources",
+            "Properties": {
+                "VolumeId": {
+                    "Ref": "EC21VolumeData0Binaries"
+                },
+                "InstanceId": {
+                    "Ref": "EC21"
+                },
+                "Device": "xvdf"
+            }
+        },
+        "EC21VA0Archives": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Condition": "CreateHAResources",
+            "Properties": {
+                "VolumeId": {
+                    "Ref": "EC21VolumeData0Archives"
+                },
+                "InstanceId": {
+                    "Ref": "EC21"
+                },
+                "Device": "xvdg"
+            }
+        },
+        "EC21VA0Queues": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Condition": "CreateHAResources",
+            "Properties": {
+                "VolumeId": {
+                    "Ref": "EC21VolumeData0Queues"
+                },
+                "InstanceId": {
+                    "Ref": "EC21"
+                },
+                "Device": "xvdh"
+            }
+        },
+        "EC21VA0Backups": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Condition": "CreateHAResources",
+            "Properties": {
+                "VolumeId": {
+                    "Ref": "EC21VolumeData0Backups"
+                },
+                "InstanceId": {
+                    "Ref": "EC21"
+                },
+                "Device": "xvdi"
+            }
+        },
+        "EC21VolumeData0Binaries": {
+            "Type": "AWS::EC2::Volume",
+            "Condition": "CreateHAResources",
+            "Metadata": {
+                "Comment": "Data disk to separate program binaries."
+            },
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "EC21",
+                        "AvailabilityZone"
+                    ]
+                },
+                "Size": 32,
+                "VolumeType": "gp2",
+                "Encrypted": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive1NetBIOSName}-binaries-ebs"
+                        }
+                    }
+                ]
+            }
+        },
+        "EC21VolumeData0Archives": {
+            "Type": "AWS::EC2::Volume",
+            "Condition": "CreateHAResources",
+            "Metadata": {
+                "Comment": "Data disk dedicated to PI Data Archive archive files."
+            },
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "EC21",
+                        "AvailabilityZone"
+                    ]
+                },
+                "Size": {
+                    "Ref": "DiskSizeinGB"
+                },
+                "VolumeType": "gp2",
+                "Encrypted": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive1NetBIOSName}-archives-ebs"
+                        }
+                    }
+                ]
+            }
+        },
+        "EC21VolumeData0Queues": {
+            "Type": "AWS::EC2::Volume",
+            "Condition": "CreateHAResources",
+            "Metadata": {
+                "Comment": "Data disk dedicated to PI Data Archive queue files."
+            },
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "EC21",
+                        "AvailabilityZone"
+                    ]
+                },
+                "Size": 128,
+                "VolumeType": "gp2",
+                "Encrypted": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive1NetBIOSName}-queues-ebs"
+                        }
+                    }
+                ]
+            }
+        },
+        "EC21VolumeData0Backups": {
+            "Type": "AWS::EC2::Volume",
+            "Condition": "CreateHAResources",
+            "Metadata": {
+                "Comment": "Data disk dedicated to PI Data Archive backup files."
+            },
+            "Properties": {
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "EC21",
+                        "AvailabilityZone"
+                    ]
+                },
+                "Size": {
+                    "Ref": "DiskSizeinGB"
+                },
+                "VolumeType": "gp2",
+                "Encrypted": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${PIDataArchive1NetBIOSName}-backups-ebs"
+                        }
+                    }
+                ]
+            }
+        },
+        "PIDA1WaitCondition": {
+            "Type": "AWS::CloudFormation::WaitCondition",
+            "Condition": "CreateHAResources",
+            "DependsOn": "EC21",
+            "Properties": {
+                "Handle": {
+                    "Ref": "PIDA1WaitHandle"
+                },
+                "Count": "2",
+                "Timeout": "3600"
+            }
+        },
+        "PIDA1WaitHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle",
+            "Condition": "CreateHAResources"
+        },
+        "PIDASG" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "VpcId" : {
+                    "Ref" : "VPCID"
+                },
+				"GroupName" : {"Fn::Sub": "${NamePrefix}-PIDASG"},
+                "GroupDescription" : "PI Data Archives Security Group",
+                "Tags"             : [
+                    {
+                        "Key" : "Name",
+                        "Value" : {
+                            "Fn::Sub" : "${NamePrefix}-PIDASecurityGroup"
+                        }
+                    }
+                ],
+                "SecurityGroupIngress": [
+                ]
+            }
+        },
+        "PIDASGIngress135udp" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PIDASG"
+				},
+                "IpProtocol"  : "udp",
+                "FromPort"    : "135",
+                "ToPort"      : "139",
+				"SourceSecurityGroupId" : {
+					"Ref" : "PIDASG"
+				}
+            }
+        },
+        "PIDASGIngress135tcp" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PIDASG"
+				},
+                "IpProtocol"  : "tcp",
+                "FromPort"    : "135",
+                "ToPort"      : "139",
+				"SourceSecurityGroupId" : {
+					"Ref" : "PIDASG"
+				}
+            }
+        },
+        "PIDASGIngress445udp" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PIDASG"
+				},
+                "IpProtocol"  : "udp",
+                "FromPort"    : "445",
+                "ToPort"      : "445",
+				"SourceSecurityGroupId" : {
+					"Ref" : "PIDASG"
+				}
+            }
+        },
+        "PIDASGIngress445tcp" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PIDASG"
+				},
+                "IpProtocol"  : "tcp",
+                "FromPort"    : "445",
+                "ToPort"      : "445",
+				"SourceSecurityGroupId" : {
+					"Ref" : "PIDASG"
+				}
+            }
+        },
+        "PIDASGIngress5985tcp" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "PIDASG"
+				},
+                "IpProtocol"  : "tcp",
+                "FromPort"    : "5985",
+                "ToPort"      : "5986",
+				"SourceSecurityGroupId" : {
+					"Ref" : "PIDASG"
+				}
+            }
+        }
+    },
+    "Outputs": {
+        "EC20ID": {
+            "Description": "Primary PI Data Archive Server ID",
+            "Value": {
+                "Ref": "EC20"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-EC20ID"
+                }
+            }
+        },
+        "EC21ID": {
+            "Description": "Secondary PI Data Archive Server ID",
+            "Condition": "CreateHAResources",
+            "Value": {
+                "Ref": "EC21"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-EC21ID"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,938 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "This template creates a Core infrastructure for a single-instance or HA deployment of a Windows based Application infrastructure.",
+	"Metadata": {
+		"AWS::CloudFormation::Interface": {
+			"ParameterGroups": [
+				{
+					"Label": {
+						"default": "Global Configuration"
+					},
+					"Parameters": [
+						"AvailabilityZones",
+                        "DeployHA",
+						"KeyPairName"
+					]
+				},
+				{
+					"Label": {
+						"default": "Network Configuration"
+					},
+					"Parameters": [
+						"NamePrefix",
+						"RDGWCIDR"
+					]
+				},
+				{
+					"Label": {
+						"default": "Active Directory Configuration"
+					},
+					"Parameters": [
+						"ADServerInstanceType",
+						"DomainDNSName",
+						"DomainNetBIOSName",
+						"DomainAdminUserName",
+						"DomainAdminPassword",
+						"RestoreModePassword"
+					]
+				},
+				{
+					"Label": {
+						"default": "SQL Configuration"
+					},
+					"Parameters": [
+						"SQLServiceAccount",
+						"SQLFileServerInstanceType",
+						"SQLNodeInstanceType",
+						"Volume1Size",
+						"Volume2Size",
+						"Volume3Size"
+					]
+				},
+				{
+					"Label": {
+						"default": "Remote Desktop Gateway Configuration"
+					},
+					"Parameters": [
+						"RDGWInstanceType"
+					]
+				},
+				{
+					"Label": {
+						"default": "AWS Deployment Sample Configuration"
+					},
+					"Parameters": [
+						"DSS3BucketName",
+						"DSS3KeyPrefix",
+						"DSS3BucketRegion",
+						"SetupKitsS3BucketName",
+						"SetupKitsS3KeyPrefix",
+						"SetupKitsS3BucketRegion",
+                        "SetupKitsS3PIFileName",
+						"SetupKitsS3PIProductID",
+                        "SetupKitsS3VisionFileName"
+					]
+				}
+			],
+			"ParameterLabels": {
+				"ADServerInstanceType": {
+					"default": "Domain Controller 1 Instance Type"
+				},
+				"AvailabilityZones": {
+					"default": "Availability Zones"
+				},
+                "DeployHA": {
+                    "default": "Deploy HA"
+                },
+				"NamePrefix": {
+					"default": "Prefix used when naming resources, inputs, and outputs"
+				},
+				"DomainAdminPassword": {
+					"default": "Domain Admin Password"
+				},
+				"DomainAdminUserName": {
+					"default": "Domain Admin User Name"
+				},
+				"DomainDNSName": {
+					"default": "Domain DNS Name"
+				},
+				"DomainNetBIOSName": {
+					"default": "Domain NetBIOS Name"
+				},
+				"KeyPairName": {
+					"default": "Key Pair Name"
+				},
+				"DSS3BucketName": {
+					"default": "Deployment Sample S3 Bucket Name"
+				},
+				"DSS3KeyPrefix": {
+					"default": "Deployment Sample S3 Key Prefix"
+				},
+                "DSS3BucketRegion": {
+                    "default": "Region for Deployment Samples S3 Bucket. Used in S3 URL"
+                },
+				"SetupKitsS3BucketName": {
+					"default": "Setup Kits S3 Bucket Name"
+				},
+				"SetupKitsS3KeyPrefix": {
+					"default": "Setup Kits S3 Key Prefix"
+				},
+                "SetupKitsS3BucketRegion": {
+                    "default": "Region for Setup Kits S3 Bucket. Used in S3 URL"
+                },
+				"SetupKitsS3PIFileName": {
+                    "default": "PI Server Setup Kit File Name"
+                },
+                "SetupKitsS3PIProductID": {
+                    "default": "PI Server Setup Kit Product ID"
+                },
+                "SetupKitsS3VisionFileName": {
+                    "default": "PI Vision Setup Kit File Name"
+                },
+				"RDGWInstanceType": {
+					"default": "Remote Desktop Gateway Instance Type"
+				},
+				"RDGWCIDR": {
+					"default": "Allowed Remote Desktop Gateway External Access CIDR"
+				},
+				"RestoreModePassword": {
+					"default": "Restore Mode Password"
+				},
+				"SQLServiceAccount": {
+					"default": "Service Account Name"
+				},
+				"Volume1Size": {
+					"default": "Data Volume Size"
+				},
+				"Volume2Size": {
+					"default": "Logs Volume Size"
+				},
+				"Volume3Size": {
+					"default": "Backups/TempDB Volume Size"
+				},
+				"SQLFileServerInstanceType": {
+					"default": "File Server Instance Type"
+				},
+				"SQLNodeInstanceType": {
+					"default": "Instance Type for Cluster Node 1"
+				}
+			}
+		}
+	},
+	"Parameters": {
+		"ADServerInstanceType": {
+			"AllowedValues": [
+				"t2.medium",
+				"t2.large",
+				"t3.medium",
+				"t3.large",
+				"m4.large",
+				"m4.xlarge",
+				"m5.large",
+				"m5.xlarge"
+			],
+			"Default": "t3.medium",
+			"Description": "Amazon EC2 instance type for the first Active Directory instance",
+			"Type": "String"
+		},
+		"AvailabilityZones": {
+			"Description": "List of Availability Zones to use for the subnets in the VPC. Note: The logical order is preserved and only 2 AZs are used for this deployment.",
+			"Type": "List<AWS::EC2::AvailabilityZone::Name>"
+		},
+        "DeployHA": {
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true",
+            "Description": "Deploy sets of 2 Instances for HA",
+            "Type": "String"
+        },
+        "NamePrefix"       : {
+            "Type" : "String",
+            "AllowedPattern" : "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription" : "Prefix can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description" : "Prefix used when naming resources, inputs, and outputs. Maximum 24 characters",
+            "MaxLength" : "24"
+        },
+		"DomainAdminPassword": {
+			"AllowedPattern": "(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
+			"Description": "Password for the domain admin user. Must be at least 8 characters containing letters, numbers and symbols",
+			"MaxLength": "32",
+			"MinLength": "8",
+			"NoEcho": "true",
+			"Type": "String"
+		},
+		"DomainAdminUserName": {
+			"AllowedPattern": "[a-zA-Z0-9]*",
+			"Default": "piadmin",
+			"Description": "User name for the account that will be added as Domain Administrator. This is separate from the default \"Administrator\" account",
+			"MaxLength": "25",
+			"MinLength": "5",
+			"Type": "String"
+		},
+		"DomainDNSName": {
+			"AllowedPattern": "[a-zA-Z0-9\\-]+\\..+",
+			"Default": "osideploysample.int",
+			"Description": "Fully qualified domain name (FQDN) of the forest root domain e.g. example.com",
+			"MaxLength": "25",
+			"MinLength": "2",
+			"Type": "String"
+		},
+		"DomainNetBIOSName": {
+			"AllowedPattern": "[a-zA-Z0-9\\-]+",
+			"Default": "osideploysample",
+			"Description": "NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Windows e.g. EXAMPLE",
+			"MaxLength": "15",
+			"MinLength": "1",
+			"Type": "String"
+		},
+		"KeyPairName": {
+			"Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+			"Type": "AWS::EC2::KeyPair::KeyName"
+		},
+        "DSS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Deployment Samples S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+        "SetupKitsS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Setup Kits S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+		"DSS3BucketName": {
+			"AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+			"ConstraintDescription": "Deployment Sample bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "S3 bucket name for the Deployment Sample assets. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Type": "String"
+		},
+		"DSS3KeyPrefix": {
+			"AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+			"ConstraintDescription": "Deployment Sample key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+			"Default": "DeploySample",
+            "Description": "Name of the root folder in the S3 Deployment Sample bucket. Root folder name can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+			"Type": "String"
+		},
+		"SetupKitsS3BucketName": {
+			"AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+			"ConstraintDescription": "Setup Kits bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "S3 bucket name for the Setup Kit assets. This contains the install media for the PI System. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Type": "String"
+		},
+		"SetupKitsS3KeyPrefix": {
+			"AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+			"ConstraintDescription": "Setup Kits key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+			"Default": "osisetupkits",
+            "Description": "Name of the root folder in the S3 Setup Kits bucket. Root folder name can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+			"Type": "String"
+		},
+		"SetupKitsS3PIFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "PI Server Setup Kit File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "File name for the PI Server Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "SetupKitsS3PIProductID": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "PI Server Setup Kit Product ID can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "Product ID for the PI Server Setup Kit. Product ID can include numbers, lowercase letters, uppercase letters,and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "SetupKitsS3VisionFileName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "PI Vision Setup Kit File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "File name for the PI Vision Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "RDGWInstanceType": {
+			"Description": "Amazon EC2 instance type for the Remote Desktop Gateway instances",
+			"Type": "String",
+			"Default": "t3.large",
+			"AllowedValues": [
+                "t2.medium",
+                "t2.large",
+				"t3.medium",
+				"t3.large",
+                "m4.large",
+                "m4.xlarge",
+                "m5.large",
+                "m5.xlarge"
+			]
+		},
+		"RDGWCIDR": {
+			"AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$",
+			"ConstraintDescription": "IP Address parameter must be in the form x.x.x.x/16-32",
+			"Default": "0.0.0.0/32",
+			"Description": "Allowed CIDR Block for external access to the Remote Desktop Gateways",
+			"Type": "String"
+		},
+		"RestoreModePassword": {
+			"AllowedPattern": "(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
+			"Description": "Password for a separate Administrator account when the domain controller is in Restore Mode. Must be at least 8 characters containing letters, numbers and symbols",
+			"MaxLength": "32",
+			"MinLength": "8",
+			"NoEcho": "True",
+			"Type": "String"
+		},
+		"SQLServiceAccount": {
+			"Default": "svc-sql0",
+			"Description": "User name for the SQL Server Service Account. This Account is a Domain User.",
+			"MaxLength": "25",
+			"MinLength": "5",
+			"Type": "String"
+		},
+		"Volume1Size": {
+			"Default": "500",
+			"Description": "Volume size for the SQL Data drive, in GiB",
+			"MaxValue": "16000",
+			"MinValue": "100",
+			"Type": "Number"
+		},
+		"Volume2Size": {
+			"Default": "500",
+			"Description": "Volume size for the SQL Logs drive, in GiB",
+			"MaxValue": "16000",
+			"MinValue": "100",
+			"Type": "Number"
+		},
+		"Volume3Size": {
+			"Default": "500",
+			"Description": "Volume size for the SQL Backups and TempDB drive, in GiB",
+			"MaxValue": "16000",
+			"MinValue": "100",
+			"Type": "Number"
+		},
+		"SQLFileServerInstanceType": {
+            "AllowedValues": [
+                "t2.small",
+                "t2.medium",
+                "t3.small",
+                "t3.medium"
+            ],
+			"Default": "t3.small",
+			"Description": "Amazon EC2 instance type for a fileserver used to share install media, witness and replication folders",
+			"Type": "String"
+		},
+		"SQLNodeInstanceType": {
+			"AllowedValues": [
+				"m4.large",
+				"m4.xlarge",
+				"m5.large",
+				"m5.xlarge",
+				"r4.xlarge",
+				"r4.2xlarge"
+			],
+			"ConstraintDescription": "Only EBS Optimized instance types r4.xlarge, r4.2xlarge, r4.4xlarge, r4.8xlarge allowed",
+			"Default": "m4.large",
+			"Description": "Amazon EC2 instance type for the first SQL Node",
+			"Type": "String"
+		}
+	},
+    "Conditions"               : {
+        "CreateHAResources" : {
+            "Fn::Equals" : [
+                {
+                    "Ref" : "DeployHA"
+                },
+                "true"
+            ]
+        }
+    },
+	"Resources": {
+		"VPCStack": {
+			"Type": "AWS::CloudFormation::Stack",
+			"Properties": {
+				"TemplateURL": {
+					"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/templates/vpc.template"
+				},
+				"Parameters": {
+					"AvailabilityZones": {
+						"Fn::Join": [
+							",",
+							{
+								"Ref": "AvailabilityZones"
+							}
+						]
+					},
+					"DeployHA": {
+						"Ref": "DeployHA"
+					},
+					"NamePrefix": {
+						"Ref": "NamePrefix"
+					},
+					"BackendSubnet0CIDR": "10.0.1.0/24",
+					"FrontendSubnet0CIDR": "10.0.0.0/24",
+					"FrontendSubnet1CIDR": "10.0.10.0/24",
+					"BackendSubnet1CIDR": "10.0.11.0/24",
+					"VPCCIDR": "10.0.0.0/16"
+				}
+			}
+		},
+		"CoreSecurityGroupStack"     : {
+            "Type" : "AWS::CloudFormation::Stack",
+            "Properties" : {
+                "TemplateURL" : {
+                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/templates/DSCoreSecurityGroups.template"
+                },
+                "Parameters"  : {
+                    "VPCID" : {
+						"Fn::GetAtt": [
+							"VPCStack",
+							"Outputs.VPCID"
+						]
+                    },
+					"NamePrefix": {
+						"Ref": "NamePrefix"
+					},
+					"DeployHA": {
+						"Ref": "DeployHA"
+					},
+					"VPCCIDR": "10.0.0.0/16"
+                }
+            }
+        },
+		"PISecurityGroupStack"     : {
+            "Type" : "AWS::CloudFormation::Stack",
+            "DependsOn" : ["VPCStack", "CoreSecurityGroupStack"],
+            "Properties" : {
+                "TemplateURL" : {
+                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/templates/DSPISystemsSecurityGroups.template"
+                },
+                "Parameters"  : {
+                    "VPCID" : {
+						"Fn::GetAtt": [
+							"VPCStack",
+							"Outputs.VPCID"
+						]
+                    },
+					"NamePrefix": {
+						"Ref": "NamePrefix"
+					},
+					"DeployHA": {
+						"Ref": "DeployHA"
+					},
+                    "BackendSubnet0CIDR" : "10.0.1.0/24",
+                    "BackendSubnet1CIDR" : "10.0.11.0/24"
+                }
+            }
+        },
+		"ADStack": {
+			"DependsOn": ["PISecurityGroupStack", "CoreSecurityGroupStack"],
+			"Type": "AWS::CloudFormation::Stack",
+			"Properties": {
+				"TemplateURL": {
+					"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/templates/ec2PrivateAD.template"
+				},
+				"Parameters": {
+					"ADServerInstanceType": {
+						"Ref": "ADServerInstanceType"
+					},
+					"ADServer1NetBIOSName": "DC0",
+					"ADServer1PrivateIP": "10.0.1.10",
+					"ADServer2NetBIOSName": "DC1",
+					"ADServer2PrivateIP": "10.0.11.10",
+					"DomainAdminPassword": {
+						"Ref": "DomainAdminPassword"
+					},
+					"DomainAdminUserName": {
+						"Ref": "DomainAdminUserName"
+					},
+					"RestoreModePassword": {
+						"Ref": "RestoreModePassword"
+					},
+					"DomainDNSName": {
+						"Ref": "DomainDNSName"
+					},
+					"DomainNetBIOSName": {
+						"Ref": "DomainNetBIOSName"
+					},
+					"KeyPairName": {
+						"Ref": "KeyPairName"
+					},
+                    "VPCID" : {
+						"Fn::GetAtt": [
+							"VPCStack",
+							"Outputs.VPCID"
+						]
+                    },
+					"DeployHA": {
+						"Ref": "DeployHA"
+					},
+					"NamePrefix": {
+						"Ref": "NamePrefix"
+					},
+					"DSS3BucketName": {
+						"Ref": "DSS3BucketName"
+					},
+					"DSS3KeyPrefix": {
+						"Ref": "DSS3KeyPrefix"
+					},
+					"DSS3BucketRegion": {
+						"Ref": "DSS3BucketRegion"
+					},
+					"BackendSubnet0CIDR": "10.0.1.0/24",
+					"FrontendSubnet0CIDR": "10.0.0.0/24",
+					"FrontendSubnet1CIDR": "10.0.10.0/24",
+					"BackendSubnet1CIDR": "10.0.11.0/24",
+                    "BackendSubnet0ID": {
+						"Fn::GetAtt": [
+							"VPCStack",
+							"Outputs.BackendSubnet0ID"
+						]
+					},
+                    "BackendSubnet1ID": {
+						"Fn::If": [
+							"CreateHAResources",
+							{
+								"Fn::GetAtt": [
+									"VPCStack",
+									"Outputs.BackendSubnet1ID"
+								]
+							},
+							{
+								"Fn::GetAtt": [
+									"VPCStack",
+									"Outputs.BackendSubnet0ID"
+								]
+							}
+						]
+					},
+					"DCSGID": {
+						"Fn::GetAtt": [
+							"CoreSecurityGroupStack",
+							"Outputs.DCSGID"
+						]
+					},
+					"DCIngressSGID": {
+						"Fn::GetAtt": [
+							"CoreSecurityGroupStack",
+							"Outputs.DCIngressSGID"
+						]
+					}
+				}
+			}
+		},
+		"RDGWStack": {
+			"DependsOn": "ADStack",
+			"Type": "AWS::CloudFormation::Stack",
+			"Properties": {
+				"TemplateURL": {
+					"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/templates/ec2PublicRDGW.template"
+				},
+				"Parameters": {
+					"InstanceType": {
+						"Ref": "RDGWInstanceType"
+					},
+					"DeployHA": {
+						"Ref": "DeployHA"
+					},
+					"NamePrefix": {
+						"Ref": "NamePrefix"
+					},
+					"DSS3BucketRegion": {
+						"Ref": "DSS3BucketRegion"
+					},
+					"SetupKitsS3BucketRegion": {
+						"Ref": "SetupKitsS3BucketRegion"
+					},
+					"DSS3BucketName": {
+						"Ref": "DSS3BucketName"
+					},
+					"DSS3KeyPrefix": {
+						"Ref": "DSS3KeyPrefix"
+					},
+					"SetupKitsS3BucketName": {
+						"Ref": "SetupKitsS3BucketName"
+					},
+					"SetupKitsS3KeyPrefix": {
+						"Ref": "SetupKitsS3KeyPrefix"
+					},
+					"SetupKitsS3PIFileName": {
+                        "Ref": "SetupKitsS3PIFileName"
+                    },
+                    "SetupKitsS3PIProductID": {
+                        "Ref": "SetupKitsS3PIProductID"
+                    },
+                    "SetupKitsS3VisionFileName": {
+                        "Ref": "SetupKitsS3VisionFileName"
+                    },
+					"KeyPairName": {
+						"Ref": "KeyPairName"
+					},
+					"DomainDNSName": {
+						"Ref": "DomainDNSName"
+					},
+					"DomainNetBIOSName": {
+						"Ref": "DomainNetBIOSName"
+					},
+					"DomainAdminUserName": {
+						"Ref": "DomainAdminUserName"
+					},
+					"RDGWCIDR": {
+						"Ref": "RDGWCIDR"
+					},
+					"AFLoadBalancedName": "PIAF",
+					"VPCID": {
+						"Fn::GetAtt": [
+							"VPCStack",
+							"Outputs.VPCID"
+						]
+					},
+					"FrontendSubnet0ID": {
+						"Fn::GetAtt": [
+							"VPCStack",
+							"Outputs.FrontendSubnet0ID"
+						]
+					},
+					"FrontendSubnet1ID": {
+						"Fn::If": [
+							"CreateHAResources",
+							{
+								"Fn::GetAtt": [
+									"VPCStack",
+									"Outputs.FrontendSubnet1ID"
+								]
+							},
+							{
+								"Fn::GetAtt": [
+									"VPCStack",
+									"Outputs.FrontendSubnet0ID"
+								]
+							}
+						]
+					},
+					"DomainMemberSGID": {
+						"Fn::GetAtt": [
+							"CoreSecurityGroupStack",
+							"Outputs.DomainMemberSGID"
+						]
+					},
+					"PIClientSGID": {
+						"Fn::GetAtt": [
+							"PISecurityGroupStack",
+							"Outputs.PIClientSGID"
+						]
+					},
+					"PISystemsSGID": {
+						"Fn::GetAtt": [
+							"PISecurityGroupStack",
+							"Outputs.PISystemsSGID"
+						]
+					},
+					"AllowRDPSGID": {
+						"Fn::GetAtt": [
+							"CoreSecurityGroupStack",
+							"Outputs.DomainMemberSGID"
+						]
+					},
+					"SQLClientSGID": {
+						"Fn::GetAtt": [
+							"CoreSecurityGroupStack",
+							"Outputs.SQLClientSGID"
+						]
+					}
+				}
+			}
+		},
+		"SQLStack": {
+			"DependsOn": "ADStack",
+			"Type": "AWS::CloudFormation::Stack",
+			"Properties": {
+				"TemplateURL": {
+					"Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/templates/ec2PrivateSQL.template"
+				},
+				"Parameters": {
+					"DeployHA": {
+						"Ref": "DeployHA"
+					},
+					"NamePrefix": {
+						"Ref": "NamePrefix"
+					},
+					"KeyPairName": {
+						"Ref": "KeyPairName"
+					},
+					"DomainDNSName": {
+						"Ref": "DomainDNSName"
+					},
+					"DomainNetBIOSName": {
+						"Ref": "DomainNetBIOSName"
+					},
+					"DomainAdminUserName": {
+						"Ref": "DomainAdminUserName"
+					},
+					"DSS3BucketName": {
+						"Ref": "DSS3BucketName"
+					},
+					"DSS3KeyPrefix": {
+						"Ref": "DSS3KeyPrefix"
+					},
+					"DSS3BucketRegion": {
+						"Ref": "DSS3BucketRegion"
+					},
+					"SQLServerVersion": "2017",
+					"SQLServiceAccount": {
+						"Ref": "SQLServiceAccount"
+					},
+					"SQLLicenseProvided": "no",
+					"Volume1Size": {
+						"Ref": "Volume1Size"
+					},
+					"Volume2Size": {
+						"Ref": "Volume2Size"
+					},
+					"Volume3Size": {
+						"Ref": "Volume3Size"
+					},
+					"SQLFileServerInstanceType": {
+						"Ref": "SQLFileServerInstanceType"
+					},
+					"SQLNode0InstanceType": {
+						"Ref": "SQLNodeInstanceType"
+					},
+					"SQLNode1InstanceType": {
+						"Ref": "SQLNodeInstanceType"
+					},
+					"SQLNode0NetBIOSName": "SQL0",
+					"SQLNode0PrivateIP1": "10.0.1.13",
+					"SQLNode0PrivateIP2": "10.0.1.14",
+					"SQLNode0PrivateIP3": "10.0.1.15",
+					"SQLNode1NetBIOSName": "SQL1",
+					"SQLNode1PrivateIP1": "10.0.11.13",
+					"SQLNode1PrivateIP2": "10.0.11.14",
+					"SQLNode1PrivateIP3": "10.0.11.15",
+                    "BackendSubnet0ID": {
+						"Fn::GetAtt": [
+							"VPCStack",
+							"Outputs.BackendSubnet0ID"
+						]
+					},
+                    "BackendSubnet1ID": {
+						"Fn::If": [
+							"CreateHAResources",
+							{
+								"Fn::GetAtt": [
+									"VPCStack",
+									"Outputs.BackendSubnet1ID"
+								]
+							},
+							{
+								"Fn::GetAtt": [
+									"VPCStack",
+									"Outputs.BackendSubnet0ID"
+								]
+							}
+						]
+					},
+					"SQLSGID": {
+						"Fn::GetAtt": [
+							"CoreSecurityGroupStack",
+							"Outputs.SQLSGID"
+						]
+					},
+					"SQLIngressSGID": {
+						"Fn::GetAtt": [
+							"CoreSecurityGroupStack",
+							"Outputs.SQLIngressSGID"
+						]
+					},
+					"DomainMemberSGID": {
+						"Fn::GetAtt": [
+							"CoreSecurityGroupStack",
+							"Outputs.DomainMemberSGID"
+						]
+					}
+				}
+			}
+		},
+        "DCSGIngress3389" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "DependsOn" : "RDGWStack",
+            "Properties" : {
+                "GroupId" : {
+                    "Fn::GetAtt": [
+						"CoreSecurityGroupStack",
+						"Outputs.DCSGID"
+					]
+                },
+                "IpProtocol"  : "tcp",
+                "FromPort"    : "3389",
+                "ToPort"      : "3389",
+                "SourceSecurityGroupId" : {
+                    "Fn::GetAtt": [
+						"RDGWStack",
+						"Outputs.RDGWSGID"
+					]
+                }
+            }
+        }
+	},
+	"Outputs": {
+		"VPCStackName": {
+			"Description": "Name of the VPC Stack",
+			"Value": {
+				"Fn::GetAtt": [
+					"VPCStack",
+					"Outputs.VPCStackName"
+				]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Sub": "${AWS::StackName}-VPCStackName"
+				}
+			}
+		},
+		"VPCID": {
+			"Description": "ID of the VPC Stack",
+			"Value": {
+				"Fn::GetAtt": [
+					"VPCStack",
+					"Outputs.VPCID"
+				]
+			},
+			"Export": {
+				"Name": {
+					"Fn::Sub": "${AWS::StackName}-VPCID"
+				}
+			}
+		},
+        "FrontendSubnet0ID": {
+            "Description": "ID of the Frontend Subnet",
+			"Value": {
+				"Fn::GetAtt": [
+					"VPCStack",
+					"Outputs.FrontendSubnet0ID"
+				]
+			},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-FrontendSubnet0ID"}
+            }
+        },
+		"BackendSubnet0ID": {
+            "Description": "ID of the Backend Subnet",
+			"Value": {
+				"Fn::GetAtt": [
+					"VPCStack",
+					"Outputs.BackendSubnet0ID"
+				]
+			},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-BackendSubnet0ID"}
+            }
+        },
+        "FrontendSubnet1ID": {
+            "Description": "ID of the Frontend Subnet",
+			"Value": {
+				"Fn::GetAtt": [
+					"VPCStack",
+					"Outputs.FrontendSubnet1ID"
+				]
+			},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-FrontendSubnet1ID"}
+            },
+			"Condition" : "CreateHAResources"
+        },
+		"BackendSubnet1ID": {
+            "Description": "ID of the Backend Subnet",
+			"Value": {
+				"Fn::GetAtt": [
+					"VPCStack",
+					"Outputs.BackendSubnet1ID"
+				]
+			},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-BackendSubnet1ID"}
+            },
+			"Condition" : "CreateHAResources"
+        },
+        "SQLClientSGID": {
+            "Description": "ID of the SQL Client Security Group",
+			"Value": {
+				"Fn::GetAtt": [
+					"CoreSecurityGroupStack",
+					"Outputs.SQLClientSGID"
+				]
+			},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-SQLClientSGID"}
+            }
+        },
+        "DomainMemberSGID": {
+            "Description": "ID of Domain Members Security Group",
+			"Value": {
+				"Fn::GetAtt": [
+					"CoreSecurityGroupStack",
+					"Outputs.DomainMemberSGID"
+				]
+			},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-DomainMemberSGID"}
+            }
+        },
+        "PISystemsSGID": {
+            "Description": "ID of PI Systems Security Group",
+			"Value": {
+				"Fn::GetAtt": [
+					"PISecurityGroupStack",
+					"Outputs.PISystemsSGID"
+				]
+			},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-PISystemsSGID"}
+            }
+        },
+        "PIClientSGID": {
+            "Description": "ID of the PI Clients Security Group",
+			"Value": {
+				"Fn::GetAtt": [
+					"PISecurityGroupStack",
+					"Outputs.PIClientSGID"
+				]
+			},
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-PIClientSGID"}
+            }
+        }
+	}
+}
