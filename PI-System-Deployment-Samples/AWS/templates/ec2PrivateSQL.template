@@ -1,0 +1,2727 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Backend SQL server EC2 Instance(s). Can be deployed as a pair for HA, and with an added WSFC witness.",
+    "Metadata": {
+        "AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Global Configuration"
+                    },
+                    "Parameters": [
+						"DeployHA",
+                        "NamePrefix",
+						"KeyPairName"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Failover Cluster Configuration"
+                    },
+                    "Parameters": [
+						"LatestWindowsAmiId",
+                        "SQLFileServerInstanceType",
+                        "SQLFileServerNetBIOSName",
+                        "SQLFileServerPrivateIP",
+                        "SQLNode0InstanceType",
+                        "SQLNode0NetBIOSName",
+                        "SQLNode0PrivateIP1",
+                        "SQLNode0PrivateIP2",
+                        "SQLNode0PrivateIP3",
+                        "SQLNode1InstanceType",
+                        "SQLNode1NetBIOSName",
+                        "SQLNode1PrivateIP1",
+                        "SQLNode1PrivateIP2",
+                        "SQLNode1PrivateIP3"
+                    ]
+                },                {
+                    "Label": {
+                        "default": "Microsoft SQL Server Configuration"
+                    },
+                    "Parameters": [
+						"LatestSQLAmiId",
+                        "SQLServerVersion",
+                        "SQLServiceAccount",
+                        "SQLLicenseProvided",
+                        "Volume1Size",
+                        "Volume2Size",
+                        "Volume3Size"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Domain Parameters"
+                    },
+                    "Parameters": [
+                        "DomainDNSName",
+                        "DomainNetBIOSName",
+                        "DomainAdminUserName"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+						"BackendSubnet0ID",
+						"BackendSubnet1ID"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Security Groups"
+                    },
+                    "Parameters": [
+						"DomainMemberSGID",
+						"SQLIngressSGID",
+						"SQLSGID"
+                    ]
+                },
+
+                {
+                    "Label": {
+                        "default": "AWS Deployment Sample Configuration"
+                    },
+                    "Parameters": [
+                        "DSS3BucketName",
+                        "DSS3KeyPrefix",
+						"DSS3BucketRegion"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+                "DomainAdminUserName": {
+                    "default": "Domain Admin User Name"
+                },
+                "DomainDNSName": {
+                    "default": "Domain DNS Name"
+                },
+                "DomainNetBIOSName": {
+                    "default": "Domain NetBIOS Name"
+                },
+                "KeyPairName": {
+                    "default": "Key Pair Name"
+                },
+                "DSS3BucketName": {
+                    "default": "Deployment Sample S3 Bucket Name"
+                },
+                "DSS3KeyPrefix": {
+                    "default": "Deployment Sample S3 Key Prefix"
+                },
+                "DSS3BucketRegion": {
+                    "default": "Region for Deployment Samples S3 Bucket. Used in S3 URL"
+                },
+                "SQLLicenseProvided": {
+                    "default": "Amazon-Provided SQL Server License"
+                },
+                "SQLServerVersion": {
+                    "default": "SQL Server Version"
+                },
+                "SQLServiceAccount": {
+                    "default": "Service Account Name"
+                },
+                "DeployHA": {
+                    "default": "Deploy HA"
+                },
+                "Volume1Size": {
+                    "default": "Data Volume Size"
+                },
+                "Volume2Size": {
+                    "default": "Logs Volume Size"
+                },
+                "Volume3Size": {
+                    "default": "TempDB Volume Size"
+                },
+                "SQLFileServerInstanceType": {
+                    "default": "File Server Instance Type"
+                },
+                "SQLFileServerNetBIOSName": {
+                    "default": "File Server NetBIOS Name"
+                },
+                "SQLFileServerPrivateIP": {
+                    "default": "File Server Private IP Address"
+                },
+                "SQLNode0InstanceType": {
+                    "default": "Instance Type for Cluster Node 1"
+                },
+                "SQLNode0NetBIOSName": {
+                    "default": "Cluster Node 1 NetBIOS Name"
+                },
+                "SQLNode0PrivateIP1": {
+                    "default": "Cluster Node 1 Private IP Address 1"
+                },
+                "SQLNode0PrivateIP2": {
+                    "default": "Cluster Node 1 Private IP Address 2"
+                },
+                "SQLNode0PrivateIP3": {
+                    "default": "Cluster Node 1 Private IP Address 3"
+                },
+                "SQLNode1InstanceType": {
+                    "default": "Instance Type for Cluster Node 2"
+                },
+                "SQLNode1NetBIOSName": {
+                    "default": "Cluster Node 2 NetBIOS Name"
+                },
+                "SQLNode1PrivateIP1": {
+                    "default": "Cluster Node 2 Private IP Address 1"
+                },
+                "SQLNode1PrivateIP2": {
+                    "default": "Cluster Node 2 Private IP Address 2"
+                },
+                "SQLNode1PrivateIP3": {
+                    "default": "Cluster Node 2 Private IP Address 3"
+                },
+				"NamePrefix": {
+					"default": "Name Prefix"
+				},
+				"BackendSubnet0ID": {
+					"default": "Backend Subnet0 ID"
+				},
+				"BackendSubnet1ID": {
+					"default": "Backend Subnet1 ID"
+				},
+				"DomainMemberSGID": {
+					"default": "Domain Member SGID"
+				},
+				"SQLIngressSGID": {
+					"default": "SQL Ingress SGID"
+				},
+				"SQLSGID": {
+					"default": "SQLSGID"
+				},
+				"LatestWindowsAmiId": {
+					"default": "Latest Windows Ami ID"
+				},
+				"LatestSQLAmiId": {
+					"default": "Latest SQL Ami Id"
+				}
+            }
+        }
+    },
+    "Parameters": {
+        "DomainAdminUserName": {
+            "AllowedPattern": "[a-zA-Z0-9]*",
+            "Default": "piadmin",
+            "Description": "User name for the account that will be used as Domain Administrator. This is separate from the default \"Administrator\" account",
+            "MaxLength": "25",
+            "MinLength": "5",
+            "Type": "String"
+        },
+        "DomainDNSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+\\..+",
+            "Default": "osideploysample.int",
+            "Description": "Fully qualified domain name (FQDN) e.g. example.com",
+            "MaxLength": "255",
+            "MinLength": "2",
+            "Type": "String"
+        },
+        "DomainNetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "osideploysample",
+            "Description": "NetBIOS name of the domain (up to 15 characters) for users of earlier versions of Windows e.g. EXAMPLE",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "KeyPairName": {
+            "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "NamePrefix"       : {
+            "Type" : "String",
+            "AllowedPattern" : "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription" : "Prefix can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description" : "Prefix used when naming resources, inputs, and outputs. Maximum 24 characters",
+            "MaxLength" : "24"
+        },
+        "DSS3BucketName": {
+            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription": "Deployment Sample bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description": "S3 bucket name for the Deployment Sample assets. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Type": "String"
+        },
+        "DSS3KeyPrefix": {
+            "AllowedPattern": "^[0-9a-zA-Z-]+([0-9a-zA-Z-/]*[0-9a-zA-Z-])*$",
+            "ConstraintDescription": "Deployment Sample key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+            "Default": "DeploySample",
+            "Description": "Name of the root folder in the S3 Deployment Sample bucket. Root folder name can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.",
+            "Type": "String"
+        },
+        "DSS3BucketRegion": {
+            "Type": "String",
+            "Description": "Region for Deployment Samples S3 Bucket. Used in S3 URL",
+            "Default": "us-west-1"
+        },
+        "SQLLicenseProvided": {
+            "AllowedValues": [
+                "yes",
+                "no"
+            ],
+            "Default": "no",
+            "Description": "License SQL Server from AWS Marketplace",
+            "Type": "String"
+        },
+        "SQLServerVersion": {
+            "AllowedValues": [
+                "2017"
+            ],
+            "Default": "2017",
+            "Description": "Version of SQL Server to install on Failover Cluster Nodes",
+            "Type": "String"
+        },
+        "SQLServiceAccount": {
+            "Description": "User name for the SQL Server Service Account. This Account is a Domain User.",
+            "MinLength": "5",
+            "Type": "String"
+        },
+        "DeployHA": {
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true",
+            "Description": "Deploy 2 SQL nodes plus Witness for HA",
+            "Type": "String"
+        },
+        "Volume1Size": {
+            "Default": "500",
+            "Description": "Volume size for the SQL Data drive, in GiB",
+            "MaxValue": "16000",
+            "MinValue": "100",
+            "Type": "Number"
+        },
+        "Volume2Size": {
+            "Default": "500",
+            "Description": "Volume size for the SQL Logs drive, in GiB",
+            "MaxValue": "16000",
+            "MinValue": "100",
+            "Type": "Number"
+        },
+        "Volume3Size": {
+            "Default": "500",
+            "Description": "Volume size for the SQL TempDB drive, in GiB",
+            "MaxValue": "16000",
+            "MinValue": "100",
+            "Type": "Number"
+        },
+        "SQLFileServerInstanceType": {
+            "AllowedValues": [
+                "t2.small",
+                "t2.medium",
+                "t3.small",
+                "t3.medium"
+            ],
+			"Default": "t3.small",
+            "Description": "Amazon EC2 instance type for a fileserver used to share install media, witness and replication folders",
+            "Type": "String"
+        },
+        "SQLFileServerNetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "SQLShare0",
+            "Description": "NetBIOS name of the SQLFileServer (up to 15 characters)",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "SQLFileServerPrivateIP": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+            "Default": "10.0.1.12",
+            "Description": "Primary private IP for the fileserver located in Availability Zone 1",
+            "Type": "String"
+        },
+        "SQLNode0InstanceType": {
+            "AllowedValues": [
+                "m4.large",
+                "m4.xlarge",
+				"m5.large",
+                "m5.xlarge",
+                "r4.xlarge",
+                "r4.2xlarge"
+            ],
+            "ConstraintDescription": "Only EBS Optimized instance types r4.xlarge, r4.2xlarge, r4.4xlarge, r4.8xlarge allowed",
+            "Default": "m4.xlarge",
+            "Description": "Amazon EC2 instance type for the first WSFC Node",
+            "Type": "String"
+        },
+        "SQLNode0NetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "SQL0",
+            "Description": "NetBIOS name of the first WSFC Node (up to 15 characters)",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "SQLNode0PrivateIP1": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+            "Default": "10.0.1.13",
+            "Description": "Primary private IP for the first WSFC Node located in Availability Zone 1",
+            "Type": "String"
+        },
+        "SQLNode0PrivateIP2": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+            "Default": "10.0.1.14",
+            "Description": "Secondary private IP for WSFC cluster on first WSFC Node",
+            "Type": "String"
+        },
+        "SQLNode0PrivateIP3": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+            "Default": "10.0.1.15",
+            "Description": "Tertiary private IP for WSFC cluster on first WSFC Node",
+            "Type": "String"
+        },
+        "SQLNode1InstanceType": {
+            "AllowedValues": [
+                "m4.large",
+                "m4.xlarge",
+				"m5.large",
+                "m5.xlarge",
+                "r4.xlarge",
+                "r4.2xlarge"
+            ],
+            "ConstraintDescription": "Only EBS Optimized instance types r4.xlarge, r4.2xlarge, r4.4xlarge, r4.8xlarge allowed",
+            "Default": "m4.large",
+            "Description": "Amazon EC2 instance type for the second WSFC Node",
+            "Type": "String"
+        },
+        "SQLNode1NetBIOSName": {
+            "AllowedPattern": "[a-zA-Z0-9\\-]+",
+            "Default": "SQL1",
+            "Description": "NetBIOS name of the second WSFC Node (up to 15 characters)",
+            "MaxLength": "15",
+            "MinLength": "1",
+            "Type": "String"
+        },
+        "SQLNode1PrivateIP1": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+            "Default": "10.0.11.13",
+            "Description": "Primary private IP for the second WSFC Node located in Availability Zone 2",
+            "Type": "String"
+        },
+        "SQLNode1PrivateIP2": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+            "Default": "10.0.11.14",
+            "Description": "Secondary private IP for WSFC cluster on second WSFC Node",
+            "Type": "String"
+        },
+        "SQLNode1PrivateIP3": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+            "Default": "10.0.11.15",
+            "Description": "Tertiary private IP for WSFC cluster on second WSFC Node",
+            "Type": "String"
+        },
+        "SQLSGID"           : {
+            "Description" : "ID of the SQL Servers Security Group (e.g., sg-7f16e910).",
+            "Type"        : "AWS::EC2::SecurityGroup::Id"
+        },
+        "SQLIngressSGID"              : {
+            "Description" : "ID of the SQL Ingress Security Group (e.g., sg-7f16e910).",
+            "Type"        : "AWS::EC2::SecurityGroup::Id"
+        },
+        "DomainMemberSGID"           : {
+            "Description" : "ID of the Domain Member Security Group (e.g., sg-7f16e910).",
+            "Type"        : "AWS::EC2::SecurityGroup::Id"
+        },
+        "BackendSubnet0ID"           : {
+            "Description" : "ID of the backend subnet 1 in Availability Zone 1.",
+            "Type"        : "AWS::EC2::Subnet::Id"
+        },
+        "BackendSubnet1ID"           : {
+            "Description" : "ID of the backend subnet 2 in Availability Zone 2.",
+            "Type"        : "AWS::EC2::Subnet::Id"
+        },
+		"LatestWindowsAmiId"         : {
+            "Description" : "ID for the latest Windows Server 2016 Data Center Amazon Managed Image (AMI). The ID will be looked up from Amazon's public Parameter Store. Provide the full path to the AMI you want to find.",
+            "Type"        : "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default"     : "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base"
+        },
+		"LatestSQLAmiId"         : {
+            "Description" : "ID for the latest Windows Server 2016 Data Center Amazon Managed Image (AMI). The ID will be looked up from Amazon's public Parameter Store. Provide the full path to the AMI you want to find.",
+            "Type"        : "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default"     : "/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-SQL_2017_Enterprise"
+        }
+    },
+    "Conditions": {
+        "IsTwoNode": {
+            "Fn::Equals": [
+                {
+                    "Ref": "DeployHA"
+                },
+                "true"
+            ]
+        },
+        "SQLBakedInAMI": {
+            "Fn::Equals": [
+                {
+                    "Ref": "SQLLicenseProvided"
+                },
+                "yes"
+            ]
+        },
+        "WindowsServer2016": {
+            "Fn::Equals": [
+                {
+                    "Ref": "SQLServerVersion"
+                },
+                "2017"
+            ]
+        }
+    },
+    "Resources": {
+        "SQLRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Policies": [
+                    {
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Action": [
+                                        "s3:GetObject"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:s3:::${DSS3BucketName}/${DSS3KeyPrefix}/*"
+                                    },
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        },
+                        "PolicyName": "aws-deploy-sample-s3-policy"
+                    },
+                    {
+                        "PolicyName": "SSM-Parameters-DomainJoin",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ssm:GetParameter",
+                                        "ssm:GetParameters"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${NamePrefix}/${DomainAdminUserName}"
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ssm:DescribeParameters"
+                                    ],
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "kms:Decrypt"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "PolicyName": "SSM-Parameters-SQL",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ssm:GetParameter",
+                                        "ssm:GetParameters"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${NamePrefix}/${SQLServiceAccount}"
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "ssm:DescribeParameters"
+                                    ],
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "kms:Decrypt"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/ssm"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "Path": "/",
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Effect": "Allow"
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                }
+            }
+        },
+        "SQLProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Roles": [
+                    {
+                        "Ref": "SQLRole"
+                    }
+                ],
+                "Path": "/"
+            }
+        },
+        "SQLFileServerWaitCondition": {
+            "Type": "AWS::CloudFormation::WaitCondition",
+            "Condition": "IsTwoNode",
+            "DependsOn": "SQLFileServer",
+            "Properties": {
+                "Handle": {
+                    "Ref": "SQLFileServerWaitHandle"
+                },
+                "Timeout": "3600"
+            }
+        },
+        "SQLFileServerWaitHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle",
+            "Condition": "IsTwoNode"
+        },
+        "SQLNode0WaitCondition": {
+            "Type": "AWS::CloudFormation::WaitCondition",
+            "DependsOn": "SQLNode0",
+            "Properties": {
+                "Handle": {
+                    "Ref": "SQLNode0WaitHandle"
+                },
+                "Timeout": "9000"
+            }
+        },
+        "SQLNode0WaitHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle"
+        },
+        "SQLNode1WaitCondition": {
+            "Type": "AWS::CloudFormation::WaitCondition",
+            "Condition": "IsTwoNode",
+            "DependsOn": "SQLNode1",
+            "Properties": {
+                "Handle": {
+                    "Ref": "SQLNode1WaitHandle"
+                },
+                "Timeout": "9000"
+            }
+        },
+        "SQLNode1WaitHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle",
+            "Condition": "IsTwoNode"
+        },
+        "SQLFileServer": {
+            "Type": "AWS::EC2::Instance",
+            "Condition": "IsTwoNode",
+            "Metadata": {
+                "AWS::CloudFormation::Authentication": {
+                    "S3AccessCreds": {
+                        "type": "S3",
+                        "roleName": {
+                            "Ref": "SQLRole"
+                        },
+                        "buckets": [
+                            {
+                                "Ref": "DSS3BucketName"
+                            }
+                        ]
+                    }
+                },
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "config": [
+                            "FetchResources",
+                            "DeploySampleSetup",
+                            "Prep",
+                            "Cleanup",
+                            "Finalize"
+                        ]
+                    },
+                    "FetchResources": {
+                        "files": {
+                            "C:\\cfn\\scripts\\Unzip-Archive.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Unzip-Archive.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\modules\\AWSQuickStart.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/AWSQuickStart.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Join-Domain.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Join-Domain.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Rename-Computer.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Rename-Computer.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Enable-CredSSP.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Enable-CredSSP.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Create-Share.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Create-Share.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Test-ADUser.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Test-ADUser.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\AddUserToGroup.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/AddUserToGroup.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Disable-CredSSP.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Disable-CredSSP.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            }
+                        }
+                    },
+                    "DeploySampleSetup": {
+                        "commands": {
+                            "a-set-execution-policy": {
+                                "command": "powershell.exe -Command \"Set-ExecutionPolicy RemoteSigned -Force\"",
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-unpack-quickstart-module": {
+                                "command": "powershell.exe -Command C:\\cfn\\scripts\\Unzip-Archive.ps1 -Source C:\\cfn\\modules\\AWSQuickStart.zip -Destination C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules\\",
+                                "waitAfterCompletion": "0"
+                            },
+                            "c-init-quickstart-module": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"",
+                                            "New-AWSQuickStartWaitHandle -Handle '",
+                                            {
+                                                "Ref": "SQLFileServerWaitHandle"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Prep": {
+                        "commands": {
+                            "a-rename-computer": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\Rename-Computer.ps1 -Restart -NewName '",
+                                            {
+                                                "Ref": "SQLFileServerNetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            },
+                            "b-join-domain": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -executionpolicy remotesigned -Command c:\\cfn\\scripts\\Join-Domain.ps1 -DomainName '",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            "' -UserName '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            },
+                            "c-enable-credssp": {
+                                "command": "powershell.exe -ExecutionPolicy RemoteSigned -Command \"C:\\cfn\\scripts\\Enable-CredSSP.ps1",
+                                "waitAfterCompletion": "0"
+                            },
+                            "d-add-domadmin-user-to-group": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe ",
+                                            "-ExecutionPolicy RemoteSigned ",
+                                            "-Command \"",
+                                            " C:\\cfn\\scripts\\AddUserToGroup.ps1 -UserName '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -ServerName '",
+                                            {
+                                                "Ref": "SQLFileServerNetBIOSName"
+                                            },
+                                            "' -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -GroupName 'Administrators'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "e-wait-for-ad-replication": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe ",
+                                            "-ExecutionPolicy RemoteSigned ",
+                                            "-Command \"",
+                                            "C:\\cfn\\scripts\\Test-ADUser.ps1 -UserName '",
+                                            {
+                                                "Ref": "SQLServiceAccount"
+                                            },
+                                            "' -Wait -TimeoutMinutes 30 -IntervalMinutes 1\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "f-add-sqlservice-user-to-group": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe ",
+                                            "-ExecutionPolicy RemoteSigned ",
+                                            "-Command \"",
+                                            "C:\\cfn\\scripts\\AddUserToGroup.ps1 -UserName '",
+                                            {
+                                                "Ref": "SQLServiceAccount"
+                                            },
+                                            "' -ServerName '",
+                                            {
+                                                "Ref": "SQLFileServerNetBIOSName"
+                                            },
+                                            "' -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -GroupName 'Administrators'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Cleanup": {
+                        "commands": {
+                            "a-disable-credssp": {
+                                "command": "powershell.exe -ExecutionPolicy RemoteSigned -Command \"C:\\cfn\\scripts\\Disable-CredSSP.ps1\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Finalize": {
+                        "commands": {
+                            "a-signal-success": {
+                                "command": "powershell -Command \"Write-AWSQuickstartStatus\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "ImageId": {
+                    "Ref" : "LatestWindowsAmiId"
+                },
+                "IamInstanceProfile": {
+                    "Ref": "SQLProfile"
+                },
+                "InstanceType": {
+                    "Ref": "SQLFileServerInstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "DeleteOnTermination": "true",
+                        "DeviceIndex": 0,
+                        "SubnetId"            : {
+							"Ref" : "BackendSubnet0ID"
+                        },
+                        "PrivateIpAddresses": [
+                            {
+                                "Primary": "true",
+                                "PrivateIpAddress": {
+                                    "Ref": "SQLFileServerPrivateIP"
+                                }
+                            }
+                        ],
+                        "GroupSet"    : [
+                            {
+                                "Ref" : "DomainMemberSGID"
+                            },
+                            {
+                                "Ref" : "SQLSGID"
+                            },
+                            {
+                                "Ref" : "SQLIngressSGID"
+                            }
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${SQLFileServerNetBIOSName}"
+                        }
+                    }
+                ],
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeSize": "100",
+                            "VolumeType": "gp2"
+                        }
+                    }
+                ],
+                "KeyName": {
+                    "Ref": "KeyPairName"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "<script>\n",
+                                "cfn-init.exe -v -c config -s ",
+                                {
+                                    "Ref": "AWS::StackId"
+                                },
+                                " -r SQLFileServer ",
+                                " --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "</script>"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "SQLNode0": {
+            "Type": "AWS::EC2::Instance",
+            "Metadata": {
+                "AWS::CloudFormation::Authentication": {
+                    "S3AccessCreds": {
+                        "type": "S3",
+                        "roleName": {
+                            "Ref": "SQLRole"
+                        },
+                        "buckets": [
+                            {
+                                "Ref": "DSS3BucketName"
+                            }
+                        ]
+                    }
+                },
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "config": [
+                            "FetchResources",
+                            "DeploySampleSetup",
+                            "Prep",
+                            {
+                                "Fn::If": [
+                                    "SQLBakedInAMI",
+                                    "SQLIncludedConfigure",
+                                    "Install"
+                                ]
+                            },
+                            "Configure",
+                            {
+                                "Fn::If": [
+                                    "IsTwoNode",
+                                    "ConfigureCluster",
+                                    {"Ref": "AWS::NoValue"}
+                                ]
+                            },
+                            "AGsetupDSC",
+                            "Cleanup",
+                            "Finalize"
+                        ]
+                    },
+                    "FetchResources": {
+                        "files": {
+                            "C:\\cfn\\scripts\\Unzip-Archive.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Unzip-Archive.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\modules\\AWSQuickStart.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/AWSQuickStart.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Join-Domain.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Join-Domain.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Rename-Computer.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Rename-Computer.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Restart-Computer.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Restart-Computer.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Install-WindowsFailoverClustering.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Install-WindowsFailoverClustering.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Install-NETFrameworkCore.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Install-NETFrameworkCore.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\OpenWSFCPorts.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/OpenWSFCPorts.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Enable-CredSSP.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Enable-CredSSP.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\DownloadSQLEE.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/DownloadSQLEE.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Test-ADUser.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Test-ADUser.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\AddUserToGroup.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/AddUserToGroup.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\InstallSQLEE.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/InstallSQLEE.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Reconfigure-SQL.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Reconfigure-SQL.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\SetMaxDOP.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/SetMaxDOP.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Disable-CredSSP.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Disable-CredSSP.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            }
+                        }
+                    },
+                    "DeploySampleSetup": {
+                        "commands": {
+                            "a-set-execution-policy": {
+                                "command": "powershell.exe -Command \"Set-ExecutionPolicy RemoteSigned -Force\"",
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-unpack-quickstart-module": {
+                                "command": "powershell.exe -Command C:\\cfn\\scripts\\Unzip-Archive.ps1 -Source C:\\cfn\\modules\\AWSQuickStart.zip -Destination C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules\\",
+                                "waitAfterCompletion": "0"
+                            },
+                            "c-init-quickstart-module": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"",
+                                            "New-AWSQuickStartWaitHandle -Handle '",
+                                            {
+                                                "Ref": "SQLNode0WaitHandle"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Prep": {
+                        "commands": {
+                            "a-initialize-disks": {
+                                "command": {
+                                    "Fn::If": [
+                                        "WindowsServer2016",
+                                        "powershell.exe -Command \"C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\InitializeDisks.ps1\"",
+                                        "powershell.exe -Command exit"
+                                    ]
+                                },
+                                "waitAfterCompletion": "120"
+                            },
+                            "b-rename-computer": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\Rename-Computer.ps1 -Restart -NewName '",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            },
+                            "c-join-domain": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -executionpolicy remotesigned -Command c:\\cfn\\scripts\\Join-Domain.ps1 -DomainName '",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            "' -UserName '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            },
+                            "d-install-net-framework-core": {
+                                "command": "powershell.exe -Command \"C:\\cfn\\scripts\\Install-NETFrameworkCore.ps1\"",
+                                "waitAfterCompletion": "0"
+                            },
+                            "e-install-windows-failover-clustering": {
+                                "command": "powershell.exe -Command \"C:\\cfn\\scripts\\Install-WindowsFailoverClustering.ps1\"",
+                                "waitAfterCompletion": "0"
+                            },
+                            "f-enable-credssp": {
+                                "command": "powershell.exe -ExecutionPolicy RemoteSigned -Command \"C:\\cfn\\scripts\\Enable-CredSSP.ps1",
+                                "waitAfterCompletion": "0"
+                            },
+                            "g-reboot": {
+                                "command": "powershell.exe -Command \"C:\\cfn\\scripts\\Restart-Computer.ps1\"",
+                                "waitAfterCompletion": "forever"
+                            },
+                            "h-open-WSFC-ports": {
+                                "command": "powershell.exe -ExecutionPolicy RemoteSigned -Command \"C:\\cfn\\scripts\\OpenWSFCPorts.ps1\"",
+                                "waitAfterCompletion": "0"
+                            },
+                            "j-add-domadmin-user-to-group": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe ",
+                                            "-ExecutionPolicy RemoteSigned ",
+                                            "-Command \"",
+                                            " C:\\cfn\\scripts\\AddUserToGroup.ps1 -UserName '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -ServerName '",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            "' -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -GroupName 'Administrators'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "k-wait-for-ad-replication": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe ",
+                                            "-ExecutionPolicy RemoteSigned ",
+                                            "-Command \"",
+                                            "C:\\cfn\\scripts\\Test-ADUser.ps1 -UserName '",
+                                            {
+                                                "Ref": "SQLServiceAccount"
+                                            },
+                                            "' -Wait -TimeoutMinutes 30 -IntervalMinutes 1\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "l-add-sqlservice-user-to-group": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe ",
+                                            "-ExecutionPolicy RemoteSigned ",
+                                            "-Command \"",
+                                            "C:\\cfn\\scripts\\AddUserToGroup.ps1 -UserName '",
+                                            {
+                                                "Ref": "SQLServiceAccount"
+                                            },
+                                            "' -ServerName '",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            "' -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -GroupName 'Administrators'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "m-download-sql-installer": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe ",
+                                            "-ExecutionPolicy RemoteSigned ",
+                                            "-Command \"",
+                                            " C:\\cfn\\scripts\\DownloadSQLEE.ps1 -SQLServerVersion '",
+                                            {
+                                                "Ref": "SQLServerVersion"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Install": {
+                        "commands": {
+                            "a-install-sql": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\InstallSQLEE.ps1 -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -SQLServiceAccount '",
+                                            {
+                                                "Ref": "SQLServiceAccount"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "SQLIncludedConfigure": {
+                        "commands": {
+                            "a-configure-sql": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\Reconfigure-SQL.ps1 -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -SQLServiceAccount '",
+                                            {
+                                                "Ref": "SQLServiceAccount"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Configure": {
+                        "commands": {
+                            "a-set-maxdop": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\SetMaxDOP.ps1 -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "ConfigureCluster": {
+                        "files": {
+                            "C:\\cfn\\scripts\\Configure-WSFC0.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Configure-WSFC0.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            }
+                        },
+                        "commands": {
+                            "a-configure-WSFC": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -ExecutionPolicy RemoteSigned -Command \"C:\\cfn\\scripts\\Configure-WSFC0.ps1",
+                                            " -WSFCNode1PrivateIP2 ",
+                                            {
+                                                "Ref": "SQLNode0PrivateIP2"
+                                            },
+                                            " -WSFCNode2PrivateIP2 ",
+                                            {
+                                                "Ref": "SQLNode1PrivateIP2"
+                                            },
+                                            " -WSFCNode1NetBIOSName ",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            " -WSFCNode2NetBIOSName ",
+                                            {
+                                                "Ref": "SQLNode1NetBIOSName"
+                                            },
+                                            " -DomainNetBIOSName ",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            " -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "AGsetupDSC": {
+                        "files": {
+                            "c:\\cfn\\modules\\SqlServerDsc_13.2.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServerDsc_13.2.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\SqlServer_21.0.17279.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.0.17279.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\xActiveDirectory_3.0.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xActiveDirectory_3.0.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\xNetworking_5.7.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xNetworking_5.7.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\cNtfsAccessControl_1.4.1.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/cNtfsAccessControl_1.4.1.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\xSmbShare_2.1.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xSmbShare_2.1.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\SQL0.ps1": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/configs/SQL0.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\New-DSCCertificate.ps1": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/New-DSCCertificate.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\IPHelper.psm1": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/IPHelper.psm1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            }
+                        },
+                        "commands": {
+                            "a-unzip-modules": {
+                                "command" : "powershell.exe -command \"Get-ChildItem 'C:\\cfn\\Modules' *.zip | Foreach-Object { c:\\cfn\\scripts\\unzip-archive.ps1 -source $_.fullname -destination 'C:\\Program Files\\WindowsPowerShell\\Modules'}\"",
+                                "waitAfterCompletion" : "0"
+                            },
+                            "b-create-cert" : {
+                                "command" : {
+                                    "Fn::Join" : [
+                                        "",
+                                        [
+                                            "powershell.exe -command c:\\cfn\\scripts\\New-DSCCertificate.ps1"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion" : "0"
+                            },
+                            "c-run-dsc-config" : {
+                                "command" : {
+                                    "Fn::Join" : [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\SQL0.ps1 -DomainNetBiosName '",
+                                            {
+                                                "Ref" : "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUserName '",
+                                            {
+                                                "Ref" : "DomainAdminUserName"
+                                            },
+                                            "' -SqlServiceAccountName '",
+                                            {
+                                                "Ref" : "SQLServiceAccount"
+                                            },
+                                            "' -DomainDNSName '",
+                                            {
+                                                "Ref" : "DomainDNSName"
+                                            },
+                                            "' -SQLServerPrimaryName '",
+                                            {
+                                                "Ref" : "SQLNode0NetBIOSName"
+                                            },
+                                            "' -SqlAgListenerPrimaryIP '",
+                                            {
+                                                "Ref" : "SQLNode0PrivateIP3"
+                                            },
+                                            "' -SQLServerSecondaryName '",
+                                            {
+                                                "Ref" : "SQLNode1NetBIOSName"
+                                            },
+                                            "' -SqlAgListenerSecondaryIP '",
+                                            {
+                                                "Ref" : "SQLNode1PrivateIP3"
+                                            },
+                                            "' -PrimaryDomainController '",
+                                            "DC0",
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion" : "60"
+                            }
+                        }
+                    },
+                    "Cleanup": {
+                        "commands": {
+                            "a-disable-credssp": {
+                                "command": "powershell.exe -ExecutionPolicy RemoteSigned -Command \"C:\\cfn\\scripts\\Disable-CredSSP.ps1\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Finalize": {
+                        "commands": {
+                            "a-reboot": {
+                                "command": "powershell.exe -Command \"C:\\cfn\\scripts\\Restart-Computer.ps1\"",
+                                "waitAfterCompletion": "forever"
+                            },
+                            "b-signal-success": {
+                                "command": "powershell -Command \"Write-AWSQuickStartStatus\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "ImageId": {
+                    "Fn::If": [
+                        "SQLBakedInAMI",
+                        {
+                            "Ref": "LatestSQLAmiId"
+                        },
+                        {
+                            "Ref": "LatestWindowsAmiId"
+                        }
+                    ]
+                },
+                "IamInstanceProfile": {
+                    "Ref": "SQLProfile"
+                },
+                "InstanceType": {
+                    "Ref": "SQLNode0InstanceType"
+                },
+                "EbsOptimized": "true",
+                "NetworkInterfaces": [
+                    {
+                        "DeleteOnTermination": "true",
+                        "DeviceIndex": 0,
+                        "SubnetId"            : {
+							"Ref" : "BackendSubnet0ID"
+                        },
+                        "PrivateIpAddresses": [
+                            {
+                                "Primary": "true",
+                                "PrivateIpAddress": {
+                                    "Ref": "SQLNode0PrivateIP1"
+                                }
+                            },
+                            {
+                                "Primary": "false",
+                                "PrivateIpAddress": {
+                                    "Ref": "SQLNode0PrivateIP2"
+                                }
+                            },
+                            {
+                                "Primary": "false",
+                                "PrivateIpAddress": {
+                                    "Ref": "SQLNode0PrivateIP3"
+                                }
+                            }
+                        ],
+                        "GroupSet"    : [
+                            {
+                                "Ref" : "DomainMemberSGID"
+                            },
+                            {
+                                "Ref" : "SQLSGID"
+                            },
+                            {
+                                "Ref" : "SQLIngressSGID"
+                            }
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${SQLNode0NetBIOSName}"
+                        }
+                    }
+                ],
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeSize": "100",
+                            "VolumeType": "gp2"
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdca",
+                        "VirtualName": "ephemeral0"
+                    }
+                ],
+                "KeyName": {
+                    "Ref": "KeyPairName"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "<script>\n",
+                                "cfn-init.exe -v -c config -s ",
+                                {
+                                    "Ref": "AWS::StackId"
+                                },
+                                " -r SQLNode0 ",
+                                " --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "</script>"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "SQLNode1": {
+            "Type": "AWS::EC2::Instance",
+            "Condition": "IsTwoNode",
+            "Metadata": {
+                "AWS::CloudFormation::Authentication": {
+                    "S3AccessCreds": {
+                        "type": "S3",
+                        "roleName": {
+                            "Ref": "SQLRole"
+                        },
+                        "buckets": [
+                            {
+                                "Ref": "DSS3BucketName"
+                            }
+                        ]
+                    }
+                },
+                "PseudoDependsOn": [
+                    {
+                        "Ref": "SQLFileServerWaitCondition"
+                    },
+                    {
+                        "Ref": "SQLNode0WaitCondition"
+                    }
+                ],
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "config": [
+                            "FetchResources",
+                            "DeploySampleSetup",
+                            "Prep",
+                            {
+                                "Fn::If": [
+                                    "SQLBakedInAMI",
+                                    "SQLIncludedConfigure",
+                                    "Install"
+                                ]
+                            },
+                            "Configure",
+                            "AGsetupDSC",
+                            "Cleanup",
+                            "Finalize"
+                        ]
+                    },
+                    "FetchResources": {
+                        "files": {
+                            "C:\\cfn\\scripts\\Unzip-Archive.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Unzip-Archive.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\modules\\AWSQuickStart.zip": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/AWSQuickStart.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Join-Domain.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Join-Domain.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Rename-Computer.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Rename-Computer.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Restart-Computer.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Restart-Computer.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Install-WindowsFailoverClustering.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Install-WindowsFailoverClustering.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Install-NETFrameworkCore.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Install-NETFrameworkCore.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\OpenWSFCPorts.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/OpenWSFCPorts.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Enable-CredSSP.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Enable-CredSSP.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\DownloadSQLEE.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/DownloadSQLEE.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\AddUserToGroup.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/AddUserToGroup.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\InstallSQLEE.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/InstallSQLEE.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Reconfigure-SQL.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Reconfigure-SQL.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Configure-WSFC1.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Configure-WSFC1.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Create-Share.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Create-Share.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Set-Folder-Permissions.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Set-Folder-Permissions.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Enable-AlwaysOn.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Enable-AlwaysOn.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Set-ClusterQuorum.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Set-ClusterQuorum.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\SetMaxDOP.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/SetMaxDOP.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "C:\\cfn\\scripts\\Disable-CredSSP.ps1": {
+                                "source": {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/SQL/Disable-CredSSP.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            }
+                        }
+                    },
+                    "DeploySampleSetup": {
+                        "commands": {
+                            "a-set-execution-policy": {
+                                "command": "powershell.exe -Command \"Set-ExecutionPolicy RemoteSigned -Force\"",
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-unpack-quickstart-module": {
+                                "command": "powershell.exe -Command C:\\cfn\\scripts\\Unzip-Archive.ps1 -Source C:\\cfn\\modules\\AWSQuickStart.zip -Destination C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules\\",
+                                "waitAfterCompletion": "0"
+                            },
+                            "c-init-quickstart-module": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"",
+                                            "New-AWSQuickStartWaitHandle -Handle '",
+                                            {
+                                                "Ref": "SQLNode1WaitHandle"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Prep": {
+                        "commands": {
+                            "a-initialize-disks": {
+                                "command": {
+                                    "Fn::If": [
+                                        "WindowsServer2016",
+                                        "powershell.exe -Command \"C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\InitializeDisks.ps1\"",
+                                        "powershell.exe -Command exit"
+                                    ]
+                                },
+                                "waitAfterCompletion": "120"
+                            },
+                            "b-rename-computer": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\Rename-Computer.ps1 -Restart -NewName '",
+                                            {
+                                                "Ref": "SQLNode1NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            },
+                            "c-join-domain": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -executionpolicy remotesigned -Command c:\\cfn\\scripts\\Join-Domain.ps1 -DomainName '",
+                                            {
+                                                "Ref": "DomainDNSName"
+                                            },
+                                            "' -UserName '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "forever"
+                            },
+                            "d-install-net-framework-core": {
+                                "command": "powershell.exe -Command \"C:\\cfn\\scripts\\Install-NETFrameworkCore.ps1\"",
+                                "waitAfterCompletion": "0"
+                            },
+                            "e-install-windows-failover-clustering": {
+                                "command": "powershell.exe -Command \"C:\\cfn\\scripts\\Install-WindowsFailoverClustering.ps1\"",
+                                "waitAfterCompletion": "0"
+                            },
+                            "f-enable-credssp": {
+                                "command": "powershell.exe -ExecutionPolicy RemoteSigned -Command \"C:\\cfn\\scripts\\Enable-CredSSP.ps1",
+                                "waitAfterCompletion": "0"
+                            },
+                            "g-reboot": {
+                                "command": "powershell.exe -Command \"C:\\cfn\\scripts\\Restart-Computer.ps1\"",
+                                "waitAfterCompletion": "forever"
+                            },
+                            "h-open-WSFC-ports": {
+                                "command": "powershell.exe -ExecutionPolicy RemoteSigned -Command \"C:\\cfn\\scripts\\OpenWSFCPorts.ps1\"",
+                                "waitAfterCompletion": "0"
+                            },
+                            "i-download-sql-installer": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe ",
+                                            "-ExecutionPolicy RemoteSigned ",
+                                            "-Command \"",
+                                            " C:\\cfn\\scripts\\DownloadSQLEE.ps1 -SQLServerVersion '",
+                                            {
+                                                "Ref": "SQLServerVersion"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Install": {
+                        "commands": {
+                            "a-install-sql": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\InstallSQLEE.ps1 -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -SQLServiceAccount '",
+                                            {
+                                                "Ref": "SQLServiceAccount"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode1NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "SQLIncludedConfigure": {
+                        "commands": {
+                            "a-configure-sql": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\Reconfigure-SQL.ps1 -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -SQLServiceAccount '",
+                                            {
+                                                "Ref": "SQLServiceAccount"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode1NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Configure": {
+                        "commands": {
+                            "a-set-maxdop": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\SetMaxDOP.ps1 -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode1NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "b-configure-WSFC": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -ExecutionPolicy RemoteSigned -Command \"C:\\cfn\\scripts\\Configure-WSFC1.ps1",
+                                            " -WSFCNode1PrivateIP2 ",
+                                            {
+                                                "Ref": "SQLNode0PrivateIP2"
+                                            },
+                                            " -WSFCNode2PrivateIP2 ",
+                                            {
+                                                "Ref": "SQLNode1PrivateIP2"
+                                            },
+                                            " -WSFCNode1NetBIOSName ",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            " -WSFCNode2NetBIOSName ",
+                                            {
+                                                "Ref": "SQLNode1NetBIOSName"
+                                            },
+                                            " -DomainNetBIOSName ",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            " -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode1NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "c-create-witness-share": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\Create-Share.ps1",
+                                            " -Path 'c:\\witness'",
+                                            " -ShareName 'witness'",
+                                            " -FolderPath 'c:\\'",
+                                            " -FolderName 'witness'",
+                                            " -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -ServerName '",
+                                            {
+                                                "Ref": "SQLFileServerNetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "d-create-Replica-share": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -Command \"C:\\cfn\\scripts\\Create-Share.ps1",
+                                            " -Path 'c:\\replica'",
+                                            " -ShareName 'replica'",
+                                            " -FolderPath 'c:\\'",
+                                            " -FolderName 'replica'",
+                                            " -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -ServerName '",
+                                            {
+                                                "Ref": "SQLFileServerNetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "e-Set-Folder-Permissions": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -ExecutionPolicy RemoteSigned \"C:\\cfn\\scripts\\Set-Folder-Permissions.ps1",
+                                            " -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -SQLServiceAccount '",
+                                            {
+                                                "Ref": "SQLServiceAccount"
+                                            },
+                                            "' -FileServerNetBIOSName '",
+                                            {
+                                                "Ref": "SQLFileServerNetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "f-Enable-AlwaysOn": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -ExecutionPolicy RemoteSigned \"C:\\cfn\\scripts\\Enable-AlwaysOn.ps1",
+                                            " -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -WSFCNode1NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode0NetBIOSName"
+                                            },
+                                            "' -WSFCNode2NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode1NetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            },
+                            "g-Set-ClusterQuorum": {
+                                "command": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "powershell.exe -ExecutionPolicy RemoteSigned \"C:\\cfn\\scripts\\Set-ClusterQuorum.ps1",
+                                            " -DomainNetBIOSName '",
+                                            {
+                                                "Ref": "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUser '",
+                                            {
+                                                "Ref": "DomainAdminUserName"
+                                            },
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "' -WSFCNode2NetBIOSName '",
+                                            {
+                                                "Ref": "SQLNode1NetBIOSName"
+                                            },
+                                            "' -FileServerNetBIOSName '",
+                                            {
+                                                "Ref": "SQLFileServerNetBIOSName"
+                                            },
+                                            "'\""
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "AGsetupDSC": {
+                        "files": {
+                            "c:\\cfn\\modules\\SqlServerDsc_13.2.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServerDsc_13.2.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\SqlServer_21.0.17279.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.0.17279.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\xActiveDirectory_3.0.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xActiveDirectory_3.0.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\xNetworking_5.7.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xNetworking_5.7.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\cNtfsAccessControl_1.4.1.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/cNtfsAccessControl_1.4.1.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\modules\\xSmbShare_2.1.zip": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xSmbShare_2.1.zip"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\SQL0.ps1": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/configs/SQL0.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\New-DSCCertificate.ps1": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/New-DSCCertificate.ps1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            },
+                            "c:\\cfn\\scripts\\IPHelper.psm1": {
+                                "source" : {
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/IPHelper.psm1"
+                                },
+                                "authentication" : "S3AccessCreds"
+                            }
+                        },
+                        "commands": {
+                            "a-unzip-modules": {
+                                "command" : "powershell.exe -command \"Get-ChildItem 'C:\\cfn\\Modules' *.zip | Foreach-Object { c:\\cfn\\scripts\\unzip-archive.ps1 -source $_.fullname -destination 'C:\\Program Files\\WindowsPowerShell\\Modules'}\"",
+                                "waitAfterCompletion" : "0"
+                            },
+                            "b-create-cert" : {
+                                "command" : {
+                                    "Fn::Join" : [
+                                        "",
+                                        [
+                                            "powershell.exe -command c:\\cfn\\scripts\\New-DSCCertificate.ps1"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion" : "0"
+                            },
+                            "c-run-dsc-config" : {
+                                "command" : {
+                                    "Fn::Join" : [
+                                        "",
+                                        [
+                                            "powershell.exe -Command c:\\cfn\\scripts\\SQL0.ps1 -DomainNetBiosName '",
+                                            {
+                                                "Ref" : "DomainNetBIOSName"
+                                            },
+                                            "' -DomainAdminUserName '",
+                                            {
+                                                "Ref" : "DomainAdminUserName"
+                                            },
+                                            "' -SqlServiceAccountName '",
+                                            {
+                                                "Ref" : "SQLServiceAccount"
+                                            },
+                                            "' -DomainDNSName '",
+                                            {
+                                                "Ref" : "DomainDNSName"
+                                            },
+                                            "' -SQLServerPrimaryName '",
+                                            {
+                                                "Ref" : "SQLNode0NetBIOSName"
+                                            },
+                                            "' -SqlAgListenerPrimaryIP '",
+                                            {
+                                                "Ref" : "SQLNode0PrivateIP3"
+                                            },
+                                            "' -SQLServerSecondaryName '",
+                                            {
+                                                "Ref" : "SQLNode1NetBIOSName"
+                                            },
+                                            "' -SqlAgListenerSecondaryIP '",
+                                            {
+                                                "Ref" : "SQLNode1PrivateIP3"
+                                            },
+                                            "' -PrimaryDomainController '",
+                                            "DC0",
+                                            "' -NamePrefix '",
+                                            {
+                                                "Ref" : "NamePrefix"
+                                            },
+                                            "'"
+                                        ]
+                                    ]
+                                },
+                                "waitAfterCompletion" : "60"
+                            }
+                        }
+                    },
+                    "Cleanup": {
+                        "commands": {
+                            "a-disable-credssp": {
+                                "command": "powershell.exe -ExecutionPolicy RemoteSigned \"C:\\cfn\\scripts\\Disable-CredSSP.ps1\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    },
+                    "Finalize": {
+                        "commands": {
+                            "a-reboot": {
+                                "command": "powershell.exe -Command \"C:\\cfn\\scripts\\Restart-Computer.ps1\"",
+                                "waitAfterCompletion": "forever"
+                            },
+                            "b-signal-success": {
+                                "command": "powershell -Command \"Write-AWSQuickStartStatus\"",
+                                "waitAfterCompletion": "0"
+                            }
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "ImageId": {
+                    "Fn::If": [
+                        "SQLBakedInAMI",
+                        {
+                            "Ref": "LatestSQLAmiId"
+                        },
+                        {
+                            "Ref": "LatestWindowsAmiId"
+                        }
+                    ]
+                },
+                "IamInstanceProfile": {
+                    "Ref": "SQLProfile"
+                },
+                "InstanceType": {
+                    "Ref": "SQLNode1InstanceType"
+                },
+                "EbsOptimized": "true",
+                "NetworkInterfaces": [
+                    {
+                        "DeleteOnTermination": "true",
+                        "DeviceIndex": 0,
+                        "SubnetId"            : {
+							"Ref" : "BackendSubnet1ID"
+                        },
+                        "PrivateIpAddresses": [
+                            {
+                                "Primary": "true",
+                                "PrivateIpAddress": {
+                                    "Ref": "SQLNode1PrivateIP1"
+                                }
+                            },
+                            {
+                                "Primary": "false",
+                                "PrivateIpAddress": {
+                                    "Ref": "SQLNode1PrivateIP2"
+                                }
+                            },
+                            {
+                                "Primary": "false",
+                                "PrivateIpAddress": {
+                                    "Ref": "SQLNode1PrivateIP3"
+                                }
+                            }
+                        ],
+                        "GroupSet"    : [
+                            {
+                                "Ref" : "DomainMemberSGID"
+                            },
+                            {
+                                "Ref" : "SQLSGID"
+                            },
+                            {
+                                "Ref" : "SQLIngressSGID"
+                            }
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${NamePrefix}-${SQLNode1NetBIOSName}"
+                        }
+                    }
+                ],
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeSize": "100",
+                            "VolumeType": "gp2"
+                        }
+                    },
+                    {
+                        "DeviceName": "/dev/xvdca",
+                        "VirtualName": "ephemeral0"
+                    }
+                ],
+                "KeyName": {
+                    "Ref": "KeyPairName"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "<script>\n",
+                                "cfn-init.exe -v -c config -s ",
+                                {
+                                    "Ref": "AWS::StackId"
+                                },
+                                " -r SQLNode1 ",
+                                " --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "</script>"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "SQLNode0Volume1": {
+            "Type": "AWS::EC2::Volume",
+            "Properties": {
+                "Size": {
+                    "Ref": "Volume1Size"
+                },
+                "VolumeType": "gp2",
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "SQLNode0",
+                        "AvailabilityZone"
+                    ]
+                }
+            }
+        },
+        "SQLNode0Volume2": {
+            "Type": "AWS::EC2::Volume",
+            "Properties": {
+                "Size": {
+                    "Ref": "Volume2Size"
+                },
+                "VolumeType": "gp2",
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "SQLNode0",
+                        "AvailabilityZone"
+                    ]
+                }
+            }
+        },
+        "SQLNode0Volume3": {
+            "Type": "AWS::EC2::Volume",
+            "Properties": {
+                "Size": {
+                    "Ref": "Volume3Size"
+                },
+                "VolumeType": "gp2",
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "SQLNode0",
+                        "AvailabilityZone"
+                    ]
+                }
+            }
+        },
+        "SQLNode1Volume1": {
+            "Type": "AWS::EC2::Volume",
+            "Condition": "IsTwoNode",
+			"Properties": {
+                "Size": {
+                    "Ref": "Volume1Size"
+                },
+                "VolumeType": "gp2",
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "SQLNode1",
+                        "AvailabilityZone"
+                    ]
+                }
+            }
+        },
+        "SQLNode1Volume2": {
+            "Type": "AWS::EC2::Volume",
+            "Condition": "IsTwoNode",
+            "Properties": {
+                "Size": {
+                    "Ref": "Volume2Size"
+                },
+                "VolumeType": "gp2",
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "SQLNode1",
+                        "AvailabilityZone"
+                    ]
+                }
+            }
+        },
+        "SQLNode1Volume3": {
+            "Type": "AWS::EC2::Volume",
+            "Condition": "IsTwoNode",
+            "Properties": {
+                "Size": {
+                    "Ref": "Volume3Size"
+                },
+                "VolumeType": "gp2",
+                "AvailabilityZone": {
+                    "Fn::GetAtt": [
+                        "SQLNode1",
+                        "AvailabilityZone"
+                    ]
+                }
+            }
+        },
+        "SQLNode0Volume1Attachment": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Properties": {
+                "Device": "/dev/xvdb",
+                "InstanceId": {
+                    "Ref": "SQLNode0"
+                },
+                "VolumeId": {
+                    "Ref": "SQLNode0Volume1"
+                }
+            }
+        },
+        "SQLNode0Volume2Attachment": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Properties": {
+                "Device": "/dev/xvdc",
+                "InstanceId": {
+                    "Ref": "SQLNode0"
+                },
+                "VolumeId": {
+                    "Ref": "SQLNode0Volume2"
+                }
+            }
+        },
+        "SQLNode0Volume3Attachment": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Properties": {
+                "Device": "/dev/xvdd",
+                "InstanceId": {
+                    "Ref": "SQLNode0"
+                },
+                "VolumeId": {
+                    "Ref": "SQLNode0Volume3"
+                }
+            }
+        },
+        "SQLNode1Volume1Attachment": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Condition": "IsTwoNode",
+            "Properties": {
+                "Device": "/dev/xvdb",
+                "InstanceId": {
+                    "Ref": "SQLNode1"
+                },
+                "VolumeId": {
+                    "Ref": "SQLNode1Volume1"
+                }
+            }
+        },
+        "SQLNode1Volume2Attachment": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Condition": "IsTwoNode",
+            "Properties": {
+                "Device": "/dev/xvdc",
+                "InstanceId": {
+                    "Ref": "SQLNode1"
+                },
+                "VolumeId": {
+                    "Ref": "SQLNode1Volume2"
+                }
+            }
+        },
+        "SQLNode1Volume3Attachment": {
+            "Type": "AWS::EC2::VolumeAttachment",
+            "Condition": "IsTwoNode",
+            "Properties": {
+                "Device": "/dev/xvdd",
+                "InstanceId": {
+                    "Ref": "SQLNode1"
+                },
+                "VolumeId": {
+                    "Ref": "SQLNode1Volume3"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "SQLNode0NetBIOSName": {
+            "Value": {
+                "Ref": "SQLNode0NetBIOSName"
+            },
+            "Description": "NetBIOS name of the 1st WSFC Node"
+        },
+        "SQLNode1NetBIOSName": {
+            "Condition": "IsTwoNode",
+            "Value": {
+                "Ref": "SQLNode1NetBIOSName"
+            },
+            "Description": "NetBIOS name of the 2nd WSFC Node"
+        }
+    }
+}

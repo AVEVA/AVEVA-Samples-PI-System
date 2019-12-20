@@ -317,3 +317,6 @@ ocs_samples/library_samples/Java/ocs_sample_library_preview/ocs_sample_library_p
 *.zip
 cov-int/
 *.binlog
+
+# Credential Config Files
+product-readiness.*
