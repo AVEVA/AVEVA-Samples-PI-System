@@ -1,0 +1,526 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description"              : "Security Groups for Core systems when deployed into an existing VPC",
+    "Metadata"                 : {
+		"AWS::CloudFormation::Interface": {
+            "ParameterGroups": [
+                {
+                    "Label": {
+                        "default": "Global Configuration"
+                    },
+                    "Parameters": [
+						"DeployHA",
+                        "NamePrefix"
+                    ]
+                },
+				{
+                    "Label": {
+                        "default": "Network Configuration"
+                    },
+                    "Parameters": [
+                        "VPCCIDR",
+						"VPCID"
+                    ]
+                }
+            ],
+            "ParameterLabels": {
+				"NamePrefix": {
+					"default": "Name Prefix"
+				},
+				"VPCCIDR": {
+					"default": "VPC CIDR"
+				},
+				"VPCID": {
+					"default": "VPC ID"
+				},
+				"DeployHA": {
+                    "default": "Deploy HA"
+                }
+            }
+			},
+        "AWS::CloudFormation::Designer" : {
+        }
+    },
+    "Parameters"               : {
+        "NamePrefix"       : {
+            "Type" : "String",
+            "AllowedPattern" : "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+            "ConstraintDescription" : "Prefix can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+            "Description" : "Prefix used when naming resources, inputs, and outputs. Maximum 24 characters",
+            "MaxLength" : "24"
+        },
+        "DeployHA": {
+            "Type": "String",
+            "Description": "Will deploy two EC2 instances for HA senarios.",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true"
+        },
+        "VPCID"      : {
+            "Description" : "ID of the VPC (e.g., vpc-0343606e)",
+            "Type"        : "AWS::EC2::VPC::Id"
+        },
+        "VPCCIDR": {
+            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+            "Description": "CIDR block for the VPC",
+            "Type": "String"
+        }
+    },
+    "Conditions": {
+        "CreateHAResources": {
+            "Fn::Equals": [
+                {
+                    "Ref": "DeployHA"
+                },
+                true
+            ]
+        }
+    },
+    "Resources"                : {
+        "DCSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+				"GroupName" : {"Fn::Sub": "${NamePrefix}-DCSG"},
+                "GroupDescription": "DC Security Group",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-DCSecurityGroup"}
+                    }
+                ],
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "5985",
+                        "ToPort": "5986",
+                        "CidrIp": {
+                            "Ref": "VPCCIDR"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "53",
+                        "ToPort": "53",
+                        "CidrIp": {
+                            "Ref": "VPCCIDR"
+                        }
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "53",
+                        "ToPort": "53",
+                        "CidrIp": {
+                            "Ref": "VPCCIDR"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "80",
+                        "ToPort": "80",
+                        "CidrIp": {
+                            "Ref": "VPCCIDR"
+                        }
+                    }
+                ]
+            }
+        },
+        "DCSGIngress" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "DCSG"
+                },
+                "IpProtocol"  : "-1",
+                "FromPort"    : "-1",
+                "ToPort"      : "-1",
+                "SourceSecurityGroupId" : {
+                    "Ref" : "DCSG"
+                }
+            }
+        },
+        "DCIngressSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+				"GroupName" : {"Fn::Sub": "${NamePrefix}-DCIngressSG"},
+                "GroupDescription": "DC Ingress Security Group",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-DCIngressSecurityGroup"}
+                    }
+                ],
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "123",
+                        "ToPort": "123",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "135",
+                        "ToPort": "135",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "9389",
+                        "ToPort": "9389",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "138",
+                        "ToPort": "138",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "445",
+                        "ToPort": "445",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "445",
+                        "ToPort": "445",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "464",
+                        "ToPort": "464",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "464",
+                        "ToPort": "464",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "49152",
+                        "ToPort": "65535",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "49152",
+                        "ToPort": "65535",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "389",
+                        "ToPort": "389",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "389",
+                        "ToPort": "389",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "636",
+                        "ToPort": "636",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "3268",
+                        "ToPort": "3268",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "3269",
+                        "ToPort": "3269",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "88",
+                        "ToPort": "88",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "88",
+                        "ToPort": "88",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DomainMemberSG"
+                        }
+                    }
+                ]
+            }
+        },
+        "DomainMemberSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+				"GroupName" : {"Fn::Sub": "${NamePrefix}-DomainMemberSG"},
+                "GroupDescription": "Domain Members Security Group",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-DomainMembersSecurityGroup"}
+                    }
+                ],
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "5985",
+                        "ToPort": "5986",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DCSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "53",
+                        "ToPort": "53",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DCSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "53",
+                        "ToPort": "53",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DCSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "49152",
+                        "ToPort": "65535",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DCSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "49152",
+                        "ToPort": "65535",
+                        "SourceSecurityGroupId": {
+                            "Ref": "DCSG"
+                        }
+                    }
+                ]
+            }
+        },
+		"FileCopySG" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "GroupId" : {
+                    "Ref" : "DomainMemberSG"
+                },
+                "IpProtocol": "tcp",
+                "FromPort": "445",
+                "ToPort": "445",
+                "SourceSecurityGroupId" : {
+                    "Ref" : "DomainMemberSG"
+                }
+            }
+        },
+        "SQLSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+				"GroupName" : {"Fn::Sub": "${NamePrefix}-SQLSG"},
+                "GroupDescription": "SQL Security Group",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-SQLSecurityGroup"}
+                    }
+                ],
+                "SecurityGroupIngress": [
+                ]
+            }
+        },
+        "SQLSGIngress": {
+            "Type": "AWS::EC2::SecurityGroupIngress",
+            "Properties": {
+                "GroupId": {
+                    "Ref": "SQLSG"
+                },
+                "SourceSecurityGroupId": {
+                    "Ref": "SQLSG"
+                },
+                "IpProtocol": "-1",
+                "FromPort": "-1",
+                "ToPort": "-1"
+            }
+        },
+        "SQLIngressSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+				"GroupName" : {"Fn::Sub": "${NamePrefix}-SQLIngressSG"},
+                "GroupDescription": "SQL Ingress Security Group",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-SQLIngressSecurityGroup"}
+                    }
+                ],
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "1433",
+                        "ToPort": "1433",
+                        "SourceSecurityGroupId": {
+                            "Ref": "SQLClientSG"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "445",
+                        "ToPort": "445",
+                        "SourceSecurityGroupId": {
+                            "Ref": "SQLClientSG"
+                        }
+                    }
+                ]
+            }
+        },
+        "SQLClientSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPCID"
+                },
+				"GroupName" : {"Fn::Sub": "${NamePrefix}-SQLClientSG"},
+                "GroupDescription": "SQL Clients Security Group",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {"Fn::Sub": "${NamePrefix}-SQLClientsSecurityGroup"}
+                    }
+                ],
+                "SecurityGroupIngress": [
+                ]
+            }
+        }
+    },
+    "Outputs"                  : {
+        "DCSGID"  : {
+            "Description" : "ID of the DCs Security Group",
+            "Value"       : {
+                "Ref" : "DCSG"
+            },
+            "Export"      : {
+                "Name" : {
+                    "Fn::Sub" : "${AWS::StackName}-DCSGID"
+                }
+            }
+        },
+        "DCIngressSGID"  : {
+            "Description" : "ID of the DCs Ingress Security Group",
+            "Value"       : {
+                "Ref" : "DCIngressSG"
+            },
+            "Export"      : {
+                "Name" : {
+                    "Fn::Sub" : "${AWS::StackName}-DCIngressSGID"
+                }
+            }
+        },
+        "DomainMemberSGID"  : {
+            "Description" : "ID of the Domain Members Security Group",
+            "Value"       : {
+                "Ref" : "DomainMemberSG"
+            },
+            "Export"      : {
+                "Name" : {
+                    "Fn::Sub" : "${AWS::StackName}-DomainMemberSGID"
+                }
+            }
+        },
+        "SQLSGID"  : {
+            "Description" : "ID of the SQL Servers Security Group",
+            "Value"       : {
+                "Ref" : "SQLSG"
+            },
+            "Export"      : {
+                "Name" : {
+                    "Fn::Sub" : "${AWS::StackName}-SQLSGID"
+                }
+            }
+        },
+        "SQLIngressSGID"  : {
+            "Description" : "ID of the SQL Ingress Security Group",
+            "Value"       : {
+                "Ref" : "SQLIngressSG"
+            },
+            "Export"      : {
+                "Name" : {
+                    "Fn::Sub" : "${AWS::StackName}-SQLIngressSGID"
+                }
+            }
+        },
+        "SQLClientSGID"  : {
+            "Description" : "ID of the SQL Clients Security Group",
+            "Value"       : {
+                "Ref" : "SQLClientSG"
+            },
+            "Export"      : {
+                "Name" : {
+                    "Fn::Sub" : "${AWS::StackName}-SQLClientSGID"
+                }
+            }
+        }
+    }
+}
