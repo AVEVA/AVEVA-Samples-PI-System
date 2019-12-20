@@ -484,4 +484,4 @@ If your support question or issue is related to a non-modified sample (or test) 
 
 ### License
 
-PI System Deployment Samples are licensed under the [Apache 2 license](https://github.com/osisoft/OSI-Samples/blob/master/LICENSE.md).
+PI System Deployment Samples are licensed under the [Apache 2 license](../../LICENSE).
