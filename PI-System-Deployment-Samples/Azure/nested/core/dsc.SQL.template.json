@@ -1,0 +1,171 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Name prefix used to seed automatic name creation for resources"
+            }
+        },
+        "nameSuffix": {
+            "type": "string",
+            "metadata": {
+                "description": "Name suffix used to seed automatic name creation for resources"
+            }
+        },
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of VM to run DSC on"
+            }
+        },
+        "lbIP": {
+            "type": "string",
+            "metadata": {
+                "description": "Public static IP of the SQL LB"
+            }
+        },
+        "primaryDomainController": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of DC (necessary for creation of AFServers group)"
+            }
+        },
+        "SQLPrimary": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the primary SQL server in SQL Always On"
+            }
+        },
+        "SQLSecondary": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the secondary SQL server in SQL Always On"
+            }
+        },
+        "deployHA": {
+            "type": "string",
+            "defaultValue": "false",
+            "allowedValues": [
+                "true",
+                "false"
+            ],
+            "metadata": {
+                "description": "True deploys SQL Always On with two nodes;false deploys single instance SQL"
+            }
+        },
+        "witnessStorageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Azure st acct used for the SQl Always On cloud witness"
+            }
+        },
+        "domainNetBiosName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of domain"
+            }
+        },
+        "dscArtifactUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "Url of DSC modules"
+            }
+        },
+        "dscArtifactSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "SAS Token to access dscArtifactUrl"
+            }
+        },
+        "dscConfigurationFileName": {
+            "type": "string",
+            "defaultValue": "SQL.ps1",
+            "metadata": {
+                "description": "Name of file with DSC configuration"
+            }
+        },
+        "dscConfigurationFunction": {
+            "type": "string",
+            "defaultValue": "SQL",
+            "metadata": {
+                "description": "DSC Configuration function to call"
+            }
+        },
+        "runAsUserName": {
+            "type": "string",
+            "metadata": {
+              "description": "Username for installing SQL; will be SQL sysadmin"
+            }
+          },
+          "runAsPassword": {
+            "type": "securestring",
+            "metadata": {
+              "description": "Password for installing SQL; will be SQL sysadmin"
+            }
+          },
+          "sqlUsername": {
+            "type": "string",
+            "metadata": {
+              "description": "The name of the service account that will run SQL server"
+            }
+          },
+          "sqlPassword": {
+            "type": "securestring",
+            "metadata": {
+              "description": "The password for the service account that will run SQL server"
+            }
+          }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'),'/dsc')]",
+            "apiVersion": "2017-03-30",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "wmfVersion": "latest",
+                    "configuration": {
+                        "url": "[parameters('dscArtifactUrl')]",
+                        "script": "[parameters('dscConfigurationFileName')]",
+                        "function": "[parameters('dscConfigurationFunction')]"
+                    },
+                    "configurationArguments": {
+                        "PrimaryDomainController": "[parameters('primaryDomainController')]",
+                        "DomainNetBiosName": "[parameters('domainNetBiosName')]",
+                        "namePrefix": "[parameters('namePrefix')]",
+                        "nameSuffix": "[parameters('nameSuffix')]",
+                        "lbIP": "[parameters('lbIP')]",
+                        "SQLPrimary": "[parameters('SQLPrimary')]",
+                        "SQLSecondary": "[parameters('SQLSecondary')]",
+                        "deployHA": "[parameters('deployHA')]"
+                    }
+                },
+                "protectedSettings": {
+                    "configurationArguments": {
+                        "witnessStorageAccount": "[parameters('witnessStorageAccountName')]",
+                        "witnessStorageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts/', parameters('witnessStorageAccountName')), '2019-04-01').Keys[0].value]",
+                        "Credential": {
+                            "userName": "[parameters('runAsUserName')]",
+                            "password": "[parameters('runAsPassword')]"
+                        },
+                        "SQLCredential": {
+                            "userName": "[parameters('sqlUsername')]",
+                            "password": "[parameters('sqlPassword')]"
+                        }
+                    },
+                    "configurationUrlSasToken": "[parameters('dscArtifactSasToken')]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

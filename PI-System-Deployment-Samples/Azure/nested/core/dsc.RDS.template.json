@@ -1,0 +1,125 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "OSIsoftTelemetry": {
+            "type": "string",
+            "allowedValues": [
+                "0",
+                "1"
+            ],
+            "metadata": {
+                "description": "Enable OSIsoft to collect telemetry"
+            }
+        },
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of VM to run DSC on"
+            }
+        },
+        "runAsUserName": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Username for running dsc"
+            }
+        },
+        "runAsPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for running dsc"
+            }
+        },
+        "afServer": {
+            "type": "string",
+            "metadata": {
+                "description": "Default AF Server for client tools"
+            }
+        },
+        "piServer": {
+            "type": "string",
+            "metadata": {
+                "description": "Default PI Server for client tools"
+            }
+        },
+        "dscArtifactUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "Url of DSC modules"
+            }
+        },
+        "dscArtifactSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "SAS Token to access dscArtifactUrl"
+            }
+        },
+        "dscConfigurationFileName": {
+            "type": "string",
+            "defaultValue": "RDS.ps1",
+            "metadata": {
+                "description": "Name of file with DSC configuration"
+            }
+        },
+        "dscConfigurationFunction": {
+            "type": "string",
+            "defaultValue": "RDS",
+            "metadata": {
+                "description": "DSC Configuration function to call"
+            }
+        },
+        "PIPath": {
+            "type": "string",
+            "metadata": {
+                "description": "PI executable path"
+            }
+        },
+        "PIProductID": {
+            "type": "string",
+            "metadata": {
+                "description": "PI version product ID"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'),'/dsc')]",
+            "apiVersion": "2017-03-30",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "wmfVersion": "latest",
+                    "configuration": {
+                        "url": "[parameters('dscArtifactUrl')]",
+                        "script": "[parameters('dscConfigurationFileName')]",
+                        "function": "[parameters('dscConfigurationFunction')]"
+                    },
+                    "configurationArguments": {
+                        "OSIsoftTelemetry": "[parameters('OSIsoftTelemetry')]",
+                        "afServer": "[parameters('afServer')]",
+                        "piServer": "[parameters('piServer')]",
+                        "PIPath": "[parameters('PIPath')]",
+                        "PIProductID": "[parameters('PIProductID')]"
+                    }
+                },
+                "protectedSettings": {
+                    "configurationArguments": {
+                        "Credential": {
+                            "userName": "[parameters('runAsUserName')]",
+                            "password": "[parameters('runAsPassword')]"
+                        }
+                    },
+                    "configurationUrlSasToken": "[parameters('dscArtifactSasToken')]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

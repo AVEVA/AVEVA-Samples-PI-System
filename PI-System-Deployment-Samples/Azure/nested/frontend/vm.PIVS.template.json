@@ -1,0 +1,526 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "PIVisionPath": {
+          "type": "string"
+        },
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "ds"
+        },
+        "nameSuffix0": {
+            "type": "string",
+            "defaultValue": "0"
+        },
+        "nameSuffix1": {
+            "type": "string",
+            "defaultValue": "1"
+        },
+        "deployHA": {
+            "type": "string",
+            "defaultValue": "false",
+            "allowedValues": [
+                "true",
+                "false"
+            ],
+            "metadata": {
+                "description": "False will deploy a single instance SQL; True will deploy SQL Always On"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "adminUsername": {
+            "type": "securestring"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "serviceAccountUsername": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Service account used to run PI Web API for PI Vision"
+            }
+        },
+        "serviceAccountPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Service account password used to run PI Web API for PI Vision"
+            }
+        },
+        "pidaName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-pida-vm',parameters('nameSuffix0'))]",
+            "metadata": {
+                "description": "Name of default Data Archive server for Vision"
+            }
+        },
+        "piafName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-piaf-vm',parameters('nameSuffix0'))]",
+            "metadata": {
+                "description": "Name of default AF server for Vision"
+            }
+        },
+        "sqlName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-sql-vm',parameters('nameSuffix0'))]",
+            "metadata": {
+                "description": "Name of SQL server for Vision"
+            }
+        },
+        "primaryDomainController": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-dc-vm',parameters('nameSuffix0'))]",
+            "metadata": {
+                "description": "DC to communicate with to create groups/accounts"
+            }
+        },
+        "diagnosticsStorageAccountName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),uniqueString(resourceGroup().id))]",
+            "metadata": {
+                "description": "Storage account to store diagnostics information"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'), '-', 'vnet', parameters('nameSuffix0'))]"
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": "Public"
+        },
+        "domainName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'.int')]",
+            "metadata": {
+                "description": "Name of domain to join"
+            }
+        },
+        "deploymentStorageAccountKey": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountName": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountFileShareName": {
+            "type": "securestring"
+        },
+        "_artifactRoot": {
+            "type": "string",
+            "metadata": {
+                "description": "Root of URL to artifacts in blob storage"
+            }
+        },
+        "_artifactSasToken": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SAS token to access dsc artifacts in blob storage"
+            }
+        },
+        "dataDisks": {
+            "type": "array",
+            "defaultValue": [
+                {
+                    "lun": 0,
+                    "diskSizeGB": 32,
+                    "createOption": "Empty",
+                    "managedDisk": {
+                        "storageAccountType": "Standard_LRS"
+                    }
+                }
+            ]
+        }
+    },
+    "variables": {
+        "VSPrimary": "[concat(parameters('namePrefix'),'-pivs-vm',parameters('nameSuffix0'))]",
+        "VSSecondary": "[concat(parameters('namePrefix'),'-pivs-vm',parameters('nameSuffix1'))]",
+
+        "SQLSecondary": "[concat(parameters('namePrefix'),'-sql-vm',parameters('nameSuffix1'))]",
+
+        "dscName": "PIVS",
+        "dscConfigurationRoot": "[concat(parameters('_artifactRoot'), '/dsc')]",
+        "baseVmTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/base/base.vm.template.json',parameters('_artifactSasToken'))]",
+        "baseLbTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/base/base.loadbalancer.template.json',parameters('_artifactSasToken'))]",
+        "dscTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/frontend/dsc.',variables('dscName'),'.template.json',parameters('_artifactSasToken'))]",
+        "dscArtifactUri": "[concat(variables('dscConfigurationRoot'), '/', variables('dscName'),'.zip')]",
+        "scriptParameters": "[concat('-ArtifactDestinationPath \"D:\"',' -StorageAccountKey ',parameters('deploymentStorageAccountKey'),' -StorageAccountName ',parameters('deploymentStorageAccountName'),' -StorageAccountFileShareName ',parameters('deploymentStorageAccountFileShareName'))]",
+        "scriptName": "CopyAzureFileShareArtifacts.ps1",
+        "remoteScriptPath": "[concat(parameters('_artifactRoot'), '/deployment')]",
+        "relativePath": "[replace(replace(replace(replace(string(skip(split(variables('remoteScriptPath'),'/'),4)),'[',''),']',''),'\"',''),',','\\')]",
+        "localScriptPath": "[concat('.\\',variables('relativePath'))]",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+        "lbType": "pivs",
+        "lbName": "[concat(parameters('namePrefix'),'-pivs-extlb',parameters('nameSuffix0'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-05-10",
+            "name": "[concat(parameters('namePrefix'),'-pivs-extlb',parameters('nameSuffix0'))]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('baseLbTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "nameSuffix0": {
+                        "value": "[parameters('nameSuffix0')]"
+                    },
+                    "lbType": {
+                        "value": "[variables('lbType')]"
+                    },
+                    "lbName": {
+                        "value": "[variables('lbName')]"
+                    },
+                    "subnetReference": {
+                        "value": "[variables('subnetRef')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "[variables('VSPrimary')]",
+            "dependsOn": [
+                "[concat(parameters('namePrefix'),'-pivs-extlb',parameters('nameSuffix0'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('baseVmTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vmName": {
+                        "value": "[variables('VSPrimary')]"
+                    },
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "nameSuffix": {
+                        "value": "[parameters('nameSuffix0')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "diagnosticsStorageAccountName": {
+                        "value": "[parameters('diagnosticsStorageAccountName')]"
+                    },
+                    "virtualNetworkName": {
+                        "value": "[parameters('virtualNetworkName')]"
+                    },
+                    "subnetName": {
+                        "value": "[parameters('subnetName')]"
+                    },
+                    "lbType": {
+                        "value": "[variables('lbType')]"
+                    },
+                    "lbName": {
+                        "value": "[variables('lbName')]"
+                    },
+                    "dataDisks": {
+                        "value": "[parameters('dataDisks')]"
+                    },
+                    "domainName": {
+                        "value": "[parameters('domainName')]"
+                    },
+                    "tags": {
+                        "value": {
+                            "resourceGroup": "[resourceGroup().name]",
+                            "role": "pivs"
+                        }
+                    },
+                    "_artifactRoot": {
+                        "value": "[parameters('_artifactRoot')]"
+                    },
+                    "_artifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    }
+                }
+            }
+        },
+        {
+          "dependsOn": ["[concat('Microsoft.Resources/deployments/',variables('VSPrimary'))]"],
+          "condition": "[equals(parameters('deployHA'),'true')]",
+          "type": "Microsoft.Resources/deployments",
+          "apiVersion": "2017-05-10",
+          "name": "[variables('VSSecondary')]",
+          "properties": {
+            "mode": "Incremental",
+            "templateLink": {
+              "uri": "[variables('baseVmTemplateUri')]",
+              "contentVersion": "1.0.0.0"
+            },
+            "parameters": {
+              "vmName": {
+                "value": "[variables('VSSecondary')]"
+              },
+              "namePrefix": {
+                "value": "[parameters('namePrefix')]"
+              },
+              "nameSuffix": {
+                "value": "[parameters('nameSuffix1')]"
+              },
+              "location": {
+                "value": "[parameters('location')]"
+              },
+              "adminUsername": {
+                "value": "[parameters('adminUsername')]"
+              },
+              "adminPassword": {
+                "value": "[parameters('adminPassword')]"
+              },
+              "diagnosticsStorageAccountName": {
+                "value": "[parameters('diagnosticsStorageAccountName')]"
+              },
+              "virtualNetworkName": {
+                "value": "[parameters('virtualNetworkName')]"
+              },
+              "subnetName": {
+                "value": "[parameters('subnetName')]"
+              },
+              "lbType": {
+                "value": "[variables('lbType')]"
+              },
+              "lbName": {
+                "value": "[variables('lbName')]"
+              },
+              "dataDisks": {
+                "value": "[parameters('dataDisks')]"
+              },
+              "domainName": {
+                "value": "[parameters('domainName')]"
+              },
+              "tags": {
+                "value": {
+                  "resourceGroup": "[resourceGroup().name]",
+                  "role": "pivs"
+                }
+              },
+              "_artifactRoot": {
+                "value": "[parameters('_artifactRoot')]"
+              },
+              "_artifactSasToken": {
+                "value": "[parameters('_artifactSasToken')]"
+              }
+            }
+          }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('VSPrimary'),'/deploy-script')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('VSPrimary'))]"
+            ],
+            "tags": {
+                "displayName": "config-app"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[concat(variables('remoteScriptPath'),'/', variables('scriptName'),parameters('_artifactSasToken'))]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ',variables('localScriptPath'),'\\',variables('scriptName'),' ',variables('scriptParameters'))]"
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('deployHA'),'true')]",
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('VSSecondary'),'/deploy-script')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('VSSecondary'))]"
+            ],
+            "tags": {
+                "displayName": "config-app"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.9",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[concat(variables('remoteScriptPath'),'/', variables('scriptName'),parameters('_artifactSasToken'))]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ',variables('localScriptPath'),'\\',variables('scriptName'),' ',variables('scriptParameters'))]"
+                }
+            }
+        },
+        {
+            "dependsOn": ["[concat('Microsoft.Compute/virtualMachines/',variables('VSPrimary'),'/extensions/deploy-script')]"],
+            "apiVersion": "2017-05-10",
+            "name": "[concat(variables('VSPrimary'),'-pivsDsc')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('dscTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "PIVisionPath": {
+                        "value": "[parameters('PIVisionPath')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('VSPrimary')]"
+                    },
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "nameSuffix": {
+                        "value": "[parameters('nameSuffix0')]"
+                    },
+                    "VSPrimary": {
+                        "value": "[variables('VSPrimary')]"
+                    },
+                    "VSSecondary": {
+                        "value": "[variables('VSSecondary')]"
+                    },
+                    "deployHA": {
+                        "value": "[parameters('deployHA')]"
+                    },
+                    "VSLoadBalancerIP": {
+                        "value": "[reference(variables('lbName'),'2017-05-10').outputs.lbPublicIP.value]"
+                    }, 
+                    "runAsUserName": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "runAsPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "svcUserName": {
+                        "value": "[parameters('serviceAccountUsername')]"
+                    },
+                    "svcPassword": {
+                        "value": "[parameters('serviceAccountPassword')]"
+                    },
+                    "dscArtifactUrl": {
+                        "value": "[variables('dscArtifactUri')]"
+                    },
+                    "dscArtifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    },
+                    "defaultPiDataArchive": {
+                        "value": "[parameters('pidaName')]"
+                    },
+                    "DefaultPIAFServer": {
+                        "value": "[parameters('piafName')]"
+                    },
+                    "DefaultSQLServer": {
+                        "value": "[parameters('sqlName')]"
+                    },
+                    "SQLSecondary": {
+                        "value": "[variables('SQLSecondary')]"
+                    },
+                    "PrimaryDomainController": {
+                        "value": "[parameters('primaryDomainController')]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('deployHA'),'true')]",
+            "dependsOn": ["[concat('Microsoft.Compute/virtualMachines/',variables('VSSecondary'),'/extensions/deploy-script')]"],
+            "apiVersion": "2017-05-10",
+            "name": "[concat(variables('VSSecondary'),'-pivsDsc')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('dscTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "PIVisionPath": {
+                        "value": "[parameters('PIVisionPath')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('VSSecondary')]"
+                    },
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "nameSuffix": {
+                        "value": "[parameters('nameSuffix1')]"
+                    },
+                    "VSPrimary": {
+                        "value": "[variables('VSPrimary')]"
+                    },
+                    "VSSecondary": {
+                        "value": "[variables('VSSecondary')]"
+                    },
+                    "deployHA": {
+                        "value": "[parameters('deployHA')]"
+                    },
+                    "VSLoadBalancerIP": {
+                        "value": "[reference(variables('lbName'),'2017-05-10').outputs.lbPublicIP.value]"
+                    }, 
+                    "runAsUserName": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "runAsPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "svcUserName": {
+                        "value": "[parameters('serviceAccountUsername')]"
+                    },
+                    "svcPassword": {
+                        "value": "[parameters('serviceAccountPassword')]"
+                    },
+                    "dscArtifactUrl": {
+                        "value": "[variables('dscArtifactUri')]"
+                    },
+                    "dscArtifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    },
+                    "defaultPiDataArchive": {
+                        "value": "[parameters('pidaName')]"
+                    },
+                    "DefaultPIAFServer": {
+                        "value": "[parameters('piafName')]"
+                    },
+                    "DefaultSQLServer": {
+                        "value": "[parameters('sqlName')]"
+                    },
+                    "SQLSecondary": {
+                        "value": "[variables('SQLSecondary')]"
+                    },
+                    "PrimaryDomainController": {
+                        "value": "[parameters('primaryDomainController')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
