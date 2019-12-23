@@ -1,0 +1,241 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "ds"
+        },
+        "PIPath": {
+          "type": "string",
+          "metadata": {
+            "description": "PI executable path"
+          }
+        },
+        "PIProductID": {
+          "type": "string",
+          "metadata": {
+            "description": "PI version product ID"
+          }
+        },
+        "TestFileName" : {
+          "type": "string",
+          "metadata": {
+            "description": "Name of file containing PI System Deployment Tests"
+          }
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountKey": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountName": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountFileShareName": {
+            "type": "securestring"
+        },
+        "_artifactRoot": {
+            "type": "string",
+            "metadata": {
+                "description": "Root of URL to artifacts in blob storage"
+            }
+        },
+        "_artifactSasToken": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SAS token to access dsc artifacts in blob storage"
+            }
+        },
+        "afServiceAccountUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Service account used to run AF service on AF Server"
+            }
+        },
+        "afServiceAccountPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Service account password used to run AF service on AF Server"
+            }
+        },
+      "anServiceAccountUsername": {
+        "type": "string",
+        "metadata": {
+          "description": "Service account used to run AN service on AN Server"
+        }
+      },
+        "anServiceAccountPassword": {
+          "type": "securestring",
+          "metadata": {
+            "description": "Service account password used to run AN service on AN Server"
+          }
+        }
+    },
+
+    "variables": {
+        "backendPiafTemplate": "[concat(parameters('_artifactRoot'), '/nested/backend/vm.PIAF.template.json', parameters('_artifactSasToken'))]",
+        "backendPidaTemplate": "[concat(parameters('_artifactRoot'), '/nested/backend/vm.PIDA.template.json', parameters('_artifactSasToken'))]",
+        "backendPianTemplate": "[concat(parameters('_artifactRoot'), '/nested/backend/vm.PIAN.template.json', parameters('_artifactSasToken'))]"
+    },
+
+    "resources": [
+        {
+            "apiVersion": "2017-05-10",
+            "name": "piaf",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('backendPiafTemplate')]",
+                    "contentVersion": "1.0.0.0"
+                },
+              "parameters": {
+                "namePrefix": {
+                  "value": "[parameters('namePrefix')]"
+                },
+                "PIPath": {
+                  "value": "[parameters('PIPath')]"
+                },
+                "PIProductID": {
+                  "value": "[parameters('PIProductID')]"
+                },
+                "deploymentStorageAccountKey": {
+                  "value": "[parameters('deploymentStorageAccountKey')]"
+                },
+                "deploymentStorageAccountName": {
+                  "value": "[parameters('deploymentStorageAccountName')]"
+                },
+                "deploymentStorageAccountFileShareName": {
+                  "value": "[parameters('deploymentStorageAccountFileShareName')]"
+                },
+                "adminUsername": {
+                  "value": "[parameters('adminUsername')]"
+                },
+                "adminPassword": {
+                  "value": "[parameters('adminPassword')]"
+                },
+                "serviceAccountUsername": {
+                  "value": "[parameters('afServiceAccountUsername')]"
+                },
+                "serviceAccountPassword": {
+                  "value": "[parameters('afServiceAccountPassword')]"
+                },
+                "_artifactRoot": {
+                  "value": "[parameters('_artifactRoot')]"
+                },
+                "_artifactSasToken": {
+                  "value": "[parameters('_artifactSasToken')]"
+                }
+              }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "pian",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/piaf"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('backendPianTemplate')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "PIPath": {
+                      "value": "[parameters('PIPath')]"
+                    },
+                    "PIProductID": {
+                      "value": "[parameters('PIProductID')]"
+                    },
+                    "deploymentStorageAccountKey": {
+                        "value": "[parameters('deploymentStorageAccountKey')]"
+                    },
+                    "deploymentStorageAccountName": {
+                        "value": "[parameters('deploymentStorageAccountName')]"
+                    },
+                    "deploymentStorageAccountFileShareName": {
+                        "value": "[parameters('deploymentStorageAccountFileShareName')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "serviceAccountUsername": {
+                        "value": "[parameters('anServiceAccountUsername')]"
+                    },
+                    "serviceAccountPassword": {
+                        "value": "[parameters('anServiceAccountPassword')]"
+                    },
+                    "_artifactRoot": {
+                        "value": "[parameters('_artifactRoot')]"
+                    },
+                    "_artifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    },
+                    "TestFileName" : {
+                        "value": "[parameters('TestFileName')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "pida",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('backendPidaTemplate')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "PIPath": {
+                      "value": "[parameters('PIPath')]"
+                    },
+                    "PIProductID": {
+                      "value": "[parameters('PIProductID')]"
+                    },
+                    "deploymentStorageAccountKey": {
+                        "value": "[parameters('deploymentStorageAccountKey')]"
+                    },
+                    "deploymentStorageAccountName": {
+                        "value": "[parameters('deploymentStorageAccountName')]"
+                    },
+                    "deploymentStorageAccountFileShareName": {
+                        "value": "[parameters('deploymentStorageAccountFileShareName')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "_artifactRoot": {
+                        "value": "[parameters('_artifactRoot')]"
+                    },
+                    "_artifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}

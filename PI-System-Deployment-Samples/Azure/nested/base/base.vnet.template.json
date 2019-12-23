@@ -1,0 +1,239 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "namePrefix": {
+      "type": "string",
+      "defaultValue": "ds"
+    },
+    "vnetSize": {
+      "type": "string",
+      "defaultValue": "Small",
+      "allowedValues": [
+        "Small",
+        "Medium",
+        "Large"
+      ]
+    },
+    "nameSuffix": {
+      "type": "string",
+      "defaultValue": "0"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "dnsServerAddress": {
+      "type": "array",
+      "defaultValue": []
+    },
+    "RDPCIDR": {
+      "type": "string",
+      "defaultValue": "198.140.26.0/23",
+      "metadata": {
+        "description": "Ip address range to allow remote desktop access to the RDS jumpbox"
+    }
+    }
+  },
+  "variables": {
+    "virtualNetworkName": "[concat(parameters('namePrefix'), '-', 'vnet', parameters('nameSuffix'))]",
+    "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "dhcpOption": "[if(empty(parameters('dnsServerAddress')),'default','dns')]",
+    "dhcpOptions": {
+      "default": "",
+      "dns": {
+        "dnsServers": "[parameters('dnsServerAddress')]"
+      }
+    },
+    "nsgNamePublic": "[concat(parameters('namePrefix'), 'nsg-public', parameters('nameSuffix'))]",
+    "nsgNamePrivate": "[concat(parameters('namePrefix'), 'nsg-private', parameters('nameSuffix'))]",
+    "vnetSizeSmall": {
+      "addressPrefixes": "10.0.0.0/24",
+      "dhcpOptions": "[variables('dhcpOptions')[variables('dhcpOption')]]",
+      "subnetArray": [
+        {
+          "name": "Private",
+          "addressPrefix": "10.0.0.0/25",
+          "nsgName": "[variables('nsgNamePrivate')]"
+        },
+        {
+          "name": "Public",
+          "addressPrefix": "10.0.0.128/25",
+          "nsgName": "[variables('nsgNamePublic')]"
+        }
+      ]
+    },
+    "vnetSizeMedium": {
+      "addressPrefixes": "10.0.0.0/23",
+      "dhcpOptions": "[variables('dhcpOptions')[variables('dhcpOption')]]",
+      "subnetArray": [
+        {
+          "name": "Private",
+          "addressPrefix": "10.0.0.0/24",
+          "nsgName": "[variables('nsgNamePrivate')]"
+        },
+        {
+          "name": "Public",
+          "addressPrefix": "10.0.1.0/24",
+          "nsgName": "[variables('nsgNamePublic')]"
+        }
+      ]
+    },
+    "vnetSizeLarge": {
+      "addressPrefixes": "10.0.0.0/22",
+      "dhcpOptions": "[variables('dhcpOptions')[variables('dhcpOption')]]",
+      "subnetArray": [
+        {
+          "name": "Private",
+          "addressPrefix": "10.0.0.0/23",
+          "nsgName": "[variables('nsgNamePrivate')]"
+        },
+        {
+          "name": "Public",
+          "addressPrefix": "10.0.2.0/23",
+          "nsgName": "[variables('nsgNamePublic')]"
+        }
+      ]
+    },
+    "vnetSize": "[variables(concat('vnetSize',parameters('vnetSize')))]",
+    "nsgRuleIN-ALL-HTTP-IN-Internet-Web": {
+      "name": "ALL-HTTP-IN-Internet-PIFE",
+      "properties": {
+        "description": "Allow all incoming",
+        "protocol": "Tcp",
+        "sourceAddressPrefix": "INTERNET",
+        "sourcePortRange": "*",
+        "destinationAddressPrefix": "[variables('vnetSize').subnetArray[1].addressPrefix]",
+        "destinationPortRange": "80",
+        "access": "Allow",
+        "direction": "Inbound",
+        "priority": 100
+      }
+    },
+    "nsgRuleIN-ALL-HTTPS-IN-Internet-Web": {
+      "name": "ALL-HTTPS-IN-Internet-PIFE",
+      "properties": {
+        "description": "Allow all incoming",
+        "protocol": "Tcp",
+        "sourceAddressPrefix": "INTERNET",
+        "sourcePortRange": "*",
+        "destinationAddressPrefix": "[variables('vnetSize').subnetArray[1].addressPrefix]",
+        "destinationPortRange": "443",
+        "access": "Allow",
+        "direction": "Inbound",
+        "priority": 110
+      }
+    },
+    "nsgRuleIN-ALL-PIINT-IN-Internet-PIFE": {
+      "name": "ALL-PIINT-IN-Internet-PIFE",
+      "properties": {
+        "description": "Allow all incoming",
+        "protocol": "Tcp",
+        "sourceAddressPrefix": "INTERNET",
+        "sourcePortRange": "*",
+        "destinationAddressPrefix": "[variables('vnetSize').subnetArray[1].addressPrefix]",
+        "destinationPortRange": "5460-5463",
+        "access": "Allow",
+        "direction": "Inbound",
+        "priority": 120
+      }
+    },
+    "nsgRuleIN-ALL-AppGatewayAPI-IN-WAF": {
+      "name": "ALL-AppGatewayAPI-IN-WAF",
+      "properties": {
+        "description": "Allow Web Application Gateway API incoming",
+        "protocol": "Tcp",
+        "sourceAddressPrefix": "*",
+        "sourcePortRange": "*",
+        "destinationAddressPrefix": "[variables('vnetSize').subnetArray[1].addressPrefix]",
+        "destinationPortRange": "65503-65534",
+        "access": "Allow",
+        "direction": "Inbound",
+        "priority": 130
+      }
+    },
+      "nsgRuleIN-RDP-IN-SL-OSI": {
+        "name": "ALLOW-RDP-IN-TRUSTED-IP-RANGE",
+        "properties": {
+          "description": "Allows RDP in from specified public IP range",
+          "protocol": "Tcp",
+          "sourceAddressPrefix": "[parameters('RDPCIDR')]",
+          "sourcePortRange": "*",
+          "destinationAddressPrefix": "[variables('vnetSize').subnetArray[1].addressPrefix]",
+          "destinationPortRange": "3389",
+          "access": "Allow",
+          "direction": "Inbound",
+          "priority": 140
+        }
+      },
+
+    "publicNsgArray": [
+      "[variables('nsgRuleIN-ALL-HTTP-IN-Internet-Web')]",
+      "[variables('nsgRuleIN-ALL-HTTPS-IN-Internet-Web')]",
+      "[variables('nsgRuleIN-ALL-PIINT-IN-Internet-PIFE')]",
+      "[variables('nsgRuleIN-ALL-AppGatewayAPI-IN-WAF')]",
+      "[variables('nsgRuleIN-RDP-IN-SL-OSI')]"
+    ],
+    "privateNsgArray": [
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('vnetSize').subnetArray[0].nsgName]",
+      "apiVersion": "2017-06-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": "[variables('privateNsgArray')]"
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('vnetSize').subnetArray[1].nsgName]",
+      "apiVersion": "2017-06-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": "[variables('publicNsgArray')]"
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName')]",
+      "apiVersion": "2017-06-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups',variables('vnetSize').subnetArray[0].nsgName)]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups',variables('vnetSize').subnetArray[1].nsgName)]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('vnetSize').addressPrefixes]"
+          ]
+        },
+        "dhcpOptions": "[variables('vnetSize').dhcpOptions]",
+        "copy": [
+          {
+            "name": "subnets",
+            "count": "[length(variables('vnetSize').subnetArray)]",
+            "input": {
+              "name": "[variables('vnetSize').subnetArray[copyIndex('subnets')].name]",
+              "properties": {
+                "addressPrefix": "[variables('vnetSize').subnetArray[copyIndex('subnets')].addressPrefix]",
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('vnetSize').subnetArray[copyIndex('subnets')].nsgName)]"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "virtualNetworkName": {
+      "type": "string",
+      "value": "[variables('virtualNetworkName')]"
+    }
+  }
+}

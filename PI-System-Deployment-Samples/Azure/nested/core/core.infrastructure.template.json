@@ -1,0 +1,84 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "ds"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "_artifactRoot": {
+            "type": "string",
+            "metadata": {
+                "description": "Root of URL to artifacts in blob storage"
+            }
+        },
+        "_artifactSasToken": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SAS token to access dsc artifacts in blob storage"
+            }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),uniqueString(resourceGroup().id))]"
+        }
+    },
+    "variables": {
+        "baseNetworkTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/base/base.vnet.template.json', parameters('_artifactSasToken'))]",
+        "baseStorageAccountTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/base/base.storageAccount.template.json', parameters('_artifactSasToken'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-05-10",
+            "name": "network",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('baseNetworkTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "diagnosticsStorage",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('baseStorageAccountTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "storageAccountName": {
+                        "value": "[parameters('storageAccountName')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "storageAccountName": {
+            "type": "string",
+            "value": "[reference('diagnosticsStorage').outputs.storageAccountName.value]"
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "value": "[reference('network').outputs.virtualNetworkName.value]"
+        }
+    }
+}

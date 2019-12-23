@@ -1,0 +1,179 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of VM to run DC DSC on"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the administrator account of the new VM and domain"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the administrator account of the new VM and domain"
+      }
+    },
+    "afUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the service account that will run PI AF"
+      }
+    },
+    "afPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the service account that will run PI AF"
+      }
+    },
+    "anUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the service account that will run PI Analysis"
+      }
+    },
+    "anPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the service account that will run PI Analysis"
+      }
+    },
+    "vsUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the service account that will run the PI Web API service on the PI Vision box"
+      }
+    },
+    "vsPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the service account that will run the PI Web API service on the PI Vision box"
+      }
+    },
+    "sqlUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the service account that will run SQL server"
+      }
+    },
+    "sqlPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the service account that will run SQL server"
+      }
+    },
+    "domainName": {
+      "type": "string",
+      "metadata": {
+        "description": "The FQDN of the Active Directory Domain to be created"
+      }
+    },
+    "primaryDC": {
+      "type": "string",
+      "metadata": {
+        "description": "vm name of primary domain controller"
+      }
+    },
+    "primaryDCIP": {
+      "type": "string",
+      "metadata": {
+        "description": "IP address of primary domain controller"
+      }
+    },
+    "dscArtifactUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Path to zip file in blob storage"
+      }
+    },
+    "dscArtifactSasToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "SAS token to access dsc artifacts in blob storage"
+      },
+      "defaultValue": ""
+    },
+    "dscConfigurationFileName": {
+      "type": "string",
+      "defaultValue": "DC.ps1",
+      "metadata": {
+        "description": "Name of DSC configuration .ps1 file"
+      }
+    },
+    "dscConfigurationFunction": {
+      "type": "string",
+      "defaultValue": "DC",
+      "metadata": {
+        "description": "Name of DSC function to call in configuration"
+      }
+    },
+    "additionalArguments": {
+      "type": "object",
+      "defaultValue": {
+      }
+    }
+  },
+  "variables": {
+    "commonArguments": {
+      "DomainName": "[parameters('domainName')]",
+      "primaryDC": "[parameters('primaryDC')]",
+      "primaryDCIP": "[parameters('primaryDCIP')]"
+    },
+    "configurationArguments": "[union(variables('commonArguments'), parameters('additionalArguments'))]"
+  },
+  "resources": [
+    {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(parameters('vmName'),'/dsc')]",
+        "apiVersion": "2017-03-30",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [],
+        "properties": {
+            "publisher": "Microsoft.Powershell",
+            "type": "DSC",
+            "typeHandlerVersion": "2.9",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "wmfVersion": "latest",
+                "configuration": {
+                    "url": "[parameters('dscArtifactUrl')]",
+                    "script": "[parameters('dscConfigurationFileName')]",
+                    "function": "[parameters('dscConfigurationFunction')]"
+                },
+                "configurationArguments": "[variables('configurationArguments')]"
+            },
+            "protectedSettings": {
+                "configurationArguments": {
+                    "Admincreds": {
+                        "userName": "[parameters('adminUsername')]",
+                        "password": "[parameters('adminPassword')]"
+                    },
+                    "Afcreds": {
+                      "userName": "[parameters('afUsername')]",
+                      "password": "[parameters('afPassword')]"
+                    },
+                    "Ancreds": {
+                      "userName": "[parameters('anUsername')]",
+                      "password": "[parameters('anPassword')]"
+                    },
+                    "Vscreds": {
+                      "userName": "[parameters('vsUsername')]",
+                      "password": "[parameters('vsPassword')]"
+                    },
+                    "Sqlcreds": {
+                      "userName": "[parameters('sqlUsername')]",
+                      "password": "[parameters('sqlPassword')]"
+                    }
+                },
+                "configurationUrlSasToken": "[parameters('dscArtifactSasToken')]"
+            }
+        }
+    }
+  ]
+}

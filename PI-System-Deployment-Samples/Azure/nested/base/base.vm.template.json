@@ -1,0 +1,382 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "ds"
+        },
+        "nameSuffix": {
+            "type": "string",
+            "defaultValue": "0"
+        },
+        "vmName": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "westus"
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_A4_v2"
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "imagePublisher": {
+            "type": "string",
+            "defaultValue": "MicrosoftWindowsServer"
+        },
+        "imageOffer": {
+            "type": "string",
+            "defaultValue":"WindowsServer"
+        },
+        "imageSku": {
+            "type": "string",
+            "defaultValue":"2016-Datacenter"
+        },
+        "imageVersion": {
+            "type": "string",
+            "defaultValue": "latest"
+        },
+        "osDiskType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS"
+        },
+        "dataDisks": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "diagnosticsStorageAccountName": {
+            "type": "string"
+        },
+        "virtualNetworkName": {
+            "type": "string"
+        },
+        "subnetName": {
+            "type": "string"
+        },
+        "staticIP": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If specified, assigns a static IP to this VM"
+            }
+        },
+        "autoShutdownStatus": {
+            "type": "string",
+            "defaultValue": "Enabled"
+        },
+        "autoShutdownTime": {
+            "type": "string",
+            "defaultValue": "02:00"
+        },
+        "autoShutdownTimeZone": {
+            "type": "string",
+            "defaultValue": "UTC"
+        },
+        "autoShutdownNotificationStatus": {
+            "type": "string",
+            "defaultValue": "Disabled"
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {}
+        },
+        "domainName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of domain to join"
+            }
+        },
+        "domainJoinUsername": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "domainJoinPassword": {
+            "type": "securestring",
+            "defaultValue": ""
+        },
+        "lbType": {
+            "type": "string",
+            "defaultValue": "",
+            "allowedValues": [
+                "",
+                "rds",
+                "pivs",
+                "integ",
+                "piaf",
+                "sql"
+            ]
+        },
+        "lbName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "_artifactRoot": {
+            "type": "string",
+            "metadata": {
+                "description": "Root of URL to artifacts in blob storage"
+            }
+        },
+        "_artifactSasToken": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SAS token to access dsc artifacts in blob storage"
+            }
+        },
+        "autoShutdown": {
+            "type": "string",
+            "defaultValue": "false"
+        }
+    },
+    "variables": {
+        "availSetName": "[concat(substring(parameters('vmName'),0,add(length(parameters('vmName')),-4)),'-as')]",
+        "vnicNamePublicLb": "[concat(parameters('vmName'),'-publb-nic0')]",
+        "vnicNamePublicLbRds": "[concat(parameters('vmName'),'-publb-rds-nic0')]",
+        "vnicNamePrivate": "[concat(parameters('vmName'),'-priv-nic0')]",
+        "vnicNamePrivateLb": "[concat(parameters('vmName'),'-privlb-nic0')]",
+        "vnicName": "[if(contains(createArray('pivs','integ'),parameters('lbType')),variables('vnicNamePublicLb'),if(equals('rds',parameters('lbType')),variables('vnicNamePublicLbRds'),if(contains(createArray('piaf','sql'),parameters('lbType')),variables('vnicNamePrivateLb'),variables('vnicNamePrivate'))))]",
+        "lbID": "[resourceId('Microsoft.Network/loadBalancers',parameters('lbName'))]",
+        "lbBackendPoolName0": "BackendPool0",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+        "domainJoinTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/base/base.domainJoin.template.json', parameters('_artifactSasToken'))]",
+        "domainJoinUsername": "[if(not(empty(parameters('domainJoinUsername'))),parameters('domainJoinUsername'),parameters('adminUsername'))]",
+        "domainJoinPassword": "[if(not(empty(parameters('domainJoinPassword'))),parameters('domainJoinPassword'),parameters('adminPassword'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+            "name": "[variables('availSetName')]",
+            "apiVersion": "2016-04-30-preview",
+            "location": "[resourceGroup().location]",
+            "properties": {
+              "platformFaultDomainCount": 2,
+              "platformUpdateDomainCount": 2,
+              "managed": true,
+              "virtualMachines": [
+                {
+                  "id": "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+                }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vnicName'))]",
+                "[concat('Microsoft.Compute/availabilitySets/', variables('availSetName'))]"
+            ],
+            "name": "[parameters('vmName')]",
+            "apiVersion": "2017-03-30",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availSetName'))]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('vmName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": "true"
+                    }
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[parameters('imagePublisher')]",
+                        "offer": "[parameters('imageOffer')]",
+                        "sku": "[parameters('imageSku')]",
+                        "version": "[parameters('imageVersion')]"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('osDiskType')]"
+                        }
+                    },
+                    "dataDisks": "[parameters('dataDisks')]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('vnicName'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[reference(resourceId(resourceGroup().name, 'Microsoft.Storage/storageAccounts', parameters('diagnosticsStorageAccountName')), '2015-06-15').primaryEndpoints['blob']]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('autoShutdown'),'true')]",
+            "type": "Microsoft.DevTestLab/schedules",
+            "name": "[concat('shutdown-computevm-', parameters('vmName'))]",
+            "apiVersion": "2016-05-15",
+            "location": "[parameters('location')]",
+            "properties": {
+              "dailyRecurrence": {
+                "time": "[parameters('autoShutdownTime')]"
+              },
+              "notificationSettings": {
+                "status": "[parameters('autoShutdownNotificationStatus')]",
+                "timeInMinutes": "30"
+              },
+              "status": "[parameters('autoShutdownStatus')]",
+              "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]",
+              "taskType": "ComputeVmShutdownTask",
+              "timeZoneId": "[parameters('autoShutdownTimeZone')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+            ]
+        },
+
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "condition": "[equals(variables('vnicName'), variables('vnicNamePrivateLb'))]",
+            "name": "[variables('vnicNamePrivateLb')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "[if(empty(parameters('staticIP')),'Dynamic','Static')]",
+                            "privateIPAddress": "[if(empty(parameters('staticIP')),'',parameters('staticIP'))]",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id":  "[concat(variables('lbID'),'/backendAddressPools/',variables('lbBackendPoolName0'))]"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "condition": "[equals(variables('vnicName'), variables('vnicNamePrivate'))]",
+            "name": "[variables('vnicNamePrivate')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "[if(empty(parameters('staticIP')),'Dynamic','Static')]",
+                            "privateIPAddress": "[if(empty(parameters('staticIP')),'',parameters('staticIP'))]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "condition": "[equals(variables('vnicName'), variables('vnicNamePublicLbRds'))]",
+            "name": "[variables('vnicNamePublicLbRds')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "[if(empty(parameters('staticIP')),'Dynamic','Static')]",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id":  "[concat(variables('lbID'),'/backendAddressPools/',variables('lbBackendPoolName0'))]"
+                                }
+                            ],
+                            "loadBalancerInboundNatRules": [
+                                {
+                                    "id": "[concat(variables('lbID'),'/inboundNatRules/','RDS-NAT')]"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "condition": "[equals(variables('vnicName'), variables('vnicNamePublicLb'))]",
+            "name": "[variables('vnicNamePublicLb')]",
+            "apiVersion": "2017-06-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "[if(empty(parameters('staticIP')),'Dynamic','Static')]",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id":  "[concat(variables('lbID'),'/backendAddressPools/',variables('lbBackendPoolName0'))]"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+
+        {
+            "apiVersion": "2017-05-10",
+            "name": "[concat(parameters('vmName'),'-domainjoin')]",
+            "type": "Microsoft.Resources/deployments",
+            "condition": "[not(empty(parameters('domainName')))]",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('domainJoinTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vmName": {"value": "[parameters('vmName')]"},
+                    "domainName": {"value": "[parameters('domainName')]"},
+                    "domainUsername": {"value": "[variables('domainJoinUsername')]"},
+                    "domainPassword": {"value": "[variables('domainJoinPassword')]"}
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+            ]
+        }
+    ],
+    "outputs": {
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('adminUsername')]"
+        }
+    }
+}

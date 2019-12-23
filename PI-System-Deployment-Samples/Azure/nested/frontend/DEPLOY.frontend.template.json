@@ -1,0 +1,104 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "ds"
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountKey": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountName": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountFileShareName": {
+            "type": "securestring"
+        },
+        "_artifactRoot": {
+            "type": "string",
+            "metadata": {
+                "description": "Root of URL to artifacts in blob storage"
+            }
+        },
+        "_artifactSasToken": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SAS token to access dsc artifacts in blob storage"
+            }
+        },
+        "vsServiceAccountUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Service account used to run AN service on AN Server"
+            }
+        },
+        "vsServiceAccountPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Service account password used to run AN service on AN Server"
+            }
+        }
+    },
+
+    "variables": {
+        "frontendPivsTemplate": "[concat(parameters('_artifactRoot'), '/nested/frontend/vm.PIVS.template.json', parameters('_artifactSasToken'))]"
+    },
+
+    "resources": [
+        {
+            "apiVersion": "2017-05-10",
+            "name": "pivs",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('frontendPivsTemplate')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "deploymentStorageAccountKey": {
+                        "value": "[parameters('deploymentStorageAccountKey')]"
+                    },
+                    "deploymentStorageAccountName": {
+                        "value": "[parameters('deploymentStorageAccountName')]"
+                    },
+                    "deploymentStorageAccountFileShareName": {
+                        "value": "[parameters('deploymentStorageAccountFileShareName')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "serviceAccountUsername": {
+                        "value": "[parameters('vsServiceAccountUsername')]"
+                    },
+                    "serviceAccountPassword": {
+                        "value": "[parameters('vsServiceAccountPassword')]"
+                    },
+                    "_artifactRoot": {
+                        "value": "[parameters('_artifactRoot')]"
+                    },
+                    "_artifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}

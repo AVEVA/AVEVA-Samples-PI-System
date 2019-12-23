@@ -1,0 +1,46 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "lbName": {
+            "type": "string"
+        },
+        "lbFrontendPoolName": {
+            "type": "string"
+        },
+        "subnetReference": {
+            "type": "string"
+        },
+        "staticIp": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "apiVersions": {
+            "loadBalancers": "2018-08-01"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "name": "[parameters('lbName')]",
+            "apiVersion": "[variables('apiVersions').loadBalancers]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[parameters('lbFrontendPoolName')]",
+                        "properties": {
+                            "subnet": {
+                                "id": "[parameters('subnetReference')]"
+                            },
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('staticIp')]"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

@@ -1,0 +1,222 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "ds"
+        },
+        "PIPath": {
+          "type": "string",
+          "metadata": {
+            "description": "PI executable path"
+          }
+        },
+        "PIProductID": {
+          "type": "string",
+          "metadata": {
+            "description": "PI version product ID"
+          }
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountKey": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountName": {
+            "type": "securestring"
+        },
+        "deploymentStorageAccountFileShareName": {
+            "type": "securestring"
+        },
+        "_artifactRoot": {
+            "type": "string",
+            "metadata": {
+                "description": "Root of URL to artifacts in blob storage"
+            }
+        },
+        "_artifactSasToken": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SAS token to access dsc artifacts in blob storage"
+            }
+        }
+    },
+    "variables": {
+        "baseVnetTemplate": "[concat(parameters('_artifactRoot'), '/nested/base/base.vnet.template.json', parameters('_artifactSasToken'))]",
+        "coreInfrastructureTemplate": "[concat(parameters('_artifactRoot'), '/nested/core/core.infrastructure.template.json', parameters('_artifactSasToken'))]",
+        "coreDcTemplate": "[concat(parameters('_artifactRoot'), '/nested/core/vm.DC.template.json', parameters('_artifactSasToken'))]",
+        "coreSqlTemplate": "[concat(parameters('_artifactRoot'), '/nested/core/vm.SQL.template.json', parameters('_artifactSasToken'))]",
+        "coreRdsTemplate": "[concat(parameters('_artifactRoot'), '/nested/core/vm.RDS.template.json', parameters('_artifactSasToken'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2017-05-10",
+            "name": "infrastructure",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('coreInfrastructureTemplate')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "_artifactRoot": {
+                        "value": "[parameters('_artifactRoot')]"
+                    },
+                    "_artifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "dc",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/infrastructure"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('coreDcTemplate')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "_artifactRoot": {
+                        "value": "[parameters('_artifactRoot')]"
+                    },
+                    "_artifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "updateDns",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/dc"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('baseVnetTemplate')  ]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "dnsServerAddress": {
+                        "value": ["[reference('dc').outputs.dcStaticIp.value]"]
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "sql",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/dc"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('coreSqlTemplate')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "_artifactRoot": {
+                        "value": "[parameters('_artifactRoot')]"
+                    },
+                    "_artifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "rds",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/dc"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('coreRdsTemplate')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "PIPath": {
+                      "value": "[parameters('PIPath')]"
+                    },
+                    "PIProductID": {
+                      "value": "[parameters('PIProductID')]"
+                    },
+                    "deploymentStorageAccountKey": {
+                        "value": "[parameters('deploymentStorageAccountKey')]"
+                    },
+                    "deploymentStorageAccountName": {
+                        "value": "[parameters('deploymentStorageAccountName')]"
+                    },
+                    "deploymentStorageAccountFileShareName": {
+                        "value": "[parameters('deploymentStorageAccountFileShareName')]"
+                    },
+                    "adminUsername": {
+                        "value": "[parameters('adminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "_artifactRoot": {
+                        "value": "[parameters('_artifactRoot')]"
+                    },
+                    "_artifactSasToken": {
+                        "value": "[parameters('_artifactSasToken')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "storageAccountName": {
+            "type": "string",
+            "value": "[reference('infrastructure').outputs.storageAccountName.value]"
+        }
+    }
+}

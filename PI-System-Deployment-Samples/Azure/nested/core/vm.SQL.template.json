@@ -1,0 +1,418 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "ds"
+        },
+        "nameSuffix0": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "nameSuffix1": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "deployHA": {
+            "type": "string",
+            "defaultValue": "false",
+            "allowedValues": [
+                "true",
+                "false"
+            ],
+            "metadata": {
+                "description": "False will deploy a single instance SQL; True will deploy SQL Always On"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "adminUsername": {
+            "type": "securestring"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "sqlUsername": {
+            "type": "securestring"
+        },
+        "sqlPassword": {
+            "type": "securestring"
+        },
+        "diagnosticsStorageAccountName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),uniqueString(resourceGroup().id))]",
+            "metadata": {
+                "description": "Storage account to store diagnostics information"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'), '-', 'vnet', parameters('nameSuffix0'))]"
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": "Private"
+        },
+        "domainName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'.int')]",
+            "metadata": {
+                "description": "Name of domain to join"
+            }
+        },
+        "primaryDomainController": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('namePrefix'),'-dc-vm',parameters('nameSuffix0'))]"
+        },
+        "_artifactRoot": {
+            "type": "string",
+            "metadata": {
+                "description": "Root of URL to artifacts in blob storage"
+            }
+        },
+        "_artifactSasToken": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "SAS token to access dsc artifacts in blob storage"
+            }
+        },
+        "dataDisks": {
+            "type": "array",
+            "defaultValue": [
+                {
+                    "lun": 0,
+                    "diskSizeGB": 100,
+                    "createOption": "Empty",
+                    "managedDisk": {
+                        "storageAccountType": "Standard_LRS"
+                    }
+                },
+                {
+                    "lun": 1,
+                    "diskSizeGB": 100,
+                    "createOption": "Empty",
+                    "managedDisk": {
+                        "storageAccountType": "Standard_LRS"
+                    }
+                },
+                {
+                    "lun": 2,
+                    "diskSizeGB": 100,
+                    "createOption": "Empty",
+                    "managedDisk": {
+                        "storageAccountType": "Standard_LRS"
+                    }
+                }
+            ]
+        }
+    },
+  "variables": {
+    "SQLPrimary": "[concat(parameters('namePrefix'),'-sql-vm',parameters('nameSuffix0'))]",
+    "SQLSecondary": "[concat(parameters('namePrefix'),'-sql-vm',parameters('nameSuffix1'))]",
+    "SQLVmsArray": "[if(equals(parameters('deployHA'),'true'), createArray(variables('SQLPrimary'),variables('SQLSecondary')), createArray(variables('SQLPrimary')))]",
+    "sqlServerLicenseType": "AHUB",
+    "dscName": "SQL",
+    "imagePublisher": "MicrosoftSQLServer",
+    "imageOffer": "SQL2017-WS2016",
+    "imageSku": "Enterprise",
+    "dscConfigurationRoot": "[concat(parameters('_artifactRoot'), '/dsc')]",
+    "baseLbTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/base/base.loadbalancer.template.json',parameters('_artifactSasToken'))]",
+    "baseLbStaticIpTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/base/base.loadbalancer.staticip.template.json',parameters('_artifactSasToken'))]",
+    "baseVmTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/base/base.vm.template.json',parameters('_artifactSasToken'))]",
+    "baseStAcctTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/base/base.storageAccount.template.json',parameters('_artifactSasToken'))]",
+    "joinClusterTemplateURL": "[concat(parameters('_artifactRoot'),'/nested/core/join-cluster.json',parameters('_artifactSasToken'))]",
+    "dscTemplateUri": "[concat(parameters('_artifactRoot'), '/nested/core/dsc.',variables('dscName'),'.template.json',parameters('_artifactSasToken'))]",
+    "dscArtifactUri": "[concat(variables('dscConfigurationRoot'), '/', variables('dscName'),'.zip')]",
+    "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+    "lbType": "sql",
+    "lbName": "[concat(parameters('namePrefix'),'-sql-intlb',parameters('nameSuffix0'))]",
+    "witnessStorageAccountName": "[toLower(concat(parameters('namePrefix'),'0witness0',take(uniqueString(subscription().subscriptionId, resourceGroup().id), 4)))]"
+  },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('witnessStorageAccountName')]",
+            "apiVersion": "2019-04-01",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "StorageV2",
+            "properties": {}
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "[concat(parameters('namePrefix'),'-sql-intlb',parameters('nameSuffix0'))]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('baseLbTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {
+                        "value": "[parameters('namePrefix')]"
+                    },
+                    "nameSuffix0": {
+                        "value": "[parameters('nameSuffix0')]"
+                    },
+                    "lbType": {
+                        "value": "[variables('lbType')]"
+                    },
+                    "lbName": {
+                        "value": "[variables('lbName')]"
+                    },
+                    "subnetReference": {
+                        "value": "[variables('subnetRef')]"
+                    }
+                }
+            }
+        },
+        {
+            "dependsOn": ["[concat('Microsoft.Resources/deployments/',parameters('namePrefix'),'-sql-intlb',parameters('nameSuffix0'))]"],
+            "apiVersion": "2017-05-10",
+            "name": "[concat(parameters('namePrefix'),'-lb-staticip',parameters('nameSuffix0'))]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('baseLbStaticIpTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "lbName": {
+                        "value": "[reference(concat(variables('lbName')),'2017-05-10').outputs.lbName.value]"
+                    },
+                    "lbFrontendPoolName": {
+                        "value": "[reference(concat(variables('lbName')),'2017-05-10').outputs.lbFrontendPoolName.value]"
+                    },
+                    "subnetReference": {
+                        "value": "[variables('subnetRef')]"
+                    },
+                    "staticIp": {
+                        "value": "[reference(concat(variables('lbName')),'2017-05-10').outputs.lbIP.value]"
+                    }
+                }
+            }
+        },
+        {
+            "dependsOn": ["[concat('Microsoft.Resources/deployments/',parameters('namePrefix'),'-lb-staticip',parameters('nameSuffix0'))]"],
+            "apiVersion": "2017-05-10",
+            "name": "[variables('SQLPrimary')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('baseVmTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vmName": {"value": "[variables('SQLPrimary')]"},
+                    "vmSize": {"value": "Standard_E4s_v3"},
+                    "imagePublisher": {"value": "[variables('imagePublisher')]"},
+                    "imageOffer": {"value": "[variables('imageOffer')]"},
+                    "imageSku": {"value": "[variables('imageSku')]"},
+                    "location": {"value": "[parameters('location')]"},
+                    "adminUsername": {"value": "[parameters('adminUsername')]"},
+                    "adminPassword": {"value": "[parameters('adminPassword')]"},
+                    "diagnosticsStorageAccountName": {"value": "[parameters('diagnosticsStorageAccountName')]"},
+                    "virtualNetworkName": {"value": "[parameters('virtualNetworkName')]"},
+                    "subnetName": {"value": "[parameters('subnetName')]"},
+                    "namePrefix": {"value": "[parameters('namePrefix')]"},
+                    "nameSuffix": {"value": "[parameters('nameSuffix0')]"},
+                    "lbType": {"value": "[variables('lbType')]"},
+                    "lbName": {"value": "[variables('lbName')]"},
+                    "dataDisks": {"value": "[parameters('dataDisks')]"},
+                    "domainName": {"value": "[parameters('domainName')]"},
+                    "tags": {"value": {
+                        "resourceGroup": "[resourceGroup().name]",
+                        "role": "sql"
+                        }
+                    },
+                        "_artifactRoot": {"value": "[parameters('_artifactRoot')]"},
+                        "_artifactSasToken": {"value": "[parameters('_artifactSasToken')]"}
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('deployHA'),'true')]",
+            "dependsOn": [ "[concat('Microsoft.Resources/deployments/',parameters('namePrefix'),'-lb-staticip',parameters('nameSuffix0'))]","[concat('Microsoft.Resources/deployments/',variables('SQLPrimary'))]"],
+            "apiVersion": "2017-05-10",
+            "name": "[variables('SQLSecondary')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('baseVmTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vmName": {"value": "[variables('SQLSecondary')]"},
+                    "vmSize": {"value": "Standard_E4s_v3"},
+                    "imagePublisher": {"value": "[variables('imagePublisher')]"},
+                    "imageOffer": {"value": "[variables('imageOffer')]"},
+                    "imageSku": {"value": "[variables('imageSku')]"},
+                    "location": {"value": "[parameters('location')]"},
+                    "adminUsername": {"value": "[parameters('adminUsername')]"},
+                    "adminPassword": {"value": "[parameters('adminPassword')]"},
+                    "diagnosticsStorageAccountName": {"value": "[parameters('diagnosticsStorageAccountName')]"},
+                    "virtualNetworkName": {"value": "[parameters('virtualNetworkName')]"},
+                    "subnetName": {"value": "[parameters('subnetName')]"},
+                    "namePrefix": {"value": "[parameters('namePrefix')]"},
+                    "nameSuffix": {"value": "[parameters('nameSuffix1')]"},
+                    "lbType": {"value": "[variables('lbType')]"},
+                    "lbName": {"value": "[variables('lbName')]"},
+                    "dataDisks": {"value": "[parameters('dataDisks')]"},
+                    "domainName": {"value": "[parameters('domainName')]"},
+                    "tags": {"value": {
+                        "resourceGroup": "[resourceGroup().name]",
+                        "role": "sql"
+                        }
+                    },
+                        "_artifactRoot": {"value": "[parameters('_artifactRoot')]"},
+                        "_artifactSasToken": {"value": "[parameters('_artifactSasToken')]"}
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('deployHA'),'true')]",
+            "dependsOn": ["[concat('Microsoft.Storage/storageAccounts/',variables('witnessStorageAccountName'))]",
+            "[concat('Microsoft.Resources/deployments/',variables('SQLPrimary'))]",
+            "[concat('Microsoft.Resources/deployments/',variables('SQLSecondary'))]"],
+            "type": "Microsoft.SqlVirtualMachine/SqlVirtualMachines",
+            "apiVersion": "2017-03-01-preview",
+            "name": "[trim(variables('SQLVmsArray')[copyIndex()])]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "sqlvirtualMachineLoop",
+                "count": "[length(variables('SQLVmsArray'))]"
+            },
+            "properties": {
+                "virtualMachineResourceId": "[resourceId(resourceGroup().name, 'Microsoft.Compute/virtualMachines', trim(variables('SQLVmsArray')[copyIndex()]))]",
+                "sqlServerLicenseType": "[variables('sqlServerLicenseType')]"
+            }
+        },
+        {
+            "dependsOn": ["sqlvirtualMachineLoop"],
+            "name": "[concat(parameters('namePrefix'),'-sqlclstr')]",
+            "type": "Microsoft.SqlVirtualMachine/SqlVirtualMachineGroups",
+            "apiVersion": "2017-03-01-preview",
+            "location": "[parameters('location')]",
+            "properties": {
+                "sqlImageOffer": "SQL2017-WS2016",
+                "sqlImageSku": "Enterprise",
+                "wsfcDomainProfile": {
+                    "domainFqdn": "[parameters('domainName')]",
+                    "clusterBootstrapAccount": "[concat(parameters('adminUsername'),'@',parameters('domainName'))]",
+                    "clusterOperatorAccount": "[concat(parameters('sqlUsername'),'@',parameters('domainName'))]",
+                    "sqlServiceAccount": "[concat(parameters('sqlUsername'),'@',parameters('domainName'))]",
+                    "storageAccountUrl": "[reference(resourceId('Microsoft.Storage/storageAccounts',variables('witnessStorageAccountName')),'2018-07-01').primaryEndpoints['blob']]",
+                    "storageAccountPrimaryKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts',variables('witnessStorageAccountName')),'2018-07-01').keys[0].value]"
+              }
+            }
+        },
+        {
+            "dependsOn": ["[concat('Microsoft.SqlVirtualMachine/sqlVirtualMachineGroups/',parameters('namePrefix'),'-sqlclstr')]"],
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "joincluster",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('joinClusterTemplateURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "existingVirtualMachineNames": {
+                        "value": "[variables('SQLVmsArray')]"
+                    },
+                    "Location": {
+                        "value": "[parameters('Location')]"
+                    },
+                    "existingVmResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "GroupResourceId": {
+                        "value": "[resourceId('Microsoft.SqlVirtualMachine/SqlVirtualMachineGroups',concat(parameters('namePrefix'),'-sqlclstr'))]"
+                    },
+                    "DomainAccountPassword": {
+                        "value": "[parameters('adminPassword')]"
+                    },
+                    "SqlServicePassword": {
+                        "value": "[parameters('sqlPassword')]"
+                    }
+                }
+            }
+        },
+        {
+            "dependsOn": ["Microsoft.Resources/deployments/joincluster"],
+            "apiVersion": "2018-05-01",
+            "name": "[concat(variables('SQLPrimary'),'-sqlDsc')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('dscTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {"value": "[parameters('namePrefix')]"},
+                    "vmName": {"value": "[variables('SQLPrimary')]"},
+                    "lbIP": {"value": "[reference(variables('lbName')).outputs.lbIP.value]"},
+                    "primaryDomainController": {"value": "[parameters('primaryDomainController')]"},
+                    "SQLPrimary": {"value": "[variables('SQLPrimary')]"},
+                    "SQLSecondary": {"value": "[variables('SQLSecondary')]"},
+                    "deployHA": {"value": "[parameters('deployHA')]"},
+                    "nameSuffix": {"value": "[parameters('nameSuffix0')]"},
+                    "witnessStorageAccountName": {"value": "[variables('witnessStorageAccountName')]"},
+                    "domainNetBiosName": {"value": "[parameters('domainName')]"},
+                    "dscArtifactUrl": {"value": "[variables('dscArtifactUri')]"},
+                    "dscArtifactSasToken": {"value": "[parameters('_artifactSasToken')]"},
+                    "runAsUserName": {"value": "[parameters('adminUsername')]"},
+                    "runAsPassword": {"value": "[parameters('adminPassword')]"},
+                    "sqlUsername": {"value": "[parameters('sqlUsername')]"},
+                    "sqlPassword": {"value": "[parameters('sqlPassword')]"}
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('deployHA'),'true')]",
+            "dependsOn": ["[concat('Microsoft.Resources/deployments/',variables('SQLPrimary'),'-sqlDsc')]"],
+            "apiVersion": "2018-05-01",
+            "name": "[concat(variables('SQLSecondary'),'-sqlDsc')]",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('dscTemplateUri')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "namePrefix": {"value": "[parameters('namePrefix')]"},
+                    "vmName": {"value": "[variables('SQLSecondary')]"},
+                    "lbIP": {"value": "[reference(variables('lbName')).outputs.lbIP.value]"},
+                    "primaryDomainController": {"value": "[parameters('primaryDomainController')]"},
+                    "SQLPrimary": {"value": "[variables('SQLPrimary')]"},
+                    "SQLSecondary": {"value": "[variables('SQLSecondary')]"},
+                    "deployHA": {"value": "[parameters('deployHA')]"},
+                    "nameSuffix": {"value": "[parameters('nameSuffix0')]"},
+                    "witnessStorageAccountName": {"value": "[variables('witnessStorageAccountName')]"},
+                    "domainNetBiosName": {"value": "[parameters('domainName')]"},
+                    "dscArtifactUrl": {"value": "[variables('dscArtifactUri')]"},
+                    "dscArtifactSasToken": {"value": "[parameters('_artifactSasToken')]"},
+                    "runAsUserName": {"value": "[parameters('adminUsername')]"},
+                    "runAsPassword": {"value": "[parameters('adminPassword')]"},
+                    "sqlUsername": {"value": "[parameters('sqlUsername')]"},
+                    "sqlPassword": {"value": "[parameters('sqlPassword')]"}
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
