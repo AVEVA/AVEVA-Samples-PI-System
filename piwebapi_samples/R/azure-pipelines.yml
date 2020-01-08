@@ -21,6 +21,7 @@ schedules:
     branches:
       include:
         - master
+    always: true
 
 variables:
   - template: '/miscellaneous/build_templates/variables.yml'
