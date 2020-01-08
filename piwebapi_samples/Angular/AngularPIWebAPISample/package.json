@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prestart": "echo 'WARNING: The web server used in this sample is intended for use in testing or debugging sample applications locally. It has not been reviewed for security issues.'",
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test",

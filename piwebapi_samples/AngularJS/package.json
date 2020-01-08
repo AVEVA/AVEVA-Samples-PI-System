@@ -31,7 +31,7 @@
     "update-deps": "npm update",
     "postupdate-deps": "npm run copy-libs",
     "copy-libs": "cpx \"node_modules/{angular,angular-*,html5-boilerplate/dist}/**/*\" app/lib -C",
-    "prestart": "npm install",
+    "prestart": "echo 'WARNING: The web server used in this sample is intended for use in testing or debugging sample applications locally. It has not been reviewed for security issues.' && npm install",
     "start": "http-server -a localhost -p 8000 -c-1 ./app",
     "pretest": "npm install",
     "test": "karma start karma.conf.js",
