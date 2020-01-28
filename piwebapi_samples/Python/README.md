@@ -86,6 +86,9 @@ The functionality included with this sample includes(recommended order of execut
 - Delete the element template
 - Delete the sample database
 
+
+Complete dependencies listed in [DEPENDENCIES.md](DEPENDENCIES.md)
+
 ---
 
 For the main PI Web API page [ReadMe](../)  
