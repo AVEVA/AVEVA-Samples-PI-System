@@ -93,7 +93,7 @@ jobs:
           BinSkimBreakOn: WarningAbove
         condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
 
-      # Synopsys
+      # Synopsys        
       - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
         inputs:
           Products: BD
@@ -107,6 +107,9 @@ jobs:
         condition: and(succeeded(), ne('${{ parameters.language }}', 'python'))
         displayName: 'Synopsys: Detect'
 
+      - script: call python -m pip install pip==19.3.1
+        condition: and(succeeded(), eq('${{ parameters.language }}', 'python'))
+        displayName: 'Synopsys (Python): Install pip 19.3.1'
       - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
         inputs:
           Products: BD
@@ -119,7 +122,7 @@ jobs:
             --detect.bom.aggregate.name="bom_$(bdProject)_$(Build.SourceBranchName)"
             --detect.pip.requirements.path=$(Build.SourcesDirectory)$(projPath)/requirements.txt
         condition: and(succeeded(), eq('${{ parameters.language }}', 'python'))
-        displayName: 'Synopsys: Detect (Python Requirements.txt)'
+        displayName: 'Synopsys (Python): Detect (Requirements.txt)'
 
       # Coverity
       - script: if not exist $(covFolder) mkdir $(covFolder)
