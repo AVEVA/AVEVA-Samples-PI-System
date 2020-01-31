@@ -104,8 +104,26 @@ jobs:
             --detect.source.path=$(Build.SourcesDirectory)$(projPath)/
             --detect.code.location.name="code_location_$(bdProject)_$(Build.SourceBranchName)"
             --detect.bom.aggregate.name="bom_$(bdProject)_$(Build.SourceBranchName)"
-        condition: succeeded()
+        condition: and(succeeded(), ne('${{ parameters.language }}', 'python'))
         displayName: 'Synopsys: Detect'
+
+      # Needs Pip < 20 due to issue described in https://github.com/blackducksoftware/synopsys-detect/pull/107
+      - script: call python -m pip install pip==19.3.1
+        condition: and(succeeded(), eq('${{ parameters.language }}', 'python'))
+        displayName: 'Synopsys (Python): Install pip 19.3.1'
+      - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
+        inputs:
+          Products: BD
+          BlackDuckService: 'product-readiness.BlackDuck'
+          DetectArguments: |
+            --detect.project.name="product-readiness.$(bdProject)"
+            --detect.project.version.name="$(Build.SourceBranchName)"
+            --detect.source.path=$(Build.SourcesDirectory)$(projPath)/
+            --detect.code.location.name="code_location_$(bdProject)_$(Build.SourceBranchName)"
+            --detect.bom.aggregate.name="bom_$(bdProject)_$(Build.SourceBranchName)"
+            --detect.pip.requirements.path=$(Build.SourcesDirectory)$(projPath)/requirements.txt
+        condition: and(succeeded(), eq('${{ parameters.language }}', 'python'))
+        displayName: 'Synopsys (Python): Detect (Requirements.txt)'
 
       # Coverity
       - script: if not exist $(covFolder) mkdir $(covFolder)
