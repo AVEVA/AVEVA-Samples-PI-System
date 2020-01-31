@@ -93,7 +93,7 @@ jobs:
           BinSkimBreakOn: WarningAbove
         condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
 
-      # Synopsys        
+      # Synopsys
       - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
         inputs:
           Products: BD
@@ -107,6 +107,7 @@ jobs:
         condition: and(succeeded(), ne('${{ parameters.language }}', 'python'))
         displayName: 'Synopsys: Detect'
 
+      # Needs Pip < 20 due to issue described in https://github.com/blackducksoftware/synopsys-detect/pull/107
       - script: call python -m pip install pip==19.3.1
         condition: and(succeeded(), eq('${{ parameters.language }}', 'python'))
         displayName: 'Synopsys (Python): Install pip 19.3.1'
