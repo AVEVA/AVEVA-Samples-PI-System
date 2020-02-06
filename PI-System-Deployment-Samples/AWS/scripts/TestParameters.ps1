@@ -36,12 +36,12 @@ $LicenseFileName = "pilicense.dat"
 # These variables are static, not configured in the deployment 
 $DeploySampleTemplates = 'ec2PrivateAD.template', 'ec2PrivatePIAF.template', 'ec2PrivatePIAnalysis.template', 'ec2PrivatePIDA.template', 'ec2PrivateSQL.template', 'ec2PublicPIVision.template', 'ec2PublicPIVision.template', 'ec2PublicRDGW.template', 'DSCoreSecurityGroups.template', 'DSCoreStack.template', 'DSMasterStack.template', 'DSPIStack.template', 'DSPISystemsSecurityGroups.template', 'vpc.template'
 
-$DeploySampleRootScripts = 'CreateWaitHandle.ps1', 'IPHelper.psm1', 'Join-Domain.ps1', 'New-DSCCertificate.ps1', 'Reset-LocalAdminPassword.ps1', 'Un7zip-Archive.ps1', 'Unzip-Archive.ps1'
-$DeploySampleADScripts = 'Add-DNSEntry.ps1', 'Configure-Sites.ps1', 'ConvertTo-EnterpriseAdmin.ps1', 'Create-AdminUser.ps1', 'Create-ServiceAccounts.ps1', 'Disable-WindowsFirewall.ps1', 'Install-ADDSDC.ps1', 'Install-ADDSForest.ps1', 'Install-Prereqs.ps1', 'New-CertificateAuthority.ps1', 'Rename-Computer.ps1', 'Set-StaticIP.ps1', 'Update-DNSServers.ps1'
+$DeploySampleRootScripts = 'CreateWaitHandle.ps1', 'IPHelper.psm1', 'Join-Domain.ps1', 'New-DSCCertificate.ps1', 'Rename-Computer.ps1', 'Reset-LocalAdminPassword.ps1', 'Un7zip-Archive.ps1', 'Unzip-Archive.ps1'
+$DeploySampleADScripts = 'Add-DNSEntry.ps1', 'Configure-Sites.ps1', 'ConvertTo-EnterpriseAdmin.ps1', 'Create-AdminUser.ps1', 'Create-ServiceAccounts.ps1', 'Disable-WindowsFirewall.ps1', 'Install-ADDSDC.ps1', 'Install-ADDSForest.ps1', 'Install-Prereqs.ps1', 'New-CertificateAuthority.ps1', 'Set-StaticIP.ps1', 'Update-DNSServers.ps1'
 $DeploySampleConfigScripts = 'PIAF0.ps1', 'PIAN0.ps1', 'PIDA0.ps1', 'PIVS0.ps1', 'RDGW0.ps1', 'SQL0.ps1'
 $DeploySampleAFScripts = 'UpdateAFServersUser.sql'
 $DeploySampleDAScripts = 'Backup.ps1', 'CollectiveManager.ps1', 'Connections.ps1', 'CreatePIDACollective.ps1', 'Get-RemoteCert.ps1', 'ListPIMessages.ps1', 'MoveOldArchives.ps1', 'PIDA_Scripts.zip', 'SecureCollective.ps1', 'SendPrimaryPublicCertToSecondaries.ps1', 'SendSecondaryPublicCertToPrimary.ps1'
-$DeploySampleSQLScripts = 'AddUserToGroup.ps1', 'Disable-CredSSP.ps1', 'Enable-CredSSP.ps1', 'Install-WindowsFailoverClustering.ps1', 'Reconfigure-SQL.ps1', 'Set-ClusterQuorum.ps1', 'Test-ADUser.ps1', 'Configure-WSFC0.ps1', 'DownloadSQLEE.ps1', 'Install-NETFrameworkCore.ps1', 'Join-Domain.ps1', 'Rename-Computer.ps1', 'Set-Folder-Permissions.ps1', 'Configure-WSFC1.ps1', 'Create-Share.ps1', 'Enable-AlwaysOn.ps1', 'InstallSQLEE.ps1', 'OpenWSFCPorts.ps1', 'Restart-Computer.ps1', 'SetMaxDOP.ps1'
+$DeploySampleSQLScripts = 'AddUserToGroup.ps1', 'Disable-CredSSP.ps1', 'Enable-CredSSP.ps1', 'Install-WindowsFailoverClustering.ps1', 'Reconfigure-SQL.ps1', 'Set-ClusterQuorum.ps1', 'Test-ADUser.ps1', 'Configure-WSFC0.ps1', 'DownloadSQLEE.ps1', 'Install-NETFrameworkCore.ps1', 'Join-Domain.ps1', 'Set-Folder-Permissions.ps1', 'Configure-WSFC1.ps1', 'Create-Share.ps1', 'Enable-AlwaysOn.ps1', 'InstallSQLEE.ps1', 'OpenWSFCPorts.ps1', 'Restart-Computer.ps1', 'SetMaxDOP.ps1'
 
 $DeploySampleModules = 'cNtfsAccessControl_1.4.1.zip', 'xAdcsDeployment_1.4.zip', 'xNetworking_5.7.zip', 'xSmbShare_2.1.zip', 'AWSQuickStart.zip', 'SqlServerDsc_13.2.zip', 'xComputerManagement_4.1.zip', 'cChoco_2.4.zip', 'xStorage_3.4.zip', 'SqlServer_21.0.17279.zip', 'xDnsServer_1.15.zip', 'xPendingReboot_0.4.zip', 'xWebAdministration_2.8.zip', 'PSDSSupportPIVS.zip', 'PSDSSupportPIDA.zip', 'xActiveDirectory_3.0.zip', 'xRemoteDesktopSessionHost_1.9.zip'
 #endregion
@@ -160,8 +160,8 @@ Write-Output "Setup kit bucket contents have been verified"
 # SIG # Begin signature block
 # MIIbzAYJKoZIhvcNAQcCoIIbvTCCG7kCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDs8h84to5Gx27H
-# /GLLBGbaGMQj/AmITWA6fs36fCpHDaCCCo4wggUwMIIEGKADAgECAhAECRgbX9W7
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAg+/wGj08TXAb9
+# 1rTElllqTJT7ySoA7ua3Bjf1jTO7EKCCCo4wggUwMIIEGKADAgECAhAECRgbX9W7
 # ZnVTQ7VvlVAIMA0GCSqGSIb3DQEBCwUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0xMzEwMjIxMjAwMDBa
@@ -222,19 +222,19 @@ Write-Output "Setup kit bucket contents have been verified"
 # BgNVBAsTEHd3dy5kaWdpY2VydC5jb20xMTAvBgNVBAMTKERpZ2lDZXJ0IFNIQTIg
 # QXNzdXJlZCBJRCBDb2RlIFNpZ25pbmcgQ0ECEAVNNVk3TJ+08xyzMPnTxD8wDQYJ
 # YIZIAWUDBAIBBQCggZ4wGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYB
-# BAGCNwIBCzEOMAwGCisGAQQBgjcCARUwLwYJKoZIhvcNAQkEMSIEIPS54oQCqalf
-# 2ocVwwV+bQUo1CjxfuijNIO6i92wjRUlMDIGCisGAQQBgjcCAQwxJDAioSCAHmh0
-# dHA6Ly90ZWNoc3VwcG9ydC5vc2lzb2Z0LmNvbTANBgkqhkiG9w0BAQEFAASCAQBJ
-# XGyU/9wENQUdOByYU3LlajhhbIeOf1+9VGdk2aEMtnDvrbn4bshNHaZcVZ5S9mHP
-# M5uLnnP42+JKSrSMvwEr5xqynkrAMf+HoKyUxQA+5yFm+PLUojwInwPuGBZwLy+l
-# TcHhFQ1T4vxgPnj07bFRGwa5k1lKoMIY6Db/vnAZrFCA3HEYzemuD8Nnh+vh6ypR
-# 0riqWRRelJr6sjsOa1KzStEYqV00Ygl8wYgKHpMnezqmVti41I6HtTttAafpmgDY
-# FFB8LH0+KEy1vdXH2F5UK2cKIuvzWrx2fkzLm5EHeHsiA1hoFPGtJ/v/iMukVhYa
-# 2H8wLHy/dOJPdbRo/haAoYIOPTCCDjkGCisGAQQBgjcDAwExgg4pMIIOJQYJKoZI
+# BAGCNwIBCzEOMAwGCisGAQQBgjcCARUwLwYJKoZIhvcNAQkEMSIEIIp3juxHfOhX
+# pgeY7EzKYJnlFmjXXoo9h8VqqsbPIRB4MDIGCisGAQQBgjcCAQwxJDAioSCAHmh0
+# dHA6Ly90ZWNoc3VwcG9ydC5vc2lzb2Z0LmNvbTANBgkqhkiG9w0BAQEFAASCAQBw
+# 5VfJ+hke7G4NSJtnbDsQZjnfTL57p7KtSqt1qtzAXi3RRMfEkm5XRedOKUeiscrs
+# PAaBYqXB6BU9aWtvH8OUJtvDO4yJEgqonBlnDro9hOcFJVjKXJxerJXXDBOnmz4D
+# ggIAHqhBmbZdvdilNRLy118jn7E72cVyU6//Lro9Ms7TsmBwMH/2dK76noNju85l
+# avYb+Mt1JxzDUIAdkf6/Epz2zGzt8B8Re/sZTnTgPkhRJe0eF3Ffoa54YbSn1DEd
+# d8Hs1R8bJ09ILBfZEIF1wpXOdknvUUFNCMwuJ9iiXSk9+/MqhiKB5WSbxBMvIrLu
+# Xc99C0Rn558vJBIhTbyCoYIOPTCCDjkGCisGAQQBgjcDAwExgg4pMIIOJQYJKoZI
 # hvcNAQcCoIIOFjCCDhICAQMxDTALBglghkgBZQMEAgEwggEPBgsqhkiG9w0BCRAB
-# BKCB/wSB/DCB+QIBAQYLYIZIAYb4RQEHFwMwMTANBglghkgBZQMEAgEFAAQgcu3Z
-# uPgXbJxTGHL7KYk8+e9bRWNZzAB11JXLrSVyOq4CFQCziXaQaaV4WINRMJSEvddQ
-# yVMw1RgPMjAxOTA4MDgxNDU3MzFaMAMCAR6ggYakgYMwgYAxCzAJBgNVBAYTAlVT
+# BKCB/wSB/DCB+QIBAQYLYIZIAYb4RQEHFwMwMTANBglghkgBZQMEAgEFAAQgXtF1
+# YXxSPvtvwjRlxsia1P7BOAKiMFDPe2nKamhmOWICFQDKDlliZ3ACjF92VGDMImC7
+# K/O32xgPMjAyMDAxMjgxNzI2MTFaMAMCAR6ggYakgYMwgYAxCzAJBgNVBAYTAlVT
 # MR0wGwYDVQQKExRTeW1hbnRlYyBDb3Jwb3JhdGlvbjEfMB0GA1UECxMWU3ltYW50
 # ZWMgVHJ1c3QgTmV0d29yazExMC8GA1UEAxMoU3ltYW50ZWMgU0hBMjU2IFRpbWVT
 # dGFtcGluZyBTaWduZXIgLSBHM6CCCoswggU4MIIEIKADAgECAhB7BbHUSWhRRPfJ
@@ -298,13 +298,13 @@ Write-Output "Setup kit bucket contents have been verified"
 # MB0GA1UECxMWU3ltYW50ZWMgVHJ1c3QgTmV0d29yazEoMCYGA1UEAxMfU3ltYW50
 # ZWMgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQe9Tlr7rMBz+hASMEIkFNEjALBglg
 # hkgBZQMEAgGggaQwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3
-# DQEJBTEPFw0xOTA4MDgxNDU3MzFaMC8GCSqGSIb3DQEJBDEiBCCFaDoGgPcVoDet
-# fmw1c69CQIkTSRj9zb921qhplJc+JzA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDE
+# DQEJBTEPFw0yMDAxMjgxNzI2MTFaMC8GCSqGSIb3DQEJBDEiBCCe+K5+5O/sBrJt
+# zbXllNdDBsIeDSzwuYpERqegOh5ZzzA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDE
 # dM52AH0COU4NpeTefBTGgPniggE8/vZT7123H99h+DALBgkqhkiG9w0BAQEEggEA
-# CW2gI+lMlu3hJ16pdLyD9lQXvGoJL0lP6Z3+RKVIuGdTamyDptlWBzqpXzG3Cxpm
-# QrGOORdrPOylq5qix2nhfTRXyu5w45As+90zHdRIqnakhRsdhmQmhiCKE3nOpEl+
-# a7h5BsxWx3z9mv3lXC2oAac6H7d4w3pADXoGUWTUmgp5GkbOmroyNeb33B9HzbGw
-# lGpsbzoKmgMy2UIlOR9bKrpUhYFPyZfiuqvqQElpIktQ/0nr3OHVeNguD6N0EgMP
-# TOKsYdepZAtgQsXuzh/8uiV3t8c8Knh50bn7VNWN2EMedKz0mHCEISq625izaLyo
-# tR8S5up4UO+8oR6ZEvCSRg==
+# lvvKJI3yPgHPpLONezurdK1jQ1/a5+DcTe9aI35GwHlzOjiC+83LZIZx3GnjzXvB
+# Mjpcj2QkQqnZ8hdGDI5jxOkE0agjgSIMlffOLxBg+qlsNAPmLEPlc6As+fqQvuji
+# Ea/+Q2/FcnOgtCZSaxvfZlf2BTm4GG9aPtaLmh4BB1rSLPJj4mTYFIcVwZy1mDZu
+# HhLP/f5RSFp68I16DKwhT8btX8uyWMEZ/XEPVvNrfMFcNC5DF0CQgl9W4oD9EYmT
+# MzbEW+qInsg89pubFyhF1obGiqjZxG+vjJxmVYDGkxO4QuobtFn1y1WoLSYrWj7L
+# l8c3efXDh0UEr7L1uO79CQ==
 # SIG # End signature block
