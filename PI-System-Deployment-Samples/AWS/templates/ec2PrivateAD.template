@@ -654,7 +654,7 @@
                             },
                             "c:\\cfn\\scripts\\Rename-Computer.ps1": {
                                 "source": {
-                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Rename-Computer.ps1"
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Rename-Computer.ps1"
                                 },
                                 "authentication": "S3AccessCreds"
                             },
@@ -1164,7 +1164,7 @@
                             },
                             "c:\\cfn\\scripts\\Rename-Computer.ps1": {
                                 "source": {
-                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/AD/Rename-Computer.ps1"
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Rename-Computer.ps1"
                                 },
                                 "authentication": "S3AccessCreds"
                             },
