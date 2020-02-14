@@ -1,10 +1,5 @@
 Copyright 2020
 
-[product-readiness.PIWebAPI_Python : master]
-
-Phase: DEVELOPMENT
-Distribution: EXTERNAL
-
 Components: 
 
 cffi 1.13.2 : MIT License
