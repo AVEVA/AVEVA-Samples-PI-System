@@ -305,7 +305,7 @@
         "SetupKitsS3PIFileName": {
             "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-\/_. ]*[0-9a-zA-Z])*$",
             "ConstraintDescription": "PI Server Setup Kit File Name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
-            "Default": "PI Server_2018 SP3_.exe",
+            "Default": "PI-Server_2018-SP3_.exe",
             "Description": "File Name for the PI Server Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).",
             "Type": "String"
         },

@@ -108,7 +108,7 @@ Verify that you have the necessary files and folders on your local machine. It s
 Unzipped folder (AzureDeployment)
 |--> helpers 
 |--> LocalArtifacts 
-    |--> PI Server_2018 SP3_.exe 
+    |--> PI-Server_2018-SP3_.exe 
     |--> PI_Vision_2019_.exe 
     |--> pilicense.dat 
     |--> UpdateAFServersUser.sql 

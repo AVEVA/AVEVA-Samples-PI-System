@@ -1,7 +1,7 @@
 [CmdletBinding(DefaultParametersetname="AutoCreds")]
 param(
 	$PIVisionPath = 'D:\PI_Vision_2019_.exe',
-	$PIPath = 'D:\PI Server_2018 SP3_.exe',
+	$PIPath = 'D:\PI-Server_2018-SP3_exe',
     $PIProductID = '04a352f8-8231-4fe7-87cb-68b69becc145',
     $TestFileName = 'PI-System-Deployment-Tests-master.zip',
 	
