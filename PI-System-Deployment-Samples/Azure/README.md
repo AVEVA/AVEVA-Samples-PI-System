@@ -137,6 +137,10 @@ This will install or (if you already have them installed) update your AzureRM Cm
 4. If prompted with **Are you sure you want to install the modules from 'PSGallery'**, agree to **Yes to All** by selecting `A`.
 5. Close PowerShell.
 
+#### Allow connection to the Remote Desktop Server from your network
+1. Edit the following file: `"C:\Users\username\Azure\AzureDeploymentSamples\nested\base\base.vnet.template.json"`
+2. Replace the IP used in the parameter **RDPCIDR** with the correct IP you want to allow for remote connection
+
 ### Launch the Deployment
 Launching the PI System Deployment Sample for Azure will deploy a full PI System suitable for testing or development purposes using the PowerShell script `StarterScript.ps1`, helper scripts, ARM templates and necessary files. The deployment sample creates the necessary Azure infrastructure (i.e., servers, storage, networking and virtualization). The deployment sample installs and conﬁgures all PI System components via PowerShell DSC once the necessary pieces of Azure infrastructure is in place. 
 
