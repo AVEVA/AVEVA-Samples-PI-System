@@ -6,7 +6,7 @@ The sample code contained in this repository provides code to extend PI Vision w
 
 ### Feedback
 
-To request a new sample, if there is a feature or capability you would like demonstrated, or if there is an existing sample you would like in your favorite language, please give us feedback at the OSIsoft GitHub Feedback Channel. To post feedback, submit feature ideas, or report bugs, use the OSIsoft GitHub Feedback Channel. 
+To request a new sample, if there is a feature or capability you would like demonstrated, or if there is an existing sample you would like in your favorite language, please give us feedback at the [OSIsoft GitHub Feedback Channel](https://feedback.osisoft.com/forums/922279-osisoft-github). To post feedback, submit feature ideas, or report bugs, use the [OSIsoft GitHub Feedback Channel](https://feedback.osisoft.com/forums/922279-osisoft-github). 
 
 ### Support
 
@@ -16,6 +16,6 @@ If your support question or issue is related to a non-modified sample (or test) 
 
 ### License
 
-The PI System Deployment Samples are licensed under the [Apache 2 license](https://github.com/osisoft/OSI-Samples/blob/master/LICENSE.md).
+The PI Vision Extensibility samples are licensed under the [Apache 2 license](https://github.com/osisoft/OSI-Samples/blob/master/LICENSE.md).
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/PI%20Vision/extensibility-sample.unit-tests?branchName=47718_ExtensibilitySample)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=1311&branchName=47718_ExtensibilitySample)
