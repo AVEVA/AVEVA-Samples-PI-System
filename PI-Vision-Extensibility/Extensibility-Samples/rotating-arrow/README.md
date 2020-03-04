@@ -1,5 +1,4 @@
-# OSIsoft PI Extensible Symbol Sample
-This repository contains sample HTML/CSS/JavaScript for creating a custom symbol for PI Vision.
+# Rotating Arrow Custom Symbol
 
 ## Overview
 The sample code contained in this repository provides code to extend PI Vision with a new custom symbol.  
