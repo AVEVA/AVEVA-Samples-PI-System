@@ -33,5 +33,5 @@ AnalysisTests   | Performs create, read, update, search, and delete operations o
 | PIWebAPITests     | Exercises features of the PI Web API Server product.         |
 | Vision3Tests      | Tests the ability to create, open, save, and delete displays in PI Vision server. |
 
-Return to the main [PI System Deployment Tests landing page](../../../).
+Return to the main [PI System Deployment Tests landing page](../).
 
