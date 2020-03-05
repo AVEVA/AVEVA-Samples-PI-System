@@ -1,4 +1,4 @@
-# OSIsoft PI Vision Extensibility
+# PI Vision Extensibility
 This repository contains sample HTML/CSS/JavaScript for creating custom symbols for PI Vision.
 
 ## Overview
