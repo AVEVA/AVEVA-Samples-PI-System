@@ -1,4 +1,4 @@
-# PI Vision Extensibility 
+# PI Vision Extensibility Samples
 
 This product is developed and copyrighted by OSIsoft, LLC. All rights reserved. Several of the components packaged with this distribution are attributable to other authors, and licensed under the following terms. 
 
