@@ -86,13 +86,13 @@ Symbol files should adhere to the following naming conventions:
 Before you begin development, OSIsoft recommends that you place PI Vision into debug mode. To do so, edit the `web.config` file in your PI Vision installation folder to change the compilation tag, under `system.web`, from:
 
 ```
-<compilation debug=\"false\" targetFramework=\"4.8\"/\>
+<compilation debug="false" targetFramework="4.8"/>
 ```
 
 to
 
 ```
-<compilation debug=\"true\" targetFramework=\"4.8\"/\>
+<compilation debug="true" targetFramework="4.8"/>
 ```
 
 Debug mode disables the PI Vision bundling and minification system; this makes debugging your custom symbol easier.
