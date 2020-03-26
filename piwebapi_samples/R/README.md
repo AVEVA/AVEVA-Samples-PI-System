@@ -61,14 +61,14 @@ In order to run this sample, you must configure PI Web API with the proper secur
 
 In addition, PI Web API must be configured to allow CORS as follows:
 
-| Attribute               | Value                                               | Type    |
-| ----------------------- | --------------------------------------------------- | ------- |
-| CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location | String  |
-| CorsHeaders             | \*                                                  | String  |
-| CorsMethods             | \*                                                  | String  |
-| CorsOrigins             | \*                                                  | String  |
-| CorsSupportsCredentials | True                                                | Boolean |
-| DisableWrites           | False                                               | Boolean |
+| Attribute               | Value                                                                | Type    |
+| ----------------------- | -------------------------------------------------------------------- | ------- |
+| CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location                  | String  |
+| CorsHeaders             | \*                                                                   | String  |
+| CorsMethods             | \*                                                                   | String  |
+| CorsOrigins             | https://localhost:4000,https://localhost:9876,https://localhost:8000 | String  |
+| CorsSupportsCredentials | True                                                                 | Boolean |
+| DisableWrites           | False                                                                | Boolean |
 
 ## Functionality
 
