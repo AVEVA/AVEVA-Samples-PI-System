@@ -8,7 +8,7 @@ The sample code in this folder demonstrates how to utilize the PI Web API in Ang
 
 ## Prerequisites
 
-- This application by default will use Port 8000
+- This application by default will use Port 4200
 
 ```
 Note: This application is hosted on HTTP.  This is not secure.  You should use a certificate and HTTPS.
@@ -22,7 +22,7 @@ To run the sample code:
 - Open the AngularJS folder with your IDE
 - Install the required modules by running the following command in the terminal: `npm ci`
 - Run the application using the following command in the terminal: `npm start`
-- By default, you can open the AngularJS app by using the following URL in a browser: `localhost:8000`
+- By default, you can open the AngularJS app by using the following URL in a browser: `localhost:4200`
 
 ## Getting Started with Tests
 
@@ -45,7 +45,7 @@ var testConfig = {
 };
 ```
 
-- In the terminal, use the following command to run the tests: `karma start`
+- In the terminal, use the following command to run the tests: `npx karma start`
 - If you run into any issues with the Jasmine tests timing out, use the `DEFAULT_TIMEOUT_INTERVAL` setting in `test-config.js` and set it to a higher value. For example:
 
 ```
@@ -71,7 +71,7 @@ In addition, PI Web API must be configured to allow CORS as follows:
 | CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location | String  |
 | CorsHeaders             | \*                                                  | String  |
 | CorsMethods             | \*                                                  | String  |
-| CorsOrigins             | \*                                                  | String  |
+| CorsOrigins             | https://localhost:4200                              | String  |
 | CorsSupportsCredentials | True                                                | Boolean |
 | DisableWrites           | False                                               | Boolean |
 
