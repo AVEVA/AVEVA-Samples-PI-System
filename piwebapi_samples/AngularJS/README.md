@@ -71,7 +71,7 @@ In addition, PI Web API must be configured to allow CORS as follows:
 | CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location                  | String  |
 | CorsHeaders             | \*                                                                   | String  |
 | CorsMethods             | \*                                                                   | String  |
-| CorsOrigins             | https://localhost:4000,https://localhost:9876,https://localhost:8000 | String  |
+| CorsOrigins             | https://localhost:9876                                               | String  |
 | CorsSupportsCredentials | True                                                                 | Boolean |
 | DisableWrites           | False                                                                | Boolean |
 

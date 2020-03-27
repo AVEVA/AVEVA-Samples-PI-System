@@ -36,6 +36,8 @@ module.exports = function(config) {
       nameFormatter: undefined,
       classNameFormatter: undefined,
       properties: {}
-    }
+    },
+	
+    port: 9876
   });
 };

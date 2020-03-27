@@ -8,8 +8,6 @@ The sample code in this folder demonstrates how to utilize the PI Web API in Ang
 
 ## Prerequisites
 
-- This application by default will use Port 4200
-
 ```
 Note: This application is hosted on HTTP.  This is not secure.  You should use a certificate and HTTPS.
 ```
@@ -21,8 +19,8 @@ To run the sample code:
 - Clone the GitHub repository
 - Open the Angular\AngularPIWebAPISample folder with your IDE
 - Install the required modules by running the following command in the terminal: `npm ci`
-- Run the application using the following command in the terminal: `ng serve`
-- By default, you can open the Angular app by using the following URL in a browser: `localhost:4200`
+- Run the application using the following command in the terminal: `ng serve --port 9876`
+- You can open the Angular app by using the following URL in a browser: `localhost:9876`
 
 ## Getting Started with Tests
 
@@ -71,7 +69,7 @@ In addition, PI Web API must be configured to allow CORS as follows:
 | CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location                  | String  |
 | CorsHeaders             | \*                                                                   | String  |
 | CorsMethods             | \*                                                                   | String  |
-| CorsOrigins             | https://localhost:4000,https://localhost:9876,https://localhost:8000 | String  |
+| CorsOrigins             | https://localhost:9876                                               | String  |
 | CorsSupportsCredentials | True                                                                 | Boolean |
 | DisableWrites           | False                                                                | Boolean |
 
