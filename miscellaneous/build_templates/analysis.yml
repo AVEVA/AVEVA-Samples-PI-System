@@ -84,6 +84,7 @@ jobs:
         displayName: 'BinSkim (DotNet): Analyze'
         inputs:
           AnalyzeTarget: '$(Build.SourcesDirectory)\*.dll;$(Build.SourcesDirectory)\*.exe'
+          toolVersion: LatestPreRelease
         condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
 
       - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-postanalysis.PostAnalysis@1
