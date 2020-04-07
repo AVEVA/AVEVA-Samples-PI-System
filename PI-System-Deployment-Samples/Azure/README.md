@@ -61,9 +61,10 @@ Create a Microsoft Azure account if you do not already have one by visiting the 
 The PI System Deployment Sample for Azure repository located on [OSIsoft GitHub repository for Azure](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Samples/Azure) contain templates, scripts and  files necessary to deploy the PI System and necessary Azure infrastructure. 
 
 Download and extract the deployment sample files:
-1. Browse onto the [OSIsoft GitHub repository for Azure](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Samples/Azure).
-2. Click **Download as Zip** to download the contents of this GitHub repository, and select the target location on your local machine. 
-3. Extract the contents of this zip file onto your local machine. 
+1. Go to the [OSIsoft GitHub repository for PI System Deployment Samples](https://github.com/osisoft/OSI-Samples-PI-System).
+2. Click **Clone or Download** and then **Download Zip** to download the contents of this GitHub repository, and select the target location on your local machine.
+3. Extract the **PI-System-Deployment-Samples** folder to your local machine.
+4. After extracting the repository to a local folder, navigate to <extraction folder>\OSI-Samples-PI-System-master\PI-System-Deployment-Samples\Azure.
 
 #### Download NuGet.exe
 Download the `NuGet.exe` file in order to deploy a PI System instance on Azure. Browse to the [NuGet download page](https://www.nuget.org/downloads) and copy `nuget.exe` to the root folder where you extracted the downloaded GitHub repository on your local machine.
@@ -77,12 +78,12 @@ Download the following PI System files to the **LocalArtifacts** folder on your 
 
 >**Note:** The deployment sample will use the temporary PI license to deploy. After the deployment of the PI Data Archive(s), you will be able to generate a full PI license file through the OSIsoft Customer Portal using the Machine Signature File created from your deployed PI Data Archive(s).
 
->**Note:** Ensure you download and use the exact version of the PI Server (**PI Server 2018 SP3**) and PI Vision (**PI Vision 2019**) install kits described in this guide!
+>**Note:** Ensure you download and use the exact version of the PI Server (**PI Server 2018 SP3 Patch 1**) and PI Vision (**PI Vision 2019 Patch 1**) install kits described in this guide!
 
 ##### Download and Stage the PI Server Install Kit and Temporary License File
 1. From the **Products** page on the [OSIsoft Customer Portal](https://my.osisoft.com), click on the product row for **PI Server**.
-2. Click the **ALL VERSIONS** tab to display the **PI Server 2018 SP3** version of PI Server.
-3. On the row corresponding to the **PI Server 2018 SP3** version of the install kit, click **Download** to display the **License and Service Agreements** page.
+2. Click the **ALL VERSIONS** tab to display the **PI Server 2018 SP3 Patch 1** version of PI Server.
+3. On the row corresponding to the **PI Server 2018 SP3 Patch 1** version of the install kit, click **Download** to display the **License and Service Agreements** page.
 4. Agree to the **OSIsoft, LLC. (“OSIsoft”) Software License and Services Agreement** and click **Download**.
 5. When prompted to run or save the executable setup file, click **Save** and click **OK**.
 6. Locate your temporary PI license file and rename the file to **pilicense.dat**. If you do not have a temporary PI license, please contact OSIsoft Tech Support to obtain a 14-day temporary license for the deployment. OSIsoft Tech Support can be reached at the [ Customer Portal](https://my.osisoft.com).
@@ -90,16 +91,18 @@ Download the following PI System files to the **LocalArtifacts** folder on your 
 
 ##### Download and Stage the PI Vision Install Kit
 1. From the **Products** page on the OSIsoft [Customer Portal](https://my.osisoft.com), click on the product row for **PI Vision**.
-2. Select the **ALL VERSIONS** tab to display the **PI Vision 2019** version of PI Vision.
-3. On the row corresponding to the **PI Vision 2019** version of the install kit, click **Download** to display the **License and Service Agreements** page.
+2. Select the **ALL VERSIONS** tab to display the **PI Vision 2019 Patch 1** version of PI Vision.
+3. On the row corresponding to the **PI Vision 2019 Patch 1** version of the install kit, click **Download** to display the **License and Service Agreements** page.
 4. Agree to the **OSIsoft, LLC. (“OSIsoft”) Software License and Services Agreement** and click **Download**.
 5. When prompted to run or save the executable setup file, click **Save** and click **OK**.
 6. Upload your PI Vision installer into the **LocalArtifacts** folder on your local machine.
 
 ##### Download and Stage the PI System Deployment Tests File
-1. Go to the [OSIsoft GitHub repository for the PI System Deployment Tests](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Tests).
-2. Click **Download as Zip** to download the contents of this GitHub repository onto your local machine as a zip file. The deployment samples will configure and run the deployment tests for your environment.
-3. Save this zip file onto your local machine in the **LocalArtifacts** folder.
+1. Go to the [OSIsoft GitHub repository for PI System Deployment Samples](https://github.com/osisoft/OSI-Samples-PI-System).
+2. Click **Clone or Download** and then **Download Zip** to download the contents of this GitHub repository onto your local machine as a zip file. The deployment samples will configure and run the deployment tests for your environment.
+3. Extract the **PI-System-Deployment-Tests** folder to your local machine.
+4. Create a new zip file from the PI-System-Deployment-Tests folder.  The filename should be PI-System-Deployment-Tests.zip.
+5. Save this zip file onto your local machine in the **LocalArtifacts** folder. 
 
 #### Verify You Have All of the Necessary Files
 Verify that you have the necessary files and folders on your local machine. It should be similar to the following directory:
@@ -108,11 +111,11 @@ Verify that you have the necessary files and folders on your local machine. It s
 Unzipped folder (AzureDeployment)
 |--> helpers 
 |--> LocalArtifacts 
-    |--> PI Server_2018 SP3_.exe 
-    |--> PI_Vision_2019_.exe 
+    |--> PI Server_2018 SP3 Patch 1_.exe 
+    |--> PI Vision_2019 Patch 1_.exe 
     |--> pilicense.dat 
     |--> UpdateAFServersUser.sql 
-    |--> PI-System-Deployment-Tests-master.zip 
+    |--> PI-System-Deployment-Tests.zip 
 |--> LocalNugetPackages 
     |--> PSDSSupportPIDA.nupkg 
     |--> PSDSSupportPIVS.nupkg 
