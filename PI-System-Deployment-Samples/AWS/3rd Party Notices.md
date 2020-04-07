@@ -5,27 +5,26 @@ This product is developed and copyrighted by OSIsoft, LLC. All rights reserved. 
 # Components
 | Component | License |
 | --------- |:-------:|
-| Active Directory Authentication Library 3.17.3 | MIT License |
-| Azure Quickstart Templates master-20181220 Copyright (c) 2015 Microsoft Azure | MIT License |
-| Azure/AzureStack-QuickStart-Templates 2018-619-snapshot-665a4c4e Copyright (c) 2017 Microsoft Corporation. All rights reserved. | MIT License |
+| Active Directory Authentication Library 3.19.8 | MIT License |
+| Azure Quickstart Templates 0.0.0.4 | MIT License |
+| Azure/AzureStack-QuickStart-Templates 20180619-snapshot-665a4c4e Copyright (c) 2017 Microsoft Corporation. All rights reserved. | MIT License |
 | Client Runtime for Microsoft Azure Libraries 3.3.1 Copyright (c) 2016 Microsoft | MIT License |
 | Client Runtime Library for Microsoft AutoRest Generated Clients 2.3.2 Copyright (c) 2016 Microsoft | MIT License |
-| DocumentFormat.OpenXML 2.7.2 | Apache License 2.0 |
-| MapSuiteDependency-MicrosoftVisualCRunTime100 10.3.1 | Apache License 2.0 |
+| MapSuiteDependency-MicrosoftVisualCRunTime100 10.6.0 | Apache License 2.0 |
 | Microsoft Azure Key Vault Library 2.0.6 Copyright (c) Microsoft Corporation. All rights reserved. | MIT License |
 | Microsoft Azure Key Vault WebKey 2.0.4 Copyright (c) 2015 Microsoft | MIT License |
-| Microsoft PowerShell 1.13.0.0-PSGallery Copyright (c) 2014 Microsoft Corporation. All rights reserved. | MIT License |
+| Microsoft PowerShell 1.15.0.0 | MIT License |
 | Microsoft PowerShell 1.4.0.0-PSGallery Copyright (c) 2017 Microsoft Corporation. All rights reserved. | MIT License |
-| Microsoft PowerShell 2.6.0.0-PSGallery Copyright (c) 2019 Microsoft Corporation. All rights reserved. | MIT License |
 | Microsoft PowerShell 2.8.0.0-PSGallery Copyright (c) 2014 Microsoft Corporation. All rights reserved. | MIT License |
 | Microsoft PowerShell 3.0.0.0-PSGallery Copyright (c) 2014 Microsoft Corporation. All rights reserved. | MIT License |
 | Microsoft PowerShell 4.1.0.0-PSGallery Copyright (c) 2017 Microsoft Corporation. All rights reserved. | MIT License |
-| mspnp/reference-architectures master-20181224 | MIT License |
-| PowerShell/SqlServerDsc 13.0.0.0-PSGallery Copyright (c) 2018 Microsoft Corporation. All rights reserved. | MIT License |
+| Microsoft.SqlServer.Types 14.0.1016.290 | Microsoft VB 101 Samples License |
+| Microsoft.SqlServer.XEvent.XELite 2019.6.5.2 | Microsoft .NET Library License Updated 04_2019 |
+| System.Security.SecureString 4.3.0 | MIT License |
 
 # Licenses
 Apache License 2.0
-DocumentFormat.OpenXML 2.7.2, MapSuiteDependency-MicrosoftVisualCRunTime100 10.3.1
+MapSuiteDependency-MicrosoftVisualCRunTime100 10.6.0
 
 Apache License
 Version 2.0, January 2004 
@@ -85,137 +84,132 @@ To apply the Apache License to your work, attach the following boilerplate notic
 
 Copyright 2020 OSIsoft, LLC, Licensed under the Apache License, Version 2.0 (the"License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0) Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-## Microsoft SQL Server Compact Edition EULA
-Microsoft.SqlServer.SqlManagementObjects 140.17283.0-preview
+## Microsoft .NET Library License Updated 04_2019
+Microsoft.SqlServer.XEvent.XELite 2019.6.5.2
 
-## MICROSOFT SOFTWARE LICENSE TERMS
+MICROSOFT SOFTWARE LICENSE TERMS
 
-## MICROSOFT SQL SERVER COMPACT 4.
+MICROSOFT .NET LIBRARY, (Updated 04-2019)
 
-These license terms are an agreement between Microsoft Corporation (or based on where you live, one of its affiliates) and you. Please read them. They apply to the software named above, which includes the media on which you received it, if any. The terms also apply to any Microsoft:
+These license terms are an agreement between Microsoft Corporation (or based on where you live, one of its affiliates) and you. They apply to the software named above. The terms also apply to any Microsoft services or updates for the software, except to the extent those have different terms.
 
-* updates,
-
-* supplements,
-
-* Internet-based services, and
-
-* support services for this software, unless other terms accompany those items. If so, those terms apply.
-
-## BY USING THE SOFTWARE, YOU ACCEPT THESE TERMS. IF YOU DO NOT ACCEPT THEM, DO
-
-## NOT USE THE SOFTWARE.
-
-If you comply with these license terms, you have the rights below.
+IF YOU COMPLY WITH THESE LICENSE TERMS, YOU HAVE THE RIGHTS BELOW.
 
 1. INSTALLATION AND USE RIGHTS.
+You may install and use any number of copies of the software to design, develop and test youre applications. You may modify, copy, distribute or deploy any .js files contained in the software as part of your applications.
 
-a. Installation and Use. You may install and use any number of copies of the software on your devices to design, develop and test your programs for use with the software.
+2. THIRD PARTY COMPONENTS. The software may include third party components with separate legal notices or governed by other agreements, as may be described in the ThirdPartyNotices file(s) accompanying the software.
 
-b. Included Microsoft Programs. The software contains the Microsoft VisualC++ 2008 Express Edition components listed below. You may only use these components with the software. The Microsoft Visual C++ 2008 Express license terms located at %Program Files%\Microsoft SQL Server Compact Edition\v4.0 apply to your use of them, except that the components listed below may be used for commercial hosting services when used in conjunction with the software.
+3. ADDITIONAL LICENSING REQUIREMENTS AND/OR USE RIGHTS.
 
-* Microsoft_VC90_CRT_x86.msm
-
-* policy_9_0_Microsoft_VC90_CRT_x86.msm
-
-* Microsoft_VC90_CRT_x86_x64.msm
-
-* policy_9_0_Microsoft_VC90_CRT_x86_x64.msm
-
-* VC90.CRT_X86_msvcr90.dll
-
-* VC90.CRT_X86_Microsoft.VC90.CRT.manifest
-
-* VC90.CRT_AMD64_msvcr90.dll
-
-* VC90.CRT_AMD64_Microsoft.VC90.CRT.manifest
+a. DISTRIBUTABLE CODE. In addition to the .js files described above, the software is comprised of Distributable Code. "Distributable Code" is code that you are permitted to distribute in programs you develop if you comply with the terms below.
 
 
-## 2. ADDITIONAL LICENSING REQUIREMENTS AND/OR USE RIGHTS.
+i. Right to Use and Distribute.
 
-a. DISTRIBUTABLE CODE. The software contains code that you are permitted to distribute in programs you develop if you comply with the terms below.
-
-i. Right to Use and Distribute. The code and text files listed below are “Distributable Code.”
-
-* REDIST.TXT Files. You may copy and distribute the object code form of code listed in REDIST.TXT files.
+* You may copy and distribute the object code form of the software.
 
 * Third Party Distribution. You may permit distributors of your programs to copy and distribute the Distributable Code as part of those programs.
 
 ii. Distribution Requirements. For any Distributable Code you distribute, you must
 
-* add significant primary functionality to it in your programs;
-
-* for any Distributable Code having a filename extension of .lib distribute only the results of running such Distributable Code through a linker with your program;
-
-* distribute Distributable Code included in a setup program only as part of that setup program without modification;
+* use the Distributable Code in your programs and not as a standalone distribution;
 
 * require distributors and external end users to agree to terms that protect it at least as much as this agreement;
 
 * display your valid copyright notice on your programs; and
 
-* indemnify, defend, and hold harmless Microsoft from any claims, including attorneys’ fees, related to the distribution or use of your programs.
+* indemnify, defend, and hold harmless Microsoft from any claims, including attorneys fees, related to the distribution or use of your applications, except to the extent that any claim is based solely on the Distributable Code.
 
-iii. Distribution Restrictions. You may not:
+iii. Distribution Restrictions. You may not
 
 * alter any copyright, trademark or patent notice in the Distributable Code;
 
-* use Microsoft’s trademarks in your programs’ names or in a way that suggests your programs come from or are endorsed by Microsoft;
-
-* distribute Distributable Code to run on a platform other than the Windows platform;
+* use Microsofts trademarks in your programs names or in a way that suggests your programs come from or are endorsed by Microsoft;
 
 * include Distributable Code in malicious, deceptive or unlawful programs; or
 
-* modify or distribute the source code of any Distributable Code so that any part of it becomes subject to an Excluded License. An Excluded License is one that requires, as a condition of use, modification or distribution, that:
+* modify or distribute the source code of any Distributable Code so that any part of it becomes subject to an Excluded License. An Excluded License is one that requires, as a condition of use, modification or distribution, that
 
 * the code be disclosed or distributed in source code form; or
 
 * others have the right to modify it.
 
-3. SCOPE OF LICENSE. The software is licensed, not sold. This agreement only gives you some rights to use the software. Microsoft reserves all other rights. Unless applicable law gives you more rights despite this limitation, you may use the software only as expressly permitted in this agreement. In doing so, you must comply with any technical limitations in the software that only allow you to use it in certain ways. You may not:
+4. DATA.
+
+a. Data Collection. The software may collect information about you and your use of the software, and send that to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may opt-out of many of these scenarios, but not all, as described in the product documentation. There are also some features in the software that
+may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsofts privacy statement. Our privacy statement is located at https://go.microsoft.com/fwlink/?LinkID=824704. You can learn
+more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+
+b. Processing of Personal Data. To the extent Microsoft is a processor or subprocessor of personal data in connection with the software, Microsoft makes the commitments in the European Union General Data Protection Regulation Terms of the Online Services Terms to all customers effective May 25, 2018, at http://go.microsoft.com/?linkid=9840733.
+
+5. SCOPE OF LICENSE. The software is licensed, not sold. This agreement only gives you some rights to use the software. Microsoft reserves all other rights. Unless applicable law gives you more rights despite this limitation, you may use the software only as expressly permitted in this agreement. In doing so, you must comply with any technical limitations in the software that only allow you to use it in certain ways. You may not
 
 * work around any technical limitations in the software;
 
-* reverse engineer, decompile or disassemble the software, except and only to the extent that applicable law expressly permits, despite this limitation;
+* reverse engineer, decompile or disassemble the software, or otherwise attempt to derive the source code for the software, except and to the extent required by third party licensing terms governing use of certain open source components that may be included in the software;
 
-* make more copies of the software than specified in this agreement or allowed by applicable law, despite this limitation;
+* remove, minimize, block or modify any notices of Microsoft or its suppliers in the software;
 
-* publish the software for others to copy;
+* use the software in any way that is against the law; or
 
-* rent, lease or lend the software; or
+* share, publish, rent or lease the software, provide the software as a stand-alone offering for others to use, or transfer the software or this agreement to any third party.
 
-* transfer the software or this agreement to any third party.
+6. EXPORT RESTRICTIONS. You must comply with all domestic and international export laws and regulations that apply to the software, which include restrictions on destinations, end users, and end use. For further information on export restrictions, visit www.microsoft.com/exporting.
 
-4. BACKUP COPY. You may make one backup copy of the software. You may use it only to reinstall the software.
-5. DOCUMENTATION. Any person that has valid access to your computer or internal network may copy and use the documentation for your internal, reference purposes.
-6. EXPORT RESTRICTIONS. The software is subject to United States export laws and regulations. You must comply with all domestic and international export laws and regulations that apply to the software. These laws include restrictions on destinations, end users and end use. For additionalinformation, see [http://www.microsoft.com/exporting.](http://www.microsoft.com/exporting.).
-7. SUPPORT SERVICES. Because this software is “as is,” we may not provide support services for it.
-8. ENTIRE AGREEMENT. This agreement, and the terms for supplements, updates,Internet-based services and support services that you use, are the entire agreement for the software and support services.
-9. APPLICABLE LAW.
+7. SUPPORT SERVICES. Because this software is "as is," we may not provide support services for it.
 
-a. United States. If you acquired the software in the United States,Washington state law governs the interpretation of this agreement and applies to claims for breach of it, regardless of conflict of laws principles. The laws of the state where you live govern all other claims, including claims under state consumer protection laws, unfair competition laws, and in tort.
+8. ENTIRE AGREEMENT. This agreement, and the terms for supplements, updates, Internet-based services and support services that you use, are the entire agreement for the software and support services.
 
-b. Outside the United States. If you acquired the software in any other country, the laws of that country apply.
+9. APPLICABLE LAW. If you acquired the software in the United States, Washington law applies to interpretation of and claims for breach of this agreement, and the laws of the state where you live apply to all other claims. If you acquired the software in any other country, its laws apply.
 
-10. LEGAL EFFECT. This agreement describes certain legal rights. You may have other rights under the laws of your country. You may also have rights with respect to the party from whom you acquired the software. This agreement does not change your rights under the laws of your country if the laws of your country do not permit it to do so.
+10. CONSUMER RIGHTS; REGIONAL VARIATIONS. This agreement describes certain legal rights. You may have other rights, including consumer rights, under the laws of your state or country. Separate and apart from your relationship with Microsoft, you may also have rights with respect to the party from which you acquired the software. This agreement does not change those other rights if the laws of your state or country do not permit it to do so. For example, if you acquired the software in one of the below regions, or mandatory country law applies, then the following provisions apply to you:
 
-11. DISCLAIMER OF WARRANTY. THE SOFTWARE IS LICENSED “AS-IS.” YOU BEAR THE RISK OF USING IT. MICROSOFT GIVES NO EXPRESS WARRANTIES, GUARANTEES OR CONDITIONS. YOU MAY HAVE ADDITIONAL CONSUMER RIGHTS UNDER YOUR LOCAL LAWS WHICH THIS AGREEMENT CANNOT CHANGE. TO THE EXTENT PERMITTED UNDER YOUR LOCAL LAWS, MICROSOFT EXCLUDES THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+a. Australia. You have statutory guarantees under the Australian Consumer Law and nothing in this agreement is intended to affect those rights.
 
-12. LIMITATION ON AND EXCLUSION OF REMEDIES AND DAMAGES. YOU CAN RECOVER
-FROM MICROSOFT AND ITS SUPPLIERS ONLY DIRECT DAMAGES UP TO U.S. $5.00. YOU CANNOT RECOVER ANY OTHER DAMAGES, INCLUDING CONSEQUENTIAL, LOST PROFITS, SPECIAL, INDIRECT OR INCIDENTAL DAMAGES.
+b. Canada. If you acquired this software in Canada, you may stop receiving updates by turning off the automatic update feature, disconnecting your device from the Internet (if and when you re-connect to the Internet, however, the software will resume checking for and installing updates), or uninstalling the software. The product documentation, if any, may also specify how to turn off updates for your specific device or software.
 
-This limitation applies to
+c. Germany and Austria.
 
-* anything related to the software, services, content (including code) on third party Internet sites, or third party programs; and
+i. Warranty. The software will perform substantially as described in any Microsoft materials that accompany it. However, Microsoft gives no contractual guarantee in relation to the software.
 
-* claims for breach of contract, breach of warranty, guarantee or condition, strict liability, negligence, or other tort to the extent permitted by applicable law.
+ii. Limitation of Liability. In case of intentional conduct, gross negligence, claims based on the Product Liability Act, as well as in case of death or personal or physical injury, Microsoft is liable according to the statutory law.
 
-It also applies even if Microsoft knew or should have known about the possibility of the damages. The above limitation or exclusion may not apply to you because your country may not allow the exclusion or limitation of incidental, consequential or other damages.
+
+Subject to the foregoing clause (ii), Microsoft will only be liable for slight negligence if Microsoft is in breach of such material contractual obligations, the fulfillment of which facilitate the due performance of this agreement, the breach of which would endanger the purpose of this agreement and the compliance with which a party may constantly trust in (so-called "cardinal obligations"). In other cases of slight negligence, Microsoft will not be liable for slight negligence
+
+11. DISCLAIMER OF WARRANTY. THE SOFTWARE IS LICENSED "AS-IS." YOU BEAR THE RISK OF USING IT. MICROSOFT GIVES NO EXPRESS WARRANTIES, GUARANTEES OR CONDITIONS. TO THE EXTENT PERMITTED UNDER YOUR LOCAL LAWS, MICROSOFT EXCLUDES THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+
+12. LIMITATION ON AND EXCLUSION OF REMEDIES AND DAMAGES. YOU CAN RECOVER FROM MICROSOFT AND ITS SUPPLIERS ONLY DIRECT DAMAGES UP TO U.S. $5.00. YOU CANNOT RECOVER ANY OTHER DAMAGES, INCLUDING CONSEQUENTIAL, LOST PROFITS, SPECIAL, INDIRECT OR INCIDENTAL DAMAGES.
+
+This limitation applies to (a) anything related to the software, services, content (including code) on third party Internet sites, or third party applications; and (b) claims for breach of contract, breach of warranty, guarantee or condition, strict liability, negligence, or other tort to the extent permitted by applicable law.
+
+It also applies even if Microsoft knew or should have known about the possibility of the damages. The above limitation or exclusion may not apply to you because your state or country may not allow the exclusion or limitation of incidental, consequential or other damages.
+
+Please note: As this software is distributed in Quebec, Canada, some of the clauses in this agreement are provided below in French.
+
+Remarque : Ce logiciel étant distribué au Québec, Canada, certaines des clauses dans ce contrat sont fournies ci-dessous en français.
+
+EXONÉRATION DE GARANTIE. Le logiciel visé par une licence est offert « tel quel ». Toute utilisation de ce logiciel est à votre seule risque et péril. Microsoft n’accorde aucune autre garantie expresse. Vous pouvez bénéficier de droits additionnels en vertu du droit local sur la protection des consommateurs, que ce contrat ne peut modifier. La ou elles sont permises par le droit locale, les garanties implicites de qualité marchande, d’adéquation à un usage particulier et d’absence de contrefaçon sont exclues.
+
+LIMITATION DES DOMMAGES-INTÉRÊTS ET EXCLUSION DE RESPONSABILITÉ POUR LES DOMMAGES. VVous pouvez obtenir de Microsoft et de ses fournisseurs une indemnisation en cas de dommages directs uniquement à hauteur de 5,00 $ US. Vous ne pouvez prétendre à aucune indemnisation pour les autres dommages, y compris les dommages spéciaux, indirects ou accessoires et pertes de bénéfices.
+
+Cette limitation concerne:
+
+* tout ce qui est relié au logiciel, aux services ou au contenu (y compris le code) figurant sur des sites Internet tiers ou dans des programmes tiers ; et
+
+* les réclamations au titre de violation de contrat ou de garantie, ou au titre de responsabilité stricte, de négligence ou d ’ une autre faute dans la limite autorisée par la loi en vigueur.
+
+Elle s ’ applique également, même si Microsoft connaissait ou devrait connaître l’éventualité d’un tel dommage. Si votre pays n’autorise pas l’exclusion ou la limitation de responsabilité pour les dommages indirects, accessoires ou de quelque nature que ce soit, il se peut que la limitation ou l’exclusion ci-dessus ne s’appliquera pas à votre égard..
+
+EFFET JURIDIQUE. Le présent contrat décrit certains droits juridiques. Vous pourriez avoir d’autres droits prévus par les lois de votre pays. Le présent contrat ne modifie pas les droits que vous confèrent les lois de votre pays si celles-ci ne le permettent pas.
+
+This document has been composed with the online HTML editor. Use the online visual HTML editor will help you a lot while you are working on your articles.
 
 ## Microsoft VB 101 Sample License
 Microsoft.SqlServer.Types 14.0.1016.290
 
-IMPORTANT-READ CAREFULLY: This End-User License Agreement ("EULA") is a legal agreement between you (either an individual or a single entity) and Microsoft Corporation for the Microsoft software that accompanies this EULA, which includes computer software and may include associated media, printed materials, "online" or electronic documentation, and Internet-based services ("Software"). An amendment or addendum to this EULA may accompany the Software. YOU AGREE TO BE BOUND BY THE TERMS OF
-THIS EULA BY INSTALLING, COPYING, OR OTHERWISE USING THE SOFTWARE. IF YOU DO NOT AGREE, DO NOT INSTALL, COPY, OR USE THE SOFTWARE.
+IMPORTANT-READ CAREFULLY: This End-User License Agreement ("EULA") is a legal agreement between you (either an individual or a single entity) and Microsoft Corporation for the Microsoft software that accompanies this EULA, which includes computer software and may include associated media, printed materials, "online" or electronic documentation, and Internet-based services ("Software"). An amendment or addendum to this EULA may accompany the Software. YOU AGREE TO BE BOUND BY THE TERMS OF THIS EULA BY INSTALLING, COPYING, OR OTHERWISE USING THE SOFTWARE. IF YOU DO NOT AGREE, DO NOT INSTALL, COPY, OR USE THE SOFTWARE.
 
 1. GRANT OF LICENSE. Microsoft grants you the following rights provided that you comply with all terms and conditions of this EULA:
 
@@ -248,7 +242,6 @@ Microsoft reserves all rights not expressly granted.
 i. not incorporating Identified Software into, or combining Identified Software with, the MS Samples or a derivative work thereof; and 
 
 ii. not distributing Identified Software in conjunction with the MS
-
 
 Samples or a derivative work thereof. "Identified Software" means software which is licensed pursuant to terms that directly or indirectly
 
@@ -295,30 +288,20 @@ by you for the Software or U.S.$5.00. The foregoing limitations, exclusions and 
 
 * APPLICABLE LAW. If you acquired this Software in the United States, this EULA is governed by the laws of the State of Washington. If you acquired this Software in Canada, unless expressly prohibited by local law, this EULA is governed by the laws in force in the Province of Ontario, Canada; and, in respect of any dispute which may arise here under, you consent to the jurisdiction of the federal and provincial courts sitting in Toronto, Ontario. If you acquired this Software in the European Union, Iceland, Norway, or Switzerland, then local law applies. If you acquired this Software in any other country, then local law may apply.
 
-* ENTIRE AGREEMENT; SEVERABILITY. This EULA (including any addendum
-or amendment to this EULA which is included with the Software) are the entire agreement between you and Microsoft relating to the Software and the support services (if any) and they supersede all prior or contemporaneous oral or written communications, proposals and representations with respect to the Software or any other subject matter covered by this EULA. To the extent the terms of any Microsoft policies or programs for support services conflict with the terms of this EULA, the terms of this EULA shall control. If any provision of this EULA is held to be void, invalid, unenforceable or illegal, the other provisions shall continue in full force and effect.
+* ENTIRE AGREEMENT; SEVERABILITY. This EULA (including any addendum or amendment to this EULA which is included with the Software) are the entire agreement between you and Microsoft relating to the Software and the support services (if any) and they supersede all prior or contemporaneous oral or written communications, proposals and representations with respect to the Software or any other subject matter covered by this EULA. To the extent the terms of any Microsoft policies or programs for support services conflict with the terms of this EULA, the terms of this EULA shall control. If any provision of this EULA is held to be void, invalid, unenforceable or illegal, the other provisions shall continue in full force and effect.
 
 Si vous avez acquis votre logiciel Microsoft au CANADA :
 
-DENI DE GARANTIES. Dans la mesure maximale permise par les lois applicables, le Logiciel et les services de soutien technique (le cas echeant) sont fournis TELS QUELS ET AVEC TOUS LES DEFAUTS par Microsoft et ses fournisseurs, lesquels par les presentes denient toutes autres garanties et conditions expresses, implicites ou en vertu de la loi, notamment, mais sans limitation, (le cas echeant) les garanties, devoirs ou conditions implicites de qualite marchande, dadaptation a une fin usage particulieere, de fiabilite ou de disponibilite, dexactitude ou dexhaustivite des reponses, des resultats, des efforts deployes selon les regles de lart, dabsence de virus et dabsence de negligence, le tout a legard du Logiciel et de la prestation des services de soutien technique ou de lomission de la une telle prestation
-des services de soutien technique ou a legard de la fourniture ou de lomission de la fourniture de tous autres services, renseignements, logiciels, et contenu qui sy rapporte grace au Logiciel ou provenant
-autrement de lutilisation du Logiciel. PAR AILLEURS, IL NY A AUCUNE GARANTIE OU CONDITION QUANT AU TITRE DE PROPRIETE, A LA JOUISSANCE OU LA POSSESSION PAISIBLE, A LA CONCORDANCE A UNE DESCRIPTION NI QUANT A UNE ABSENCE DE CONTREFACON CONCERNANT LE LOGICIEL.
+DENI DE GARANTIES. Dans la mesure maximale permise par les lois applicables, le Logiciel et les services de soutien technique (le cas echeant) sont fournis TELS QUELS ET AVEC TOUS LES DEFAUTS par Microsoft et ses fournisseurs, lesquels par les presentes denient toutes autres garanties et conditions expresses, implicites ou en vertu de la loi, notamment, mais sans limitation, (le cas echeant) les garanties, devoirs ou conditions implicites de qualite marchande, dadaptation a une fin usage particulieere, de fiabilite ou de disponibilite, dexactitude ou dexhaustivite des reponses, des resultats, des efforts deployes selon les regles de lart, dabsence de virus et dabsence de negligence, le tout a legard du Logiciel et de la prestation des services de soutien technique ou de lomission de la une telle prestation des services de soutien technique ou a legard de la fourniture ou de lomission de la fourniture de tous autres services, renseignements, logiciels, et contenu qui sy rapporte grace au Logiciel ou provenant autrement de lutilisation du Logiciel. PAR AILLEURS, IL NY A AUCUNE GARANTIE OU CONDITION QUANT AU TITRE DE PROPRIETE, A LA JOUISSANCE OU LA POSSESSION PAISIBLE, A LA CONCORDANCE A UNE DESCRIPTION NI QUANT A UNE ABSENCE DE CONTREFACON CONCERNANT LE LOGICIEL.
 
-EXCLUSION DES DOMMAGES ACCESSOIRES, INDIRECTS ET DE CERTAINS AUTRES
-DOMMAGES. DANS LA MESURE MAXIMALE PERMISE PAR LES LOIS APPLICABLES, EN AUCUN CAS MICROSOFT OU SES FOURNISSEURS NE SERONT RESPONSABLES DES DOMMAGES SPECIAUX, CONSECUTIFS, ACCESSOIRES OU INDIRECTS DE QUELQUE NATURE QUE CE SOIT (NOTAMMENT, LES DOMMAGES A LEGARD DU MANQUE A GAGNER OU DE LA DIVULGATION DE RENSEIGNEMENTS CONFIDENTIELS OU AUTRES, DE LA PERTE DEXPLOITATION, DE BLESSURES CORPORELLES, DE LA VIOLATION DE LA VIE PRIVEE, DE LOMISSION DE REMPLIR TOUT DEVOIR, Y COMPRIS DAGIR DE BONNE FOI OU DEXERCER UN SOIN RAISONNABLE, DE LA NEGLIGENCE ET DE TOUTE AUTRE PERTE PECUNIAIRE OU AUTRE PERTE DE QUELQUE NATURE QUE CE SOIT) SE RAPPORTANT DE QUELQUE MANIERE QUE CE SOIT A LUTILISATION DU LOGICIEL OU A LINCAPACITE DE SEN SERVIR, A LA PRESTATION OU A LOMISSION DE LA UNE TELLE PRESTATION DE SERVICES DE SOUTIEN TECHNIQUE OU A LA FOURNITURE OU A LOMISSION DE LA FOURNITURE DE TOUS AUTRES SERVICES, RENSEIGNEMENTS, LOGICIELS, ET CONTENU QUI SY RAPPORTE GRACE AU LOGICIEL OU PROVENANT AUTREMENT DE LUTILISATION DU LOGICIEL OU AUTREMENT AUX TERMES DE TOUTE DISPOSITION DE LA U PRESENTE CONVENTION EULA OU RELATIVEMENT A UNE TELLE DISPOSITION, MEME EN CAS DE FAUTE, DE DELIT CIVIL (Y COMPRIS LA
-NEGLIGENCE), DE RESPONSABILITE STRICTE, DE VIOLATION DE CONTRAT OU DE
-VIOLATION DE GARANTIE DE MICROSOFT OU DE TOUT FOURNISSEUR ET MEME SI
-MICROSOFT OU TOUT FOURNISSEUR A ETE AVISE DE LA POSSIBILITE DE TELS
-DOMMAGES. LIMITATION DE RESPONSABILITE ET RECOURS. MALGRE LES DOMMAGES QUE VOUS PUISSIEZ SUBIR POUR QUELQUE MOTIF QUE CE SOIT (NOTAMMENT, MAIS SANS LIMITATION, TOUS LES DOMMAGES SUSMENTIONNES ET TOUS LES DOMMAGES DIRECTS OU GENERAUX OU AUTRES), LA SEULE RESPONSABILITE OBLIGATION INTEGRALE DE MICROSOFT ET DE LUN OU LAUTRE DE SES FOURNISSEURS AUX TERMES DE TOUTE DISPOSITION DEU LA PRESENTE CONVENTION EULA ET VOTRE RECOURS EXCLUSIF A LEGARD DE TOUT CE QUI PRECEDE SE LIMITE AU PLUS ELEVE ENTRE LES MONTANTS SUIVANTS : LE MONTANT QUE VOUS AVEZ REELLEMENT PAYE POUR LE LOGICIEL OU 5, $US. LES LIMITES, EXCLUSIONS ET DENIS QUI PRECEDENT (Y COMPRIS LES CLAUSES CI- DESSUS), SAPPLIQUENT DANS LA MESURE MAXIMALE PERMISE PAR LES LOIS APPLICABLES, MEME SI TOUT RECOURS NATTEINT PAS SON BUT ESSENTIEL.
+EXCLUSION DES DOMMAGES ACCESSOIRES, INDIRECTS ET DE CERTAINS AUTRES DOMMAGES. DANS LA MESURE MAXIMALE PERMISE PAR LES LOIS APPLICABLES, EN AUCUN CAS MICROSOFT OU SES FOURNISSEURS NE SERONT RESPONSABLES DES DOMMAGES SPECIAUX, CONSECUTIFS, ACCESSOIRES OU INDIRECTS DE QUELQUE NATURE QUE CE SOIT (NOTAMMENT, LES DOMMAGES A LEGARD DU MANQUE A GAGNER OU DE LA DIVULGATION DE RENSEIGNEMENTS CONFIDENTIELS OU AUTRES, DE LA PERTE DEXPLOITATION, DE BLESSURES CORPORELLES, DE LA VIOLATION DE LA VIE PRIVEE, DE LOMISSION DE REMPLIR TOUT DEVOIR, Y COMPRIS DAGIR DE BONNE FOI OU DEXERCER UN SOIN RAISONNABLE, DE LA NEGLIGENCE ET DE TOUTE AUTRE PERTE PECUNIAIRE OU AUTRE PERTE DE QUELQUE NATURE QUE CE SOIT) SE RAPPORTANT DE QUELQUE MANIERE QUE CE SOIT A LUTILISATION DU LOGICIEL OU A LINCAPACITE DE SEN SERVIR, A LA PRESTATION OU A LOMISSION DE LA UNE TELLE PRESTATION DE SERVICES DE SOUTIEN TECHNIQUE OU A LA FOURNITURE OU A LOMISSION DE LA FOURNITURE DE TOUS AUTRES SERVICES, RENSEIGNEMENTS, LOGICIELS, ET CONTENU QUI SY RAPPORTE GRACE AU LOGICIEL OU PROVENANT AUTREMENT DE LUTILISATION DU LOGICIEL OU AUTREMENT AUX TERMES DE TOUTE DISPOSITION DE LA U PRESENTE CONVENTION EULA OU RELATIVEMENT A UNE TELLE DISPOSITION, MEME EN CAS DE FAUTE, DE DELIT CIVIL (Y COMPRIS LA NEGLIGENCE), DE RESPONSABILITE STRICTE, DE VIOLATION DE CONTRAT OU DE VIOLATION DE GARANTIE DE MICROSOFT OU DE TOUT FOURNISSEUR ET MEME SI MICROSOFT OU TOUT FOURNISSEUR A ETE AVISE DE LA POSSIBILITE DE TELS DOMMAGES. LIMITATION DE RESPONSABILITE ET RECOURS. MALGRE LES DOMMAGES QUE VOUS PUISSIEZ SUBIR POUR QUELQUE MOTIF QUE CE SOIT (NOTAMMENT, MAIS SANS LIMITATION, TOUS LES DOMMAGES SUSMENTIONNES ET TOUS LES DOMMAGES DIRECTS OU GENERAUX OU AUTRES), LA SEULE RESPONSABILITE OBLIGATION INTEGRALE DE MICROSOFT ET DE LUN OU LAUTRE DE SES FOURNISSEURS AUX TERMES DE TOUTE DISPOSITION DEU LA PRESENTE CONVENTION EULA ET VOTRE RECOURS EXCLUSIF A LEGARD DE TOUT CE QUI PRECEDE SE LIMITE AU PLUS ELEVE ENTRE LES MONTANTS SUIVANTS : LE MONTANT QUE VOUS AVEZ REELLEMENT PAYE POUR LE LOGICIEL OU 5, $US. LES LIMITES, EXCLUSIONS ET DENIS QUI PRECEDENT (Y COMPRIS LES CLAUSES CI- DESSUS), SAPPLIQUENT DANS LA MESURE MAXIMALE PERMISE PAR LES LOIS APPLICABLES, MEME SI TOUT RECOURS NATTEINT PAS SON BUT ESSENTIEL.
 
-A moins que cela ne soit prohibe par le droit local applicable, la presente Convention est regie par les lois de la province dOntario, Canada. Vous consentez Chacune des parties a la presente reconnait
-irrevocablement a la competence des tribunaux federaux et provinciaux siegeant a Toronto, dans de la province dOntario et consent a instituer tout litige qui pourrait decouler de la presente aupres des tribunaux situes dans le district judiciaire de York, province dOntario.
+A moins que cela ne soit prohibe par le droit local applicable, la presente Convention est regie par les lois de la province dOntario, Canada. Vous consentez Chacune des parties a la presente reconnait irrevocablement a la competence des tribunaux federaux et provinciaux siegeant a Toronto, dans de la province dOntario et consent a instituer tout litige qui pourrait decouler de la presente aupres des tribunaux situes dans le district judiciaire de York, province dOntario.
 
 
-Au cas ou vous auriez des questions concernant cette licence ou que vous desiriez vous mettre en rapport avec Microsoft pour quelque raison que ce soit, veuillez utiliser linformation contenue dans le Logiciel
-pour contacter la filiale de succursale Microsoft desservant votre pays, dont ladresse est fournie dans ce produit, ou visitez ecrivez a : Microsoft sur le World Wide Web a [http://www.microsoft.com](http://www.microsoft.com) Sales Information Center, One Microsoft Way, Redmond, Washington 98052-6399.
+Au cas ou vous auriez des questions concernant cette licence ou que vous desiriez vous mettre en rapport avec Microsoft pour quelque raison que ce soit, veuillez utiliser linformation contenue dans le Logiciel pour contacter la filiale de succursale Microsoft desservant votre pays, dont ladresse est fournie dans ce produit, ou visitez ecrivez a : Microsoft sur le World Wide Web a [http://www.microsoft.com](http://www.microsoft.com) Sales Information Center, One Microsoft Way, Redmond, Washington 98052-6399.
 
-# MIT License 
+## MIT License 
 System.Security.SecureString 4.3.0
 
 1. .NET Core (https://github.com/dotnet/core/)
@@ -337,34 +320,99 @@ the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
 
-# MIT License
-Active Directory Authentication Library 3.17.3
+## MIT License
+Active Directory Authentication Library 3.19.8
 
 MIT License
 
 Copyright (c) Microsoft Corporation
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
-to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
 
-
-# MIT License
-Azure Quickstart Templates master-21081220, Azure/AzureStack-QuickStart-Templates 20180619-snapshot-665a4c4e, Client Runtime for Microsoft Azure Libraries 3.3.1, Client Runtime Library for Microsoft AutoRest Generated Clients 2.3.2, Microsoft Azure Key Vault Library 2.0.6, Microsoft Azure Key Vault WebKey 2.0.4, Microsoft PowerShell 2.8.0.0-PSGallery, Microsoft PowerShell 1.4.0.0-PSGallery, Microsoft PowerShell 2.6.0.0-PSGallery, Microsoft PowerShell 2.8.0.0-PSGallery, Microsoft PowerShell 3.0.0.0-PSGallery, Microsoft PowerShell 4.1.0.0-PSGallery, mspnp/reference-architectures master-20181224, PowerShell/SqlServer/SqlServerDsc 13.0.0.0-PSGallery
+## MIT License
+Azure Quickstart Templates 0.0.0.4, Client Runtime for Microsoft Azure Libraries 3.3.1, Client Runtime Library for Microsoft AutoRest Generated Clients 2.3.2, Microsoft Azure Key Vault Library 2.0.6, Microsoft Azure Key Vault WebKey 2.0.4
 
 The MIT License
 ===============
 
-Copyright (c) 2020 Microsoft Corporation
+Copyright (c) Microsoft Corporation
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
-to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## MIT License
+Microsoft PowerShell 2.8.0.0-PSGallery
+
+The MIT License
+===============
+
+Copyright (c) 2015 Michael Greene
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## MIT License
+Microsoft PowerShell 3.0.0.0-PSGallery
+
+The MIT License
+===============
+
+Copyright (c) 2017 Microsoft Corporation.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## MIT License
+Azure/AzureStack-QuickStart-Templates 20180619-snapshot-665a4c4e
+
+The MIT License
+===============
+
+Copyright (c) 2018 Microsoft Corporation.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## MIT License
+Microsoft PowerShell 1.15.0, Microsoft PowerShell 1.4.0.0-PSGallery
+
+The MIT License
+===============
+
+Copyright (c) 2015 Microsoft Corporation.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## MIT License
+Microsoft PowerShell 4.1.0.0-PSGallery
+
+The MIT License
+===============
+
+Copyright (c) 2018 Microsoft Corporation.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

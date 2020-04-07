@@ -123,7 +123,13 @@ Appropriate licensing for SQL Server is essential for a successful deployment.
 For more information on this, see the Costs and licenses section of [SQL Server on AWS](https://aws.amazon.com/quickstart/architecture/sql/).
 
 ### Step 3: Set Up the Deployment Sample Code
-To deploy the OSIsoft PI System Deployment Sample for AWS, you will need to download and stage the associated modules, scripts, and AWS CloudFormation templates which are available in the [OSIsoft GitHub repository](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Samples/AWS).
+To deploy the OSIsoft PI System Deployment Sample for AWS, you will need to download and stage the associated modules.
+
+Download and extract the deployment sample files:
+1. Go to the [OSIsoft GitHub repository for PI System Deployment Samples](https://github.com/osisoft/OSI-Samples-PI-System).
+2. Click **Clone or Download** and then **Download Zip** to download the contents of this GitHub repository, and select the target location on your local machine.
+3. Extract the **PI-System-Deployment-Samples** folder to your local machine.
+4. After extracting the repository to a local folder, navigate to <extraction folder>\OSI-Samples-PI-System-master\PI-System-Deployment-Samples\AWS.
 
 Your PI System on AWS deployment is based on the AWS stack. A stack is the collection of the AWS resources associated with a PI System deployment. 
 
@@ -142,10 +148,10 @@ These files and folders must be stored in an S3 bucket in your AWS account for t
 1.	Click **Storage** > **S3** on the [Amazon S3 console](https://s3.console.aws.amazon.com/s3/) to access the list of S3 buckets for your AWS account.
 2.	Click **Create bucket** to create an S3 bucket and name it with a *BucketName*, such as `s3bucket-osideploymentsamples-username`. For instructions, see the [Amazon S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html). Record the *BucketName*. You will need it when filling out the AWS template. Take care as *BucketName* is case-sensitive!
 2. Click **Create folder** to create a folder in this bucket and name it with a *FolderName* such as `DeploymentSample` into which you will upload the files. Record the *FolderName*. You will need it when filling out the AWS template.
-3. Separately, browse onto the OSIsoft GitHub repository for AWS [here](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Samples/AWS).
-4. Click **Download as Zip** to download the contents of this GitHub repository, and select the target location on your local machine. 
-5. Extract the contents of this zip file onto your local machine. Take note of this location as you will need to upload a local copy of the `DSMasterStack.template` in the `template` folder in a later step. 
-5. Upload the extracted contents into the newly-created folder in your S3 bucket. 
+3. Separately, browse onto the OSIsoft GitHub repository for AWS [here](https://github.com/osisoft/OSI-Samples-PI-System).
+4. Click **Clone or download** and then **Download as Zip** to download the contents of this GitHub repository, and select the target location on your local machine. 
+5. Extract the contents of this zip file onto your local machine. Take note of the **PI-System-Deployment-Samples/AWS** folder location as you will need to upload a local copy of the `DSMasterStack.template` in the `template` folder in a later step. 
+5. Upload the extracted contents in the **PI-System-Deployment-Samples/AWS** folder into the newly-created folder in your S3 bucket. 
    
    > **TIP:** Some users who have adblock extensions installed on their browser have reported errors when uploading the Active Directory scripts. Temporarily disabling the adblock extension fixes this problem. 
    
@@ -175,7 +181,7 @@ The following sections describe the process for finding and staging these files.
 
 The deployment sample must have access to the aforementioned files in an S3 bucket in your AWS account.
 
->**Note:** Ensure you download and use the exact version of the PI Server (PI Server 2018 SP3) and PI Vision (PI Vision 2019) install kits described in this guide!
+>**Note:** Ensure you download and use the exact version of the PI Server (PI Server 2018 SP3 Patch 1) and PI Vision (PI Vision 2019 Patch 1) install kits described in this guide!
 
 #### Create PI Install Folders in the S3 Bucket
 1.	From the [Amazon Management Console](https://console.aws.amazon.com/), click **Storage** > **S3**.
@@ -187,8 +193,8 @@ The deployment sample must have access to the aforementioned files in an S3 buck
 
 #### Download and Stage the PI Server Install Kit and Temporary License File
 1. From the **Products** page on the OSIsoft [Customer Portal](https://my.osisoft.com), click on the product row for **PI Server**.
-2. Click the **ALL VERSIONS** tab to display the **PI Server 2018 SP3** version of PI Server.
-3. On the row corresponding to the **PI Server 2018 SP3** version of the install kit, click **Download** to display the **License and Service Agreements** page.
+2. Click the **ALL VERSIONS** tab to display the **PI Server 2018 SP3 Patch 1** version of PI Server.
+3. On the row corresponding to the **PI Server 2018 SP3 Patch 1** version of the install kit, click **Download** to display the **License and Service Agreements** page.
 4. Agree to the **OSIsoft, LLC. (“OSIsoft”) Software License and Services Agreement** and click
 **Download**
 5. When prompted to run or save the executable setup file, click **Save** and click **OK**.
@@ -197,16 +203,18 @@ The deployment sample must have access to the aforementioned files in an S3 buck
 
 #### Download and Stage the PI Vision Install Kit
 1. From the **Products** page on the OSIsoft [Customer Portal](https://my.osisoft.com), click on the product row for **PI Vision**.
-2. Select the  **ALL VERSIONS** tab to display the **PI Vision 2019** version of PI Vision.
-3. On the row corresponding to the **PI Vision 2019** version of the install kit, click **Download** to display the **License and Service Agreements** page.
+2. Select the  **ALL VERSIONS** tab to display the **PI Vision 2019 Patch 1** version of PI Vision.
+3. On the row corresponding to the **PI Vision 2019 Patch 1** version of the install kit, click **Download** to display the **License and Service Agreements** page.
 4. Agree to the **OSIsoft, LLC. (“OSIsoft”) Software License and Services Agreement** and click **Download**.
 5. When prompted to run or save the executable setup file, click **Save** and click **OK**.
 6. Upload your PI Vision installer into the `PIVision` folder.
 
 #### Download and Stage PI System Deployment Tests File
-1. Go to the OSIsoft GitHub repository for PI System Deployment Tests at this [page](https://github.com/osisoft/OSI-Samples-PI-System/tree/master/PI-System-Deployment-Tests).
-2. Click **Download as Zip** to download the contents of this GitHub repository onto your local machine as a zip file. The deployment samples will configure and run the deployment tests for your environment.
-3. Upload this zip file into the *SetupKitsFolderName* folder in your S3 bucket on the [Amazon Management Console](https://s3.console.aws.amazon.com/s3/). 
+1. Go to the OSIsoft GitHub repository for PI System Deployment Samples at this [page](https://github.com/osisoft/OSI-Samples-PI-System).
+2. Click **Clone or Download** and then **Download Zip** to download the contents of this GitHub repository onto your local machine as a zip file. The deployment samples will configure and run the deployment tests for your environment.
+3. Extract the **PI-System-Deployment-Tests** folder to your local machine.
+4. Create a new zip file from the PI-System-Deployment-Tests folder.  The filename should be PI-System-Deployment-Tests.zip.
+5. Upload this zip file into the *SetupKitsFolderName* folder in your S3 bucket on the [Amazon Management Console](https://s3.console.aws.amazon.com/s3/). 
 
 #### Verify your S3 Bucket
 Verify that your bucket has a hierarchy with the files and folders matching the following:
@@ -216,10 +224,10 @@ Verify that your bucket has a hierarchy with the files and folders matching the 
 |--> <SetupKitsFolderName>
    |--> PIServer
       |--> pilicense.dat
-      |--> PI Server_2018 SP3_.exe
+      |--> PI Server_2018 SP3 Patch 1_.exe
    |--> PIVision
-      |--> PI-Vision_2019.exe
-   |--> PI-System-Deployment-Tests-master.zip
+      |--> PI Vision_2019 Patch 1_.exe
+   |--> PI-System-Deployment-Tests.zip
 ```
 ### Step 5: Launch the Deployment Sample
 Launch PI System Deployment Sample for AWS to deploy PI System into your AWS environment.
@@ -299,10 +307,10 @@ DSS3BucketRegion | us-west-1 | Region for Deployment Samples S3 Bucket. Used in 
 SetupKitsS3BucketName | *Requires Input* | S3 bucket name for the Setup Kit assets. This contains the install media for a PI System. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
 SetupKitsS3KeyPrefix | osisetupkits | Setup Kits key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.
 SetupKitsS3BucketRegion | us-west-1 | Region for Setup Kits S3 Bucket. Used in S3 URL
-SetupKitsS3PIFileName | PI Server_2018 SP3_.exe | File Name for the PI Server Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
-SetupKitsS3PIProductID | 04a352f8-8231-4fe7-87cb-68b69becc145 | Product ID for the PI Server Setup Kit. Product ID can include numbers, lowercase letters, uppercase letters,and hyphens (-). It cannot start or end with a hyphen (-). This should not be modified.
-SetupKitsS3VisionFileName | PI_Vision_2019_.exe | File Name for the PI Vision Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
-TestFileName | PI-System-Deployment-Tests-master.zip | File Name for the test file. This should be the same as the downloaded zip file (ex: *PI-System-Deployment-Tests-master.zip*). File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
+SetupKitsS3PIFileName | PI Server_2018 SP3 Patch 1_.exe | File Name for the PI Server Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
+SetupKitsS3PIProductID | d47af9e0-e952-4068-b77b-52e5b4cf03b7 | Product ID for the PI Server Setup Kit. Product ID can include numbers, lowercase letters, uppercase letters,and hyphens (-). It cannot start or end with a hyphen (-). This should not be modified.
+SetupKitsS3VisionFileName | PI Vision_2019 Patch 1_.exe | File Name for the PI Vision Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
+TestFileName | PI-System-Deployment-Tests.zip | File Name for the test file. This should be the same as the downloaded zip file (ex: *PI-System-Deployment-Tests.zip*). File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
 
 ### Step 6: Replace the Temporary PI License with a Full PI License
 In order to deploy a PI System on AWS using the deployment samples, a temporary PI license was used in the AWS stack. 
