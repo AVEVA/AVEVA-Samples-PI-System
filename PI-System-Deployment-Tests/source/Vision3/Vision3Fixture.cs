@@ -319,6 +319,34 @@ namespace OSIsoft.PISystemDeploymentTests
         }
 
         /// <summary>
+        /// Get permissions for a folder from server.
+        /// </summary>
+        /// <param name="folderId">Id of the folder to get permissions.</param>
+        /// <returns>Task representing the asynchronous operation.</returns>
+        internal async System.Threading.Tasks.Task<HttpResponseMessage> GetFolderPermissions(string folderId)
+        {
+            if (VerificationToken == null)
+            {
+                using (await GetVerificationToken().ConfigureAwait(false)) { }
+            }
+
+            using (var httpRequestMessage = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(Client.BaseAddress + "Navigation/FolderPermissions?elementId=" + folderId),
+                Headers =
+                {
+                    { HttpRequestHeader.Accept.ToString(), "application/json" },
+                    { "X-Requested-With", "XMLHttpRequest" },
+                    { RequestVerificationTokenKeyword, VerificationToken },
+                },
+            })
+            {
+                return await Client.SendAsync(httpRequestMessage).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Find Id of test folder or create it if it doesn't exist.
         /// </summary>
         /// <returns>Task representing the asynchronous operation.</returns>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using OSIsoft.AF;
 using OSIsoft.AF.Asset;
@@ -116,6 +117,32 @@ namespace OSIsoft.PISystemDeploymentTests
             finally
             {
                 Fixture.RemoveElementIfExists(RootElementName, Output);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that the .NET 3.5 AFSDK is not installed.
+        /// </summary>
+        /// <remarks>
+        /// Checks in the GAC to see if the .NET 3.5 AFSDK is installed and fails if it is. The .NET 4.0 AFSDK should be used instead.
+        /// Action: Remove "PI Asset Framework (AF) Client .NET 3.5"
+        /// The issue is rated high based on CVSS version 3.1 scoring. 
+        /// </remarks>
+        [Fact]
+        public void Check35AFSDK()
+        {
+            string gacPath = $@"{Environment.GetFolderPath(Environment.SpecialFolder.Windows)}\assembly\GAC_MSIL";
+            if (Directory.Exists($@"{gacPath}\OSIsoft.AFSDK"))
+            {
+                try
+                {
+                    Assert.Empty(Directory.GetFiles(gacPath, "OSIsoft.AFSDK.dll", SearchOption.AllDirectories));
+                }
+                catch
+                {
+                    Output.WriteLine("High Security Warning! The .NET 3.5 AFSDK is installed but the .NET 4.0 AFSDK should be used instead! ");
+                    throw;
+                }
             }
         }
 
@@ -736,14 +763,29 @@ namespace OSIsoft.PISystemDeploymentTests
         }
 
         /// <summary>
-        /// Tests to see if the current patch is applied
+        /// Tests to see if the current patch of the PI AF Server is applied
         /// </summary>
         /// <remarks>
-        /// Skips if the current patch is not applied with a message telling the user to upgrade
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
         /// </remarks>
-        [AFFact(AFTestCondition.CURRENTPATCH)]
-        public void HaveLatestPatch()
-        {  
+        [Fact]
+        public void HaveLatestPatchAFServer()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.AFSERVERCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
+        /// Tests to see if the current patch of the PI AF Client is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchAFClient()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.AFCLIENTCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
         }
 
         /// <summary>

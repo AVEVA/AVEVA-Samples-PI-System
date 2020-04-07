@@ -50,6 +50,19 @@ namespace OSIsoft.PISystemDeploymentTests
         private AFPlugIn WebServicePlugIn => PISystem.DeliveryChannelPlugIns[NotificationsFixture.WebServicePlugInName];
 
         /// <summary>
+        /// Tests to see if the current patch of PI Notifications is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchNotifications()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.NOTIFICATIONSCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
         /// Test email and web service PlugIns are loaded properly.
         /// </summary>
         /// <remarks>

@@ -45,6 +45,19 @@ namespace OSIsoft.PISystemDeploymentTests
         private ITestOutputHelper Output { get; }
 
         /// <summary>
+        /// Tests to see if the current patch of PI Web API is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchWebAPI()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.PIWEBAPICURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
         /// Verifies the PI Web API configuration element is in a good state.
         /// </summary>
         /// <remarks>

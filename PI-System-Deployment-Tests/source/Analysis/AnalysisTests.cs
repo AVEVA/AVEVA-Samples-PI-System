@@ -45,6 +45,19 @@ namespace OSIsoft.PISystemDeploymentTests
         private ITestOutputHelper Output { get; }
 
         /// <summary>
+        /// Tests to see if the current patch of PI Analysis is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchAnalysis()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.ANALYSISCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
         /// Exercises Analysis Object by doing a Create, Read, Update and Delete operations.
         /// </summary>
         /// <remarks>

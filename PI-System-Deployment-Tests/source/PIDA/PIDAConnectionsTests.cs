@@ -35,12 +35,12 @@ namespace OSIsoft.PISystemDeploymentTests
         /// Exercises windows mappings connection.
         /// </summary>
         /// <remarks>
-        /// This test requires that the user running the test should have their windows identity
-        /// mapped to piadmins before running the test.
+        /// This test requires that the user running the test should have a windows identity
+        /// mapped to a PI Identity.
         /// <para>Test Steps:</para>
         /// <para>Disconnect PI Server</para>
         /// <para>Connect to PI Server again</para>
-        /// <para>Check that piadmins is one of the user identities for this connection</para>
+        /// <para>Check that a PI Identity is used by user for this connection</para>
         /// <para>Check logs for the windows login</para>
         /// </remarks>
         [Fact]
@@ -64,21 +64,15 @@ namespace OSIsoft.PISystemDeploymentTests
             string endTimePI = PIDAUtilities.ToPiTimeString(endTime.LocalTime);
             int expectedMsgID = 7082;
 
-            Output.WriteLine($"Check if {PIFixture.RequiredPIIdentity} is one of the user identities.");
+            Output.WriteLine($"Check if user is logged in through Windows Login.");
             AssertEventually.True(() =>
-                {
-                    // The test server is expected to have a mapping for the user running the tests mapped to piadmins.
-                    // check piadmins identity is in the list
-                    // Then we check if the Windows Login method is used
-                    IList<PIIdentity> myCurrentList = Fixture.PIServer.CurrentUserIdentities;
-                    myCurrentList.Single(x => x.Name.Equals(PIFixture.RequiredPIIdentity, StringComparison.OrdinalIgnoreCase));
-
-                    // Checks for windows login five times
-                    return PIDAUtilities.FindMessagesInLog(Fixture, startTimePI, endTimePI, expectedMsgID, "*Method: Windows Login*");
-                },
-                TimeSpan.FromSeconds(15),
-                TimeSpan.FromSeconds(3),
-                "Windows login not found.");
+            {
+                // Checks for windows login five times
+                return PIDAUtilities.FindMessagesInLog(Fixture, startTimePI, endTimePI, expectedMsgID, "*Method: Windows Login*");
+            },
+            TimeSpan.FromSeconds(15),
+            TimeSpan.FromSeconds(3),
+            "Windows login not found.");
         }
     }
 }

@@ -15,15 +15,7 @@ namespace OSIsoft.PISystemDeploymentTests
         {
             _serviceObject = serviceObject ?? throw new ArgumentNullException(nameof(serviceObject));
             _serviceInterface = serviceInterface ?? throw new ArgumentNullException(nameof(serviceInterface));
-
-            UseExactMatchForLocalhost = true;
         }
-
-        /// <summary>
-        /// Allows localhost to be an exact match which does not require admin to register the endpoint,
-        /// however it will only expose the endpoint locally.
-        /// </summary>
-        public bool UseExactMatchForLocalhost { get; set; }
 
         public void Start(string serviceName, string serviceUri)
         {
@@ -33,25 +25,10 @@ namespace OSIsoft.PISystemDeploymentTests
             }
 
             var uri = new Uri(serviceUri);
-            Binding binding;
-            if (uri.Scheme == Uri.UriSchemeHttp)
-            {
-                BasicHttpBinding httpBinding;
 
-                httpBinding = new BasicHttpBinding();
-
-                if (uri.IsLoopback && UseExactMatchForLocalhost)
-                {
-                    // This allows us to open without any special admin permission for localhost.
-                    httpBinding.HostNameComparisonMode = HostNameComparisonMode.Exact;
-                }
-
-                binding = httpBinding;
-            }
-            else
-            {
-                throw new ArgumentException($"Scheme '{uri.Scheme}' is not supported.", nameof(serviceUri));
-            }
+            var binding = uri.Scheme == Uri.UriSchemeHttp
+                ? new BasicHttpBinding()
+                : throw new ArgumentException($"Scheme '{uri.Scheme}' is not supported.", nameof(serviceUri));
 
             _host = new ServiceHost(_serviceObject);
             _host.AddServiceEndpoint(_serviceInterface, binding, uri);

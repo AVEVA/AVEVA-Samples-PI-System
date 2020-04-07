@@ -395,12 +395,12 @@ namespace OSIsoft.PISystemDeploymentTests
         }
 
         /// <summary>
-        /// Tests to see if the 2.10.7 patch was correctly applied
+        /// Tests to see if the PI AF Client 2.10.7 patch was correctly applied
         /// </summary>
         /// <remarks>
-        /// Checks the server rpc calls to verify the 2.10.7 patch was correctly applied
+        /// Checks the server rpc calls to verify the PI AF Client 2.10.7 patch was correctly applied
         /// </remarks>
-        [AFFact(AFTestCondition.PATCH2107)]
+        [GenericFact(TestCondition.AFPATCH2107, false)]
         public void EventFrameAFSDK2018SP3Patch1Check()
         {
             AFEventFrame ef = null;

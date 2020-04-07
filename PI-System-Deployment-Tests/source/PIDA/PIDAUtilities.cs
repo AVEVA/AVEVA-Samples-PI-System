@@ -92,8 +92,7 @@ namespace OSIsoft.PISystemDeploymentTests
             // For now this code only supports the Windows Active Directory option.
             // To support other options we can add additional information to the App.config and add the logic in here.
             // For the remoting to work with the Windows option you will need to create a Mapping on the target PI Server.
-            // Map the domain user that is logged into the client computer and is running the tests to "piadmin".
-            // The piadmin level is required since we are doing archive specific tests.
+            // Map the domain user that is logged into the client computer and is running the tests to any PI Identity.
             */
             string results = $" -node {hostName} -windows "; // pre and post spaces included for simplicity of usage
             return results;
