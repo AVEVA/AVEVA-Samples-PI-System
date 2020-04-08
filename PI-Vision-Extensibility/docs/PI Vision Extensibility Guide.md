@@ -1005,27 +1005,6 @@ The major change in PI Coresight 2016 R2 was the addition of the helper function
 5. Update the `datasourceBehavior` in the `init` section to point to the new location of the enumeration, `PV.Extensibility.Enums.DatasourceBehaviors`.
 6. Update `init` section to add `visObjectType` and point it to the function object created in step 1.
 
-
-<ol>
-    <li>Create a function object to hold the symbol object.
-    <code>
-    function symbolVis() { }
-        PV.deriveVisualizationFromBase(symbolVis);
-    </code></li>
-    <li>Add an <code>init</code> onto the prototype of the function created above which can point to your original <code>init</code> function.
-    <code>
-    symbolVis.prototype.init = function (scope, element) {
-    </code></li>
-    <li>Rather than returning anything from your <code>init</code> function, you now set the update, resize, etc, event on the this pointer in your <code>init</code> function. These functions can point to your existing handler functions:
-    <code>
-    this.onDataUpdate = dataUpdate;
-    this.onConfigChange = configChanged;
-    this.onResize = resize;
-    </code></li>
-    <li>Remove the <code>init</code> section from the symbol definition object.</li>
-    <li>Update the <code>datasourceBehavior</code> in the <code>init</code> section to point to the new location of the enumeration, <code>PV.Extensibility.Enums.DatasourceBehaviors</code>.</li>
-    <li>Update <code>init</code> section to add <code>visObjectType</code> and point it to the function object created in step 1.</li></ol>
-
 [Back to top](#top)
 
 <a id="21"></a>
