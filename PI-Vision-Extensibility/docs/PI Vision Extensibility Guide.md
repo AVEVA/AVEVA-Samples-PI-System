@@ -1,4 +1,4 @@
-# PI Vision 2019 Extensibility Guide
+# PI Vision Extensibility Guide
 
 <a id="top"></a>
 
@@ -807,7 +807,7 @@ This section describes standardized format names, conventions, and their usage f
 * Support forward compatibility 
     * For example, the ability to open/edit displays from prior PI Vision versions with formats that they were saved with
 
-PI Vision 2019 supports switching a symbol from one type to another supported type (for example, Value to LinearGauge). Standard format options and options common to a symbol family are preserved when changing types. The addition of a new object called `FormatOptions` to the symbol configuration object allows you to define anything format related that you want to participate in any format copying that PI Vision has now or will provide in the future.
+PI Vision supports switching a symbol from one type to another supported type (for example, Value to LinearGauge). Standard format options and options common to a symbol family are preserved when changing types. The addition of a new object called `FormatOptions` to the symbol configuration object allows you to define anything format related that you want to participate in any format copying that PI Vision has now or will provide in the future.
 
 [Back to top](#top)
 
@@ -965,8 +965,61 @@ A symbol definition can define a property called `symbolFamily`. If the source a
 
 [Back to top](#top)
 
-
 <a id="19"></a>
+Upgrading from previous versions
+--------------
+
+The following sections describe changes that have been made between previous releases. Unless otherwise indicated, these updates are required for all later versions as well. For example, the changes listed in the “PI Coresight 2016 to PI Coresight 2016 R2” section will also apply if upgrading from PI Coresight 2016 to PI Vision 2019. Similarly, a change that is required when upgrading from PI Vision 2017 R2 to PI Vision 2019 would also need to be made when upgrading from PI Vision 2017 to PI Vision 2019.
+
+<a id="20"></a>
+###  PI Coresight 2016 to 2016 R2
+
+The major change in PI Coresight 2016 R2 was the addition of the helper functions for deriving symbols from a base symbol definition and the use of prototypical inheritance to set the `init` function. To upgrade a symbol from PI Coresight 2016 to PI Vision 2016 R2 or later, perform the following:
+
+<ol>
+    <li>Create a function object to hold the symbol object.
+    ```javascript
+    function symbolVis() { }
+        PV.deriveVisualizationFromBase(symbolVis);
+    ```</li>
+    <li>Add an <code>init</code> onto the prototype of the function created above which can point to your original <code>init</code> function.
+    ```javascript
+    symbolVis.prototype.init = function (scope, element) {
+    ```</li>
+    <li>Rather than returning anything from your <code>init</code> function, you now set the update, resize, etc, event on the this pointer in your <code>init</code> function. These functions can point to your existing handler functions:
+     ```javascript
+    this.onDataUpdate = dataUpdate;
+    this.onConfigChange = configChanged;
+    this.onResize = resize;
+    ```</li>
+    <li>Remove the <code>init</code> section from the symbol definition object.</li>
+    <li>Update the <code>datasourceBehavior</code> in the <code>init</code> section to point to the new location of the enumeration, <code>PV.Extensibility.Enums.DatasourceBehaviors</code>.</li>
+    <li>Update <code>init</code> section to add <code>visObjectType</code> and point it to the function object created in step 1.</li></ol>
+
+<a id="21"></a>
+###  PI Coresight 2016 R2 to PI Vision 2017
+
+The major change was the renaming of files and variables to a more generic convention. In previous versions, global methods and properties were added to the `window.Coresight` namespace. In PI Vision 2017, this has been renamed to `window.PIVisualization`.
+
+In PI Coresight 2016 and 2016 R2, the following convention was used.
+```javascript
+(function (CS) {
+'use strict';
+})(window.Coresight);
+```
+
+To upgrade a symbol to PI Vision 2017 or later, change the argument to `window.PIVisualization`.
+
+```javascript
+(function (PV) {
+'use strict';
+})(window.PIVisualization);
+```
+
+For simplicity, you may keep the parameter name CS as an alias for the `window.PIVisualization` argument so that existing code will continue to work with this name.
+Several HTML helper directives used in configuration panes were also updated. To upgrade these directives in your configuration panes, simple change the ‘cs’ prefix to a ‘pv’. For example, `cs-color-picker` becomes `pv-color-picker`.
+
+<a id="22"></a>
 Tool pane extension
 ===================
 
@@ -974,7 +1027,7 @@ You can extend your PI Vision installation with custom tool panes.
 
 [Back to top](#top)
 
-<a id="20"></a>
+<a id="23"></a>
 Layers of a PI Vision tool pane
 -------------------------------
 
@@ -985,7 +1038,7 @@ PI Vision tool panes are broken up into two major layers:
 
 [Back to top](#top)
 
-<a id="21"></a>
+<a id="24"></a>
 ### File layout
 
 Save files for a tool pane in the same directory, the `ext` folder, under:
@@ -998,7 +1051,7 @@ If the `ext` folder is not present, create it.
 
 [Back to top](#top)
 
-<a id="22"></a>
+<a id="25"></a>
 Implementation layer
 --------------------
 
@@ -1063,7 +1116,7 @@ They will share the same space as the built in Search and Events tool panes.
 
 [Back to top](#top)
 
-<a id="23"></a>
+<a id="26"></a>
 ### Badging
 
 All tool extensions automatically have a property called `Badge` set on their scope. You can use this to display text in a badge on the tool tab's icon. This is typically used to show a count of new items available for viewing on an inactive tab. Click the tab to erase the badge until the next time it is set. To set the badge, call the raise method on the `Badge` object with the text you want to display. `Badge` is only capable of showing 1-3 characters due to space constraints.
