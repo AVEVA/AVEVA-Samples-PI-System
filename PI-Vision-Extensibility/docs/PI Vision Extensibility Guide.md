@@ -974,6 +974,8 @@ Upgrading from previous versions
 
 The following sections describe changes that have been made between previous releases. Unless otherwise indicated, these updates are required for all later versions as well. For example, the changes listed in the “PI Coresight 2016 to PI Coresight 2016 R2” section will also apply if upgrading from PI Coresight 2016 to PI Vision 2019. Similarly, a change that is required when upgrading from PI Vision 2017 R2 to PI Vision 2019 would also need to be made when upgrading from PI Vision 2017 to PI Vision 2019.
 
+[Back to top](#top)
+
 <a id="20"></a>
 ###  PI Coresight 2016 to 2016 R2
 
@@ -981,16 +983,19 @@ The major change in PI Coresight 2016 R2 was the addition of the helper function
 
 
 1. Create a function object to hold the symbol object.
+    
     ```javascript
     function symbolVis() { }
         PV.deriveVisualizationFromBase(symbolVis);
     ```
 2. Add an `init` onto the prototype of the function created above which can point to your original `init` function.
+    
     ```javascript
     symbolVis.prototype.init = function (scope, element) {
 
     ```
 3. Rather than returning anything from your `init` function, you now set the update, resize, etc, event on the this pointer in your `init` function. These functions can point to your existing handler functions:
+
     ```javascript
     this.onDataUpdate = dataUpdate;
     this.onConfigChange = configChanged;
@@ -1021,12 +1026,15 @@ The major change in PI Coresight 2016 R2 was the addition of the helper function
     <li>Update the <code>datasourceBehavior</code> in the <code>init</code> section to point to the new location of the enumeration, <code>PV.Extensibility.Enums.DatasourceBehaviors</code>.</li>
     <li>Update <code>init</code> section to add <code>visObjectType</code> and point it to the function object created in step 1.</li></ol>
 
+[Back to top](#top)
+
 <a id="21"></a>
 ###  PI Coresight 2016 R2 to PI Vision 2017
 
 The major change was the renaming of files and variables to a more generic convention. In previous versions, global methods and properties were added to the `window.Coresight` namespace. In PI Vision 2017, this has been renamed to `window.PIVisualization`.
 
-In PI Coresight 2016 and 2016 R2, the following convention was used.
+In PI Coresight 2016 and 2016 R2, the following convention was used:
+
 ```javascript
 (function (CS) {
 'use strict';
@@ -1043,6 +1051,8 @@ To upgrade a symbol to PI Vision 2017 or later, change the argument to `window.P
 
 For simplicity, you may keep the parameter name CS as an alias for the `window.PIVisualization` argument so that existing code will continue to work with this name.
 Several HTML helper directives used in configuration panes were also updated. To upgrade these directives in your configuration panes, simple change the ‘cs’ prefix to a ‘pv’. For example, `cs-color-picker` becomes `pv-color-picker`.
+
+[Back to top](#top)
 
 <a id="22"></a>
 Tool pane extension
