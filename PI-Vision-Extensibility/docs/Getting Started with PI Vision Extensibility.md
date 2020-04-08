@@ -345,36 +345,3 @@ To use the symbol:
      2. Click the "Format Symbol Primer" menu option.
 
  ![PI Vision 3 Display](./images/image102.png)
-
-## Addendum
-
-### PI Web API HTTP request example
-
-To make an HTTP request from a custom symbol, you need to use an AngularJS `$http` provider. The following example uses the `$http` provider to get the available AF servers. Depending on your CORS (Cross-Origin Resource Sharing) configuration, you may need to start Chrome with the `--disable-web-security` flag (debug testing only).
-
-1. Inject an`$http` provider string into symbol definition.
-
-```javascript
-var definition = {
-    inject: ['$http'],
-};
-```
-
-2. Pass the `$http` provider as a parameter to the Initialization function.
-
-```
-symbolPrimer.prototype.init = function (scope, elem, $http) {
-
-    };
-```
-
-3. Make a `GET HTTP` request for the list of all available asset servers and output results to the console.
-
-```javascript
-symbolPrimer.prototype.init = function(scope, elem, $http) {
-    var baseUrl = PV.ClientSettings.PIWebAPIUrl;
-    $http.get(baseUrl + '/assetservers').then(function(response) {
-        console.log(response);
-    });
-};
-```
