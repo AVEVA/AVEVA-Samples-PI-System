@@ -23,7 +23,7 @@ Contents
 * [Common format names](#16)
 * [FormatOptions object](#17)
 * [Symbol type switching](#18)
-* [Uprading from previous versions](#19)
+* [Upgrading from previous versions](#19)
 * [PI Coresight 2016 to 2016 R2](#20)
 * [PI Coresight 2016 R2 to PI Vision 2017](#21)
 * [Tool pane extension](#22)
