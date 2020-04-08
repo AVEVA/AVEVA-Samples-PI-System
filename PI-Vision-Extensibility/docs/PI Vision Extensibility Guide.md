@@ -979,6 +979,27 @@ The following sections describe changes that have been made between previous rel
 
 The major change in PI Coresight 2016 R2 was the addition of the helper functions for deriving symbols from a base symbol definition and the use of prototypical inheritance to set the `init` function. To upgrade a symbol from PI Coresight 2016 to PI Vision 2016 R2 or later, perform the following:
 
+
+1. Create a function object to hold the symbol object.
+```javascript
+function symbolVis() { }
+PV.deriveVisualizationFromBase(symbolVis);
+```
+2. Add an `init` onto the prototype of the function created above which can point to your original `init` function.
+```javascript
+symbolVis.prototype.init = function (scope, element) {
+```
+3. Rather than returning anything from your `init` function, you now set the update, resize, etc, event on the this pointer in your `init` function. These functions can point to your existing handler functions:
+```javascript
+this.onDataUpdate = dataUpdate;
+this.onConfigChange = configChanged;
+this.onResize = resize;
+```
+4. Remove the `init` section from the symbol definition object.
+5. Update the `datasourceBehavior` in the `init` section to point to the new location of the enumeration, `PV.Extensibility.Enums.DatasourceBehaviors`.
+6. Update `init` section to add `visObjectType` and point it to the function object created in step 1.
+
+
 <ol>
     <li>Create a function object to hold the symbol object.
     <code>
