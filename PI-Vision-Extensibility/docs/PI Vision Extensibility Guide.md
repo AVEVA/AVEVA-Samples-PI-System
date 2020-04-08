@@ -128,15 +128,15 @@ As a best practice, you should wrap all PI Vision symbols in an immediately-invo
 	<ol type="a">
 		<li>The implementation file looks like the code sample below after the previous steps:</li></ol></ol>
 
-    ```javascript
-    (function (PV) {
-        'use strict';
+```javascript
+(function (PV) {
+    'use strict';
 
-        function symbolVis() { }
-        PV.deriveVisualizationFromBase(symbolVis);
+    function symbolVis() { }
+    PV.deriveVisualizationFromBase(symbolVis);
 
-    })(window.PIVisualization);
-    ```
+})(window.PIVisualization);
+```
 <ol start="5">
 	<li>Augment the registration with an actual symbol definition. </li>
 	<ol type="a">
