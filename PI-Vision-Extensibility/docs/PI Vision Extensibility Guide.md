@@ -1012,7 +1012,7 @@ The major change in PI Coresight 2016 R2 was the addition of the helper function
 
 The major change was the renaming of files and variables to a more generic convention. In previous versions, global methods and properties were added to the `window.Coresight` namespace. In PI Vision 2017, this has been renamed to `window.PIVisualization`.
 
-In PI Coresight 2016 and 2016 R2, the following convention was used:
+In PI Coresight 2016 and 2016 R2, the following convention was used.
 
 ```javascript
 (function (CS) {
