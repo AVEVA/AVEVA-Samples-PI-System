@@ -128,15 +128,15 @@ As a best practice, you should wrap all PI Vision symbols in an immediately-invo
 	<ol type="a">
 		<li>The implementation file looks like the code sample below after the previous steps:</li></ol></ol>
 
-```javascript
-(function (PV) {
-    'use strict';
+    ```javascript
+    (function (PV) {
+        'use strict';
 
-    function symbolVis() { }
-    PV.deriveVisualizationFromBase(symbolVis);
+        function symbolVis() { }
+        PV.deriveVisualizationFromBase(symbolVis);
 
-})(window.PIVisualization);
-```
+    })(window.PIVisualization);
+    ```
 <ol start="5">
 	<li>Augment the registration with an actual symbol definition. </li>
 	<ol type="a">
@@ -285,8 +285,7 @@ Below is a sample definition object from the native PI Vision Value symbol:
 var def = {
         typeName: 'value',
         displayName: PV.ResourceStrings.ValueSymbol,
-        datasourceBehavior:
-                     PV.Extensibility.Enums.DatasourceBehaviors.Single,
+        datasourceBehavior: PV.Extensibility.Enums.DatasourceBehaviors.Single,
         iconUrl: 'Images/chrome.value.svg',
         getDefaultConfig: function () {
             var config = PV.SymValueLabelOptions.getDefaultConfig({
@@ -324,14 +323,15 @@ var def = {
         StateVariables: ['Fill', 'Blink'],
         inject: ['symValueLabelOptions'],
         visObjectType: valVis,
- configTemplateUrl: 'scripts/app/editor/symbols/
-                         sym-value- config.html',
+        configTemplateUrl: 'scripts/app/editor/symbols/sym-value- config.html',
         configTitle: PV.ResourceStrings.FormatValueOption,
-        formatMap: {BackgroundColor: 'Fill', 
-TextColor: 'Stroke',
-                     ValueColor: 'ValueStroke', 
-TextResize: 'TextResize',
-                     Alignment: 'Alignment'},
+        formatMap: {
+            BackgroundColor: 'Fill', 
+            TextColor: 'Stroke',
+            ValueColor: 'ValueStroke', 
+            TextResize: 'TextResize',
+            Alignment: 'Alignment'
+        },
         setAlignment: setAlignment,
         updateHeight: updateHeight,
         supportsCollections: true
