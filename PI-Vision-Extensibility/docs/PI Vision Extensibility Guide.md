@@ -23,11 +23,14 @@ Contents
 * [Common format names](#16)
 * [FormatOptions object](#17)
 * [Symbol type switching](#18)
-* [Tool pane extension](#19)
-* [Layers of a PI Vision tool pane](#20)
-* [File layout](#21)
-* [Implementation layer](#22)
-* [Badging](#23)
+* [Uprading from previous versions](#19)
+* [PI Coresight 2016 to 2016 R2](#20)
+* [PI Coresight 2016 R2 to PI Vision 2017](#21)
+* [Tool pane extension](#22)
+* [Layers of a PI Vision tool pane](#23)
+* [File layout](#24)
+* [Implementation layer](#25)
+* [Badging](#26)
 
 <a id="1"></a>
 Symbol extension
