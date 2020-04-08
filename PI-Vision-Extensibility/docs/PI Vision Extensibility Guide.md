@@ -972,7 +972,7 @@ A symbol definition can define a property called `symbolFamily`. If the source a
 Upgrading from previous versions
 --------------
 
-The following sections describe changes that have been made between previous releases. Unless otherwise indicated, these updates are required for all later versions as well. For example, the changes listed in the “PI Coresight 2016 to PI Coresight 2016 R2” section will also apply if upgrading from PI Coresight 2016 to PI Vision 2019. Similarly, a change that is required when upgrading from PI Vision 2017 R2 to PI Vision 2019 would also need to be made when upgrading from PI Vision 2017 to PI Vision 2019.
+The following sections describe changes that have been made between previous releases. Unless otherwise indicated, these updates are required for all later versions as well. For example, the changes listed under [PI Coresight 2016 to 2016 R2](#20) will also apply if upgrading from PI Coresight 2016 to PI Vision 2019. Similarly, a change that is required when upgrading from PI Vision 2017 R2 to PI Vision 2019 would also need to be made when upgrading from PI Vision 2017 to PI Vision 2019.
 
 [Back to top](#top)
 
