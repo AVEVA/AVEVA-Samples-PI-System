@@ -18,8 +18,8 @@ This guide explains how to use file `TestParameters.ps1`, a powershell script lo
    SetupKitsS3BucketName | osisoft-setupkits | The name of the bucket containing the Setup Kits acquired from OSIsoft, for PI Server and PI Vision. Per AWS limitations, this can contain lowercase letters, numbers, and hyphens.
    SetupKitsS3KeyPrefix | 2018 | The name of the folder containing the folders `PIServer` and `PIVision` which in turn contain their respective installers. This can contain mixed case letters (names are case-sensitive), numbers, hyphens (-), and forward slashes (/).
    SetupKitsS3BucketRegion | us-west-1 | The region in which your S3 bucket is hosted. The Deployment Sample works best if the buckets are in the same region as your deployed stack, but any region may be used. See [AWS API Gateway documentation](https://docs.aws.amazon.com/general/latest/gr/rande.html) if you are unsure of the designation for your region.
-   SetupKitsS3PIFileName | PI-Server_2018_.exe | The name of the PI Server setup kit file, in the `PIServer` folder
-   SetupKitsS3VisionFileName | PI-Vision_2017 R2-SP1_.exe | The name of the PI Vision setup kit file, in the `PIVision` folder
+   SetupKitsS3PIFileName | PI Server_2018 SP3 Patch 1_.exe | The name of the PI Server setup kit file, in the `PIServer` folder
+   SetupKitsS3VisionFileName | PI Vision_2019 Patch 1_.exe | The name of the PI Vision setup kit file, in the `PIVision` folder
    TestFileName | Tests-For-Critical-Operations-master.zip | The name of the testing file, in the DSS3KeyPrefix folder
 
 3. Install the AWS Tools for PowerShell on any machine with PowerShell 2.0 or newer. Any Windows machine running Windows 7/Windows Server 2008 R2 or newer comes with an adequate version of PowerShell pre-installed. The AWS Tools for PowerShell can be downloaded from Amazon at the following url: https://aws.amazon.com/powershell/
