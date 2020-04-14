@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Configuration;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace OSIsoft.PISystemDeploymentTests
 {
@@ -16,8 +18,8 @@ namespace OSIsoft.PISystemDeploymentTests
         public static string PINotificationsRecipientEmailAddress => "OSItest@test.com";
         public static string PIWebAPI => GetValue(PIWebAPITests.KeySetting);
         public static string PIWebAPICrawler => GetValue("PIWebAPICrawler");
-        public static string PIWebAPIUser => GetValue("PIWebAPIUser");
-        public static string PIWebAPIPassword => GetValue("PIWebAPIPassword");
+        public static string PIWebAPIUser => DecryptSetting(GetValue("PIWebAPIUser"));
+        public static string PIWebAPIPassword => DecryptSetting(GetValue("PIWebAPIPassword"));
         public static string PIWebAPIConfigurationInstance => GetValue("PIWebAPIConfigurationInstance");
         public static string PIVisionServer => GetValue(Vision3Tests.KeySetting);
         public static string PIManualLogger => GetValue(ManualLoggerTests.KeySetting);
@@ -38,7 +40,7 @@ namespace OSIsoft.PISystemDeploymentTests
         public static string GetValue(string settingName, bool isRequired = false)
         {
             string settingValue = ConfigurationManager.AppSettings[settingName];
-
+            
             if (isRequired && string.IsNullOrWhiteSpace(settingValue))
                 throw new ArgumentNullException($"The setting '{settingName}' is missing in App.config.");
             return settingValue;
@@ -98,6 +100,47 @@ namespace OSIsoft.PISystemDeploymentTests
                 return result;
 
             throw new InvalidOperationException($"The setting '{settingName}' has an invalid value in App.config.");
+        }
+
+        /// <summary>
+        /// Parses an encrypted string from the App.config file.
+        /// </summary>
+        /// <param name="encryptedString">The string encrypted as a byte array.</param>
+        /// <returns>The byte array from the encrypted string.</returns>
+        private static byte[] ParseEncryptedString(string encryptedString)
+        {
+            string[] arr = encryptedString.Split('-');
+            byte[] array = new byte[arr.Length];
+
+            for (int i = 0; i < arr.Length; i++)
+            {
+                array[i] = Convert.ToByte(arr[i], 16);
+            }
+
+            return array;
+        }
+
+        /// <summary>
+        /// Unencrypts an encrypted setting from the App.config file.
+        /// </summary>
+        /// <param name="setting">The value of the encrypted setting.</param>
+        /// <returns>The unencrypted string.</returns>
+        private static string DecryptSetting(string setting)
+        {
+            byte[] encyptedBytes = ParseEncryptedString(setting);
+
+            string encryptionKey = GetValue("PIWebAPIEncryptionID");
+            byte[] encryptionKeyBytes = ParseEncryptedString(encryptionKey);
+
+            try
+            {
+                byte[] bytes = ProtectedData.Unprotect(encyptedBytes, encryptionKeyBytes, DataProtectionScope.CurrentUser);
+                return Encoding.ASCII.GetString(bytes);
+            }
+            catch (CryptographicException ex)
+            {
+                throw new CryptographicException("Ensure you are running as the same user that encrypted the PI Web API credentials.", ex);
+            }
         }
     }
 }

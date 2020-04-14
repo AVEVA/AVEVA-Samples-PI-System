@@ -6,7 +6,7 @@ Please review the [requirements](../Requirements.md) before executing the *Run.p
 
 ### Execute the script
 
-1. Launch PowerShell as administrator on the machine where the _PI-System-Deployment-Tests-master_ directory resides.
+1. Launch PowerShell on the machine where the _PI-System-Deployment-Tests-master_ directory resides.
 
 2. At the prompt, navigate to the *PI-System-Deployment-Tests-master\scripts* directory on the test client machine.
 
@@ -52,12 +52,12 @@ The *Run.ps1* script checks that all required assemblies are available. Internet
 
 The script also performs the following actions:
 
-- Imports the AF database onto the target AF server using the *OSIsoftTests-Wind.xml* file from the *PISystemDeploymentTests\xml* directory.  Approximately 900 PI points are created on the target PI Data Archive.
 - Compiles the xUnit tests with MSBuild. The compiled solution is placed in the *PISystemDeploymentTests\source* directory.
 - Runs the Preliminary Checks to confirm that all PI System components are in place, running, and accessible.
-- If the Preliminary Checks do not pass, the script exits and does not run any of the other tests.  If the script stops, fix any problems identified by the Preliminary Checks and then rerun the script. (See the "Log files" section for details on a script run.)
+- If the Preliminary Checks do not pass, the script exits and does not run any of the other tests. In this case, neither the testing AF Database or PI Points will be created.  If the script stops, fix any problems identified by the Preliminary Checks and then rerun the script. (See the "Log files" section for details on a script run.)
+- Imports the AF Database onto the target AF Server using the *OSIsoftTests-Wind.xml* file from the *PISystemDeploymentTests\xml* directory.  Approximately 900 PI Points are created on the target PI Data Archive.
 
-After the Preliminary Checks pass, all of the tests will run, including all required components and the optional components selected in the *App.config* file.
+After the Preliminary Checks pass, the testing AF Database and PI Points will be created and all of the tests will run, including all required components and the optional components selected in the *App.config* file.
 
 
 
@@ -86,6 +86,7 @@ You can use the following calls to run individual portions of the script:
 
 | Expected Behavior                                            | Command                                               |
 | ------------------------------------------------------------ | ----------------------------------------------------- |
+| Run the full set of PreliminaryChecks tests.                 | .\run.ps1 -Preliminary or -p                          |
 | Import the AF database and create the PI points.             | .\run.ps1 -Setup or -s                                |
 | Run another full set of tests after the test script runs (requires an existing AF database and PI points). | .\run.ps1 -Testing or -t                              |
 | Run the tests from one test class (requires an existing AF database and PI points). Does not automatically execute the setup or Preliminary Checks. | .\run.ps1 -TestClass "MyTestClass"                    |

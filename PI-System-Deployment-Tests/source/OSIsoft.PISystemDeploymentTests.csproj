@@ -28,9 +28,22 @@
     <AFSDKPackagePath Include="..\Packages\OSIsoft.AFSDK\**\net462\OSIsoft.AFSDK.dll">
       <Visible>False</Visible>
     </AFSDKPackagePath>
+    <NotificationsPackagePathClient Include="..\Packages\notifications-dlls-for-af\**\content\PSEPlugins\OSIsoft.PINotifications.Client.dll">
+      <Visible>False</Visible>
+    </NotificationsPackagePathClient>
+    <NotificationsPackagePathWCF Include="..\Packages\notifications-dlls-for-af\**\content\PSEPlugins\OSIsoft.PINotifications.WCF.dll">
+      <Visible>False</Visible>
+    </NotificationsPackagePathWCF>
   </ItemGroup>
-  <PropertyGroup>
+  <PropertyGroup Condition="$(DefineConstants.Contains('BuildMach'))">
     <AFSDKHintPath Condition="'$(AFSDKHintPath)'==''">@(AFSDKPackagePath->'%(FullPath)')</AFSDKHintPath>
+    <NotificationsClientHintPath Condition="'$(NotificationsClientHintPath)'==''">@(NotificationsPackagePathClient->'%(FullPath)')</NotificationsClientHintPath>
+    <NotificationsWCFHintPath Condition="'$(NotificationsWCFHintPath)'==''">@(NotificationsPackagePathWCF->'%(FullPath)')</NotificationsWCFHintPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="!$(DefineConstants.Contains('BuildMach'))">
+    <AFSDKHintPath Condition="'$(AFSDKHintPath)'==''">@(AFSDKPackagePath->'%(FullPath)')</AFSDKHintPath>
+    <NotificationsClientHintPath Condition="'$(NotificationsClientHintPath)'==''">$(PIHOME)\AF\OSIsoft.PINotifications.Client.dll</NotificationsClientHintPath>
+    <NotificationsWCFHintPath Condition="'$(NotificationsWCFHintPath)'==''">$(PIHOME)\AF\OSIsoft.PINotifications.WCF.dll</NotificationsWCFHintPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -82,6 +95,12 @@
     <Reference Include="OSIsoft.AFSDK, Version=4.0.0.0, Culture=neutral, PublicKeyToken=6238be57836698e6, processorArchitecture=MSIL">
       <HintPath>$(AFSDKHintPath)</HintPath>
     </Reference>
+    <Reference Include="OSIsoft.PINotifications.Client, Version=1.1.0.0, Culture=neutral, PublicKeyToken=c2fd352b8728a375, processorArchitecture=MSIL">
+      <HintPath>$(NotificationsClientHintPath)</HintPath>
+    </Reference>
+    <Reference Include="OSIsoft.PINotifications.WCF, Version=1.1.0.0, Culture=neutral, PublicKeyToken=c2fd352b8728a375, processorArchitecture=MSIL">
+      <HintPath>$(NotificationsWCFHintPath)</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -91,6 +110,7 @@
       <HintPath>C:\NugetPackages\Microsoft.PowerShell.5.ReferenceAssemblies.1.1.0\lib\net4\System.Management.Automation.dll</HintPath>
     </Reference>
     <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Security" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web" />
@@ -120,7 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AF\AFDataTests.cs" />
-    <Compile Include="AF\AFFactAttribute.cs" />
+    <Compile Include="Common\GenericFactAttribute.cs" />
     <Compile Include="AF\AFTests.cs" />
     <Compile Include="AF\AFTestsConfiguration.cs" />
     <Compile Include="AF\EFTests.cs" />

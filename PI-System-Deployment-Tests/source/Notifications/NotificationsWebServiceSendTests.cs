@@ -34,6 +34,8 @@ namespace OSIsoft.PISystemDeploymentTests
         [OptionalFact(KeySetting, KeySettingTypeCode)]
         public void NotificationRuleSendWebServiceAnnotationTest()
         {
+            Assert.True(NotificationsFixture.SoapWebServiceHost != null, "The Web Service host couldn't be started.");
+
             AFDatabase db = AFFixture.AFDatabase;
             var elementName = $"{NotificationsFixture.TestPrefix}_{NotificationsFixture.TestInfix}_{nameof(NotificationRuleSendWebServiceAnnotationTest)}";
             var notificationRuleName = $"{NotificationsFixture.TestPrefix}_{NotificationsFixture.TestInfix}_NotificationRule1";
@@ -129,6 +131,8 @@ namespace OSIsoft.PISystemDeploymentTests
         [OptionalFact(KeySetting, KeySettingTypeCode)]
         public void NotificationRuleResendWebServiceTest()
         {
+            Assert.True(NotificationsFixture.SoapWebServiceHost != null, "The Web Service host couldn't be started.");
+
             AFDatabase db = AFFixture.AFDatabase;
             var elementName = $"{NotificationsFixture.TestPrefix}_{NotificationsFixture.TestInfix}_{nameof(NotificationRuleResendWebServiceTest)}";
             var notificationRuleName = $"{NotificationsFixture.TestPrefix}_{NotificationsFixture.TestInfix}_NotificationRule1";
@@ -209,6 +213,8 @@ namespace OSIsoft.PISystemDeploymentTests
         [InlineData(AFNotifyOption.EventStartAndEnd, true, true)]
         public void NotificationRuleSendWebServiceEventFrameNotifyOptionTest(AFNotifyOption afNotifyOption, bool eventFrameStartSent, bool eventFrameEndSent)
         {
+            Assert.True(NotificationsFixture.SoapWebServiceHost != null, "The Web Service host couldn't be started.");
+
             AFDatabase db = AFFixture.AFDatabase;
             var elementName = $"{NotificationsFixture.TestPrefix}_{NotificationsFixture.TestInfix}_{nameof(NotificationRuleSendWebServiceEventFrameNotifyOptionTest)}_{afNotifyOption.ToString()}";
             var notificationRuleName = $"{NotificationsFixture.TestPrefix}_{NotificationsFixture.TestInfix}_NotificationRule1";
@@ -307,6 +313,8 @@ namespace OSIsoft.PISystemDeploymentTests
         [OptionalFact(KeySetting, KeySettingTypeCode)]
         public void NotificationRuleResendWebServiceStopsOnAcknowledgmentTest()
         {
+            Assert.True(NotificationsFixture.SoapWebServiceHost != null, "The Web Service host couldn't be started.");
+
             AFDatabase db = AFFixture.AFDatabase;
             var elementName = $"{NotificationsFixture.TestPrefix}_{NotificationsFixture.TestInfix}_{nameof(NotificationRuleResendWebServiceStopsOnAcknowledgmentTest)}";
             var eventFrameTemplateName = $"{NotificationsFixture.TestPrefix}_{NotificationsFixture.TestInfix}_EventFrameTemplate1";

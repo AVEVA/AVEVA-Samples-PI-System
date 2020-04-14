@@ -73,14 +73,7 @@ namespace OSIsoft.PISystemDeploymentTests
             }
 
             if (PISystem.Databases.Contains(Settings.AFDatabase))
-            {
                 AFDatabase = PISystem.Databases[Settings.AFDatabase];
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"The specific AF database [{Settings.AFDatabase}] does not exist or is not configured.");
-            }
         }
 
         /// <summary>
@@ -123,6 +116,36 @@ namespace OSIsoft.PISystemDeploymentTests
         /// Disconnects from the PISystem when disposing of the fixture.
         /// </summary>
         public void Dispose() => PISystem.Disconnect();
+
+        /// <summary>
+        /// Gets an instanced PISystem.
+        /// </summary>
+        /// <returns>Returns a new PISystem from a new PISystems instance.</returns>
+        /// <remarks>
+        /// This operation gets an instanced PISystem object. It is used to prevent the main PISystem 
+        /// from using any cached data from a system check.
+        /// </remarks>
+        public PISystem GetInstancedSystem()
+        {
+            var systems = new PISystems(true);
+            if (systems.Contains(Settings.AFServer))
+            {
+                var system = systems[Settings.AFServer];
+
+                if (system is null)
+                {
+                    throw new InvalidOperationException(
+                        $"The specific AF Server [{Settings.AFServer}] does not exist or is not configured.");
+                }
+
+                return system;
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"The specific AF Server [{Settings.AFServer}] does not exist or is not configured.");
+            }
+        }
 
         /// <summary>
         /// Disconnects and reconnects to AFDatabase.
@@ -490,6 +513,25 @@ namespace OSIsoft.PISystemDeploymentTests
             CheckValue(actualVal.Timestamp, expectedVal.Timestamp, $"Timestamp is incorrect for [{actualVal.Attribute}].");
             CheckValue(actualVal.UOM, expectedVal.UOM, $"UOM is incorrect for [{actualVal.Attribute}].");
             CheckValue(actualVal.Value, expectedVal.Value, $"Value is incorrect for [{actualVal.Attribute}].");
+        }
+
+        internal static PISystem GetPISystemFromConfig()
+        {
+            PISystem pisys;
+
+            var systems = new PISystems();
+            if (systems.Contains(Settings.AFServer))
+            {
+                pisys = systems[Settings.AFServer];
+                pisys.Connect();
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"The specific AF Server [{Settings.AFServer}] does not exist or is not configured.");
+            }
+
+            return pisys;
         }
 
         /// <summary>

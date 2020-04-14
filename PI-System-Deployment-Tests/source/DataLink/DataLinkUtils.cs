@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using Xunit;
 
 namespace OSIsoft.PISystemDeploymentTests
 {
@@ -24,18 +25,25 @@ namespace OSIsoft.PISystemDeploymentTests
         /// Get the PIHOME environment variable value.
         /// </summary>
         /// <param name="dirstring">The string reference the value will be stored in.</param>
-        public static void GetPIHOME(ref string dirstring)
+        public static void GetPIHOME(ref string dirstring, int flag = -1)
         {
             // For 32-bit Office, get the PIHOME path from the pipc.ini file.
             // For 64-bit Office, get PIHOME from the registry.
-            if (Environment.Is64BitProcess)
+            if ((Environment.Is64BitProcess || flag == 1) && flag != 0)
             {
                 var piHomeKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("Software\\PISystem");
-                dirstring = piHomeKey.GetValue("PIHOME").ToString();
+                if (!(piHomeKey is null))
+                {
+                    dirstring = piHomeKey.GetValue("PIHOME").ToString();
 
-                // Check for and remove the trailing '\' from dirstring.
-                if (dirstring.EndsWith("\\", StringComparison.OrdinalIgnoreCase))
-                    dirstring = dirstring.Substring(0, dirstring.Length - 1);
+                    // Check for and remove the trailing '\' from dirstring.
+                    if (dirstring.EndsWith("\\", StringComparison.OrdinalIgnoreCase))
+                        dirstring = dirstring.Substring(0, dirstring.Length - 1);
+                }
+                else
+                {
+                    Assert.True(false, "Could not locate the registry key Software\\PISystem");
+                }
             }
             else
             {
@@ -43,7 +51,7 @@ namespace OSIsoft.PISystemDeploymentTests
                 var pihomepath = new StringBuilder(lenstring + 1);   // String to hold PIHOME in [PIPC]
 
                 // Get the PIHOME from the pipc.ini file
-                GetPrivateProfileString("PIPC", "PIHOME", "C:\\PIPC", pihomepath, lenstring, "PIPC.INI");
+                var trash = GetPrivateProfileString("PIPC", "PIHOME", "C:\\PIPC", pihomepath, lenstring, "PIPC.INI");
                 dirstring = pihomepath.ToString().Trim();
             }
         }

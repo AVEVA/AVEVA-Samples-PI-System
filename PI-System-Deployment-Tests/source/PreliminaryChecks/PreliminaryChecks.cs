@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json.Linq;
-using OSIsoft.AF.Asset;
-using OSIsoft.AF.Data;
+using OSIsoft.AF;
 using OSIsoft.AF.PI;
-using OSIsoft.AF.Time;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -103,6 +101,100 @@ namespace OSIsoft.PISystemDeploymentTests
         }
 
         /// <summary>
+        /// Checks if the current user has the required permissions for running the AF tests.
+        /// </summary>
+        /// <remarks>
+        /// Test Steps:
+        /// <para>Create a new AF Fixture</para>
+        /// <para>Get AF Security for each System collection needed</para>
+        /// <para>Check the System collection AF Security for the current user</para>
+        /// </remarks>
+        [Fact]
+        public void CheckMinimumAFSecurity()
+        {
+            using (var fixture = new AFFixture())
+            {
+                var system = fixture.PISystem;
+                Assert.True(system.UOMDatabase.Security.CanWrite, "The current user must have Write permission on the UOMDatabase.");
+
+                foreach (var securityItem in Enum.GetValues(typeof(AFSecurityItem)))
+                {
+                    var security = system.GetSecurity((AFSecurityItem)securityItem);
+
+                    switch (securityItem)
+                    {
+                        case AFSecurityItem.AnalysisTemplate:
+                        case AFSecurityItem.Category:
+                        case AFSecurityItem.Database:
+                        case AFSecurityItem.EnumerationSet:
+                        case AFSecurityItem.NotificationContactTemplate:
+                        case AFSecurityItem.NotificationRuleTemplate:
+                        case AFSecurityItem.Table:
+                            Assert.True(security.CanRead && 
+                                security.CanWrite && 
+                                security.CanDelete, "The current user must have Read, Write, and Delete permission to the following System collections:\n" +
+                                "\tAnalysis Templates\n" +
+                                "\tCategories\n" +
+                                "\tDatabases\n" +
+                                "\tEnumeration Sets\n" +
+                                "\tNotification Contact Templates\n" +
+                                "\tNotification Rule Templates\n" +
+                                "\tTables");
+                            break;
+                        case AFSecurityItem.EventFrame:
+                        case AFSecurityItem.Transfer:
+                            Assert.True(security.CanReadData &&
+                                security.CanWriteData &&
+                                security.CanDelete &&
+                                security.CanAnnotate, "The current user must have Read Data, Write Data, Annotate, and Delete permission to the following System collections:\n" +
+                                "\tEvent Frames\n" +
+                                "\tTransfers");
+                            break;
+                        case AFSecurityItem.Analysis:
+                            Assert.True(security.CanRead && 
+                                security.CanWrite && 
+                                security.CanDelete && 
+                                security.CanExecute, "The current user must have Read, Write, Execute, and Delete permission to the Analyses System collection.");
+                            break;
+                        case AFSecurityItem.Element:
+                        case AFSecurityItem.ElementTemplate:
+                            Assert.True(security.CanRead &&
+                                security.CanReadData &&
+                                security.CanWrite &&
+                                security.CanWriteData &&
+                                security.CanDelete, "The current user must have Read, Write, Read Data, Write Data, and Delete permission to the following System collections:\n" +
+                                "\tElements\n" +
+                                "\tElement Templates");
+
+                            var identities = system.CurrentUserIdentities;
+                            var instancedSystem = fixture.GetInstancedSystem();
+                            if ((AFSecurityItem)securityItem == AFSecurityItem.Element)
+                            {
+                                Assert.True(security.CanAnnotate, "The current user must have Annotate permission to the Elements System collection.");
+                            }
+                            else
+                            {
+                                var elementTemplateToken = instancedSystem.GetSecurity(AFSecurityItem.ElementTemplate).Token;
+                                elementTemplateToken.SecurityItem = AFSecurityItem.EventFrame;
+                                var tokens = new List<AFSecurityRightsToken>() { elementTemplateToken };
+                                var dict = AFSecurity.CheckSecurity(instancedSystem, identities, tokens);
+                                Assert.True(dict[elementTemplateToken.ObjectId].CanAnnotate(), "The current user must have Annotate permission to the Element Templates System collection.");
+                            }
+
+                            instancedSystem.Disconnect();
+                            break;
+                        case AFSecurityItem.NotificationRule:
+                            Assert.True(security.CanRead &&
+                                security.CanWrite &&
+                                security.CanDelete &&
+                                security.CanSubscribe, "The current user must have Read, Write, Subscribe, and Delete permission to the Notification Rules System collection.");
+                            break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Checks PI Analysis Service is running.
         /// </summary>
         /// <remarks>
@@ -160,63 +252,110 @@ namespace OSIsoft.PISystemDeploymentTests
         }
 
         /// <summary>
-        /// Checks the current user is mapped to piadmins group.
+        /// Checks if the current user has Read/Write, Read/Write Data, and Delete permissions to the
+        /// OSIsoft\RTQP Engine\Custom Objects element in the Configuration database on the AF Server.
         /// </summary>
         /// <remarks>
-        /// Test Steps:
-        /// <para>Create new PI Fixture</para>
-        /// <para>Get current user's identities</para>
-        /// <para>Check that piadmins is one of the user's identities</para>
+        /// <para>Test Steps:</para>
+        /// <para>Create a new AF Fixture</para>
+        /// <para>Get the security of the configuration element</para>
+        /// <para>Check if the Read/Write, Read/Write Data, and Delete permissions are present</para>
         /// </remarks>
         [Fact]
-        public void CheckPIAdminsMappingTest()
+        public void CheckMinimumPISQLClientSecurity()
         {
-            using (var piFixture = new PIFixture())
+            using (AFFixture fixture = new AFFixture())
             {
-                Output.WriteLine($"Check if current user has required PI Identity of " +
-                    $"[{PIFixture.RequiredPIIdentity}] for the PI Data Archive server [{piFixture.PIServer.Name}].");
-                IList<PIIdentity> identities = piFixture.PIServer.CurrentUserIdentities;
+                if (Settings.PISqlClientTests)
+                {
+                    var fullElementPath = @"OSIsoft\RTQP Engine\Custom Objects";
+                    var element = fixture.PISystem.Databases.ConfigurationDatabase?.Elements[fullElementPath];
 
-                Assert.True(
-                    identities.Any(x => x.Name.Equals(PIFixture.RequiredPIIdentity, StringComparison.OrdinalIgnoreCase)),
-                    $"The current user does not have the required PI Identity of [{PIFixture.RequiredPIIdentity}], " +
-                    $"please add a new mapping to it in PI Data Archive server [{piFixture.PIServer.Name}].");
+                    if (!(element is null))
+                    {
+                        Assert.True(element.Security.CanRead && element.Security.CanWrite,
+                            $"The user does not have Read/Write permissions on the {fullElementPath} element in the Configuration database.");
+                        Assert.True(element.Security.CanReadData && element.Security.CanWriteData,
+                            $"The user does not have Read/Write Data permissions on the {fullElementPath} element in the Configuration database.");
+                        Assert.True(element.Security.CanDelete,
+                            $"The user does not have Delete permissions on the {fullElementPath} element in the Configuration database.");
+                    }
+                    else
+                    {
+                        Assert.True(false, $"Could not find element {fullElementPath} in the configuration directory.");
+                    }
+                }
+                else
+                {
+                    Output.WriteLine($"'PISQLClientTests' setting value is set to 'false' or not set at all. Check if user has minimum security privileges was skipped.");
+                }
             }
         }
 
         /// <summary>
-        /// Checks the current user can send date to PI Points.
+        /// Checks if the current user has Read/Write access to PIARCADMIN, PIPOINT, and PIDS Database Security tables,
+        /// and checks if the current user has Read access to PIARCDATA and PIMSGSS Database Security table.
         /// </summary>
         /// <remarks>
-        /// This test requires write access to the target PI Data Archive.
         /// <para>Test Steps:</para>
-        /// <para>Find a PI Point taking manaul input</para>
-        /// <para>Write a single event</para>
-        /// <para>Read the event to ensure that the write was successful</para>
+        /// <para>Create new PI Fixture</para>
+        /// <para>Get PI identities assigned to current user</para>
+        /// <para>Get security rights for the PIARCADMIN, PIARCDATA, PIMSGSS, PIPOINTS, and PIDS tables</para>
+        /// <para>Check if any identity has ReadWrite access to both tables</para>
         /// </remarks>
         [Fact]
-        public void CheckPIPointWritePermissionTest()
+        public void CheckMinimumDataArchiveSecurity()
         {
             using (var piFixture = new PIFixture())
             {
-                // Find the target a PI Point
-                string manualInputPoint = @"OSIsoftTests.Region 1.Manual Input";
-                Output.WriteLine($"Search for PI Point [{manualInputPoint}].");
-                var point = PIPoint.FindPIPoint(piFixture.PIServer, manualInputPoint);
+                // Get full list of PI identities assigned to current user
+                var identities = piFixture.PIServer.CurrentUserIdentities;
 
-                // Prepare the event to be written
-                var eventToWrite = new AFValue((float)Math.PI, (AFTime.Now + TimeSpan.FromSeconds(1)).ToPIPrecision());
+                // Get security info for PIARCADMIN, PIARCDATA, PIMSGSS, PIPOINTS, and PIDS entries in DB security table
+                string piarcadminTableName = "PIARCADMIN";
+                string piarcdataTableName = "PIARCDATA";
+                string pimsgssTableName = "PIMSGSS";
+                string pipointTableName = "PIPOINT";
+                string pidsTableName = "PIDS";
 
-                // Send the event to be written
-                Output.WriteLine($"Write an event to PI Point [{manualInputPoint}].");
-                point.UpdateValue(eventToWrite, AFUpdateOption.InsertNoCompression);
+                PIDatabaseSecurity piarcadminDbSecurity = piFixture.PIServer.DatabaseSecurities[piarcadminTableName];
+                PIDatabaseSecurity piarcdataDbSecurity = piFixture.PIServer.DatabaseSecurities[piarcdataTableName];
+                PIDatabaseSecurity pimsgssDbSecurity = piFixture.PIServer.DatabaseSecurities[pimsgssTableName];
+                PIDatabaseSecurity pipointDbSecurity = piFixture.PIServer.DatabaseSecurities[pipointTableName];
+                PIDatabaseSecurity pidsDbSecurity = piFixture.PIServer.DatabaseSecurities[pidsTableName];
 
-                // Read the current value to verify that the event was written successfully
-                Output.WriteLine($"Verify the event has been sent to PI Point [{manualInputPoint}].");
-                AssertEventually.True(
-                    () => eventToWrite.Equals(point.CurrentValue()),
-                    $"Failed to send data to PI Point [{manualInputPoint}] on {piFixture.PIServer.Name}.  Please check if the running user has write access to PI Data Archive.  " +
-                    $"If buffering is configured, make sure PI Buffer Subsystem connects to PI Data Archive with appropriate PI mappings.");
+                string piarcadminSecurityString = piarcadminDbSecurity.SecurityString;
+                string piarcdataSecurityString = piarcdataDbSecurity.SecurityString;
+                string pimsgssSecurityString = pimsgssDbSecurity.SecurityString;
+                string pipointSecurityString = pipointDbSecurity.SecurityString;
+                string pidsSecurityString = pidsDbSecurity.SecurityString;
+
+                var piarcadminSecurityRights = PIDatabaseSecurity.GetSecurityRights(piarcadminSecurityString);
+                var piarcdataSecurityRights = PIDatabaseSecurity.GetSecurityRights(piarcdataSecurityString);
+                var pimsgssSecurityRights = PIDatabaseSecurity.GetSecurityRights(pimsgssSecurityString);
+                var pipointSecurityRights = PIDatabaseSecurity.GetSecurityRights(pipointSecurityString);
+                var pidsSecurityRights = PIDatabaseSecurity.GetSecurityRights(pidsSecurityString);
+
+                Assert.True(identities.Any(i =>
+                {
+                    var piarcadminLooksGood = piarcadminSecurityRights.Any(x =>
+                        x.Key.Equals(i.Name, StringComparison.CurrentCultureIgnoreCase) && x.Value.CanRead() && x.Value.CanWrite());
+
+                    var piarcdataLooksGood = piarcdataSecurityRights.Any(x =>
+                        x.Key.Equals(i.Name, StringComparison.CurrentCultureIgnoreCase) && x.Value.CanRead());
+
+                    var pimsgssLooksGood = pimsgssSecurityRights.Any(x =>
+                        x.Key.Equals(i.Name, StringComparison.CurrentCultureIgnoreCase) && x.Value.CanRead());
+
+                    var pipointLooksGood = pipointSecurityRights.Any(x =>
+                        x.Key.Equals(i.Name, StringComparison.CurrentCultureIgnoreCase) && x.Value.CanRead() && x.Value.CanWrite());
+
+                    var pidsLooksGood = pidsSecurityRights.Any(x =>
+                        x.Key.Equals(i.Name, StringComparison.CurrentCultureIgnoreCase) && x.Value.CanRead() && x.Value.CanWrite());
+
+                    return piarcadminLooksGood && piarcdataLooksGood && pimsgssLooksGood && pipointLooksGood && pidsLooksGood;
+                }), $"Expected, but did not find, {AFSecurityRights.ReadWrite} access to PIARCADMIN, PIPOINTS, and PIDS tables " +
+                    $"or {AFSecurityRights.Read} to PIARCDATA and PIMSGSS for user {piFixture.PIServer.CurrentUserName}.");
             }
         }
 
@@ -362,17 +501,17 @@ namespace OSIsoft.PISystemDeploymentTests
         }
 
         /// <summary>
-        /// Creates a test Display Folder in PI Vision if missing.
+        /// Checks the permissions of the root PI Vision folder to determine if user has PI Vision Admin rights.
         /// </summary>
         /// <remarks>
         /// Test Steps:
         /// <para>Check if PI Vision Server is set in the App.Config</para>
         /// <para>If config is not set, skip check</para>
         /// <para>If config is set, create new Vision fixture</para>
-        /// <para>With the fixture, attempt to create display folder in PI Vision</para>
+        /// <para>With the fixture, attempt check for root folder permissions in PI Vision</para>
         /// </remarks>
         [Fact]
-        public async void CreatePIVisionDisplayFolderTest()
+        public async void CheckPermissionsOfVision3RootFolder()
         {
             if (string.IsNullOrEmpty(Settings.PIVisionServer))
             {
@@ -383,10 +522,10 @@ namespace OSIsoft.PISystemDeploymentTests
             {
                 using (var fixture = new Vision3Fixture())
                 {
-                    Output.WriteLine("Create a new display folder into the database.");
-                    using (var response = await fixture.FindOrCreateTestFolder().ConfigureAwait(false))
+                    Output.WriteLine("Check permissions of root folder.");
+                    using (var response = await fixture.GetFolderPermissions("0").ConfigureAwait(false))
                     {
-                        Assert.True(response.IsSuccessStatusCode, "PI Vision cannot save a display folder. " +
+                        Assert.True(response.IsSuccessStatusCode, "PI Vision cannot access root folder permissions. " +
                             Vision3Fixture.CommonVisionIssues);
                     }
                 }
