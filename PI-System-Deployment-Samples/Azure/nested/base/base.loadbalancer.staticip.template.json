@@ -26,6 +26,10 @@
             "name": "[parameters('lbName')]",
             "apiVersion": "[variables('apiVersions').loadBalancers]",
             "location": "[resourceGroup().location]",
+            "sku": {
+              "name": "Standard",
+              "tier": "Regional"
+            },
             "properties": {
                 "frontendIPConfigurations": [
                     {
