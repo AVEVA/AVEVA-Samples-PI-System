@@ -66,6 +66,10 @@
           "name": "[concat(parameters('namePrefix'),'-piaf-intlb',parameters('nameSuffix0'))]",
           "apiVersion": "[variables('apiVersions').loadBalancers]",
           "location": "[resourceGroup().location]",
+          "sku": {
+              "name": "Standard",
+              "tier": "Regional"
+          },
           "properties": {
             "frontendIPConfigurations": [
               {
@@ -450,6 +454,10 @@
             "name": "[concat(parameters('namePrefix'),'-sql-intlb',parameters('nameSuffix0'))]",
             "apiVersion": "[variables('apiVersions').loadBalancers]",
             "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+            },
             "properties": {
                 "frontendIPConfigurations": [
                     {
