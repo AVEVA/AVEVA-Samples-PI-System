@@ -27,6 +27,9 @@
     Specifies a self-extracting PI install kit. Installs only if specified.
     This parameter can be used to install most PI software other than the PI Server kit.
 
+.PARAMETER silentini
+    Specifies a silent.ini to use with the self-extracting PI install kit. If not specified, will use the default silent.ini.
+
 .PARAMETER dryRun
     Specifies to run the script in Dry-Run mode. Logs will be written, but no install/configuration actions will occur.
 
@@ -87,15 +90,15 @@ function Write-LogFunction([string]$functionName, [string]$outputText) {
     Write-Log "${functionName}: $outputText"
 }
 
-function Write-LogErrorFunction([string]$functionName, [string]$outputText) {
+function Write-LogFunctionError([string]$functionName, [string]$outputText) {
     Write-LogError "${functionName}: $outputText"
 }
 
-function Write-LogEnterFunction([string]$functionName) {
+function Write-LogFunctionEnter([string]$functionName) {
     Write-Log "${functionName}: Entering Function"
 }
 
-function Write-LogExitFunction([string]$functionName, [string]$elapsedTime) {
+function Write-LogFunctionExit([string]$functionName, [string]$elapsedTime) {
     if ($elapsedTime -ne "") {
         Write-Log "${functionName}: Exiting Function, Elapsed time: $elapsedTime"
     }
@@ -108,7 +111,7 @@ function Write-LogExitFunction([string]$functionName, [string]$elapsedTime) {
 #region Script Functions
 function Confirm-System() {
     $func = "Confirm-System"
-    Write-LogEnterFunction $func
+    Write-LogFunctionEnter $func
 
     Write-LogFunction $func "Checking System Compatibility..."
 
@@ -125,12 +128,12 @@ function Confirm-System() {
     }
 
     Write-LogFunction $func "System compatibility checked"
-    Write-LogExitFunction $func
+    Write-LogFunctionExit $func
 }
 
 function Confirm-Params() {
     $func = "Confirm-Params"
-    Write-LogEnterFunction $func
+    Write-LogFunctionEnter $func
 
     Write-LogFunction $func "Checking Script Parameters..."
 
@@ -240,12 +243,12 @@ function Confirm-Params() {
     }
 
     Write-LogFunction $func "Script parameters checked"
-    Write-LogExitFunction $func
+    Write-LogFunctionExit $func
 }
 
 function Install-SQLServerExpress() {
     $func = "Install-SQLServerExpress"
-    Write-LogEnterFunction $func
+    Write-LogFunctionEnter $func
  
     $fTime = [System.Diagnostics.Stopwatch]::StartNew()
 
@@ -270,22 +273,21 @@ function Install-SQLServerExpress() {
     
         if (($rc.ExitCode -ne 0) -and ($rc.ExitCode -ne 3010)) {
             # 3010 means ok, but need to reboot
-            Write-LogErrorFunction $func "Microsoft SQL Server Express Installation failed with error code: $($rc.ExitCode)"
+            Write-LogFunctionError $func "Microsoft SQL Server Express Installation failed with error code: $($rc.ExitCode)"
         }
     }
     else {
         Write-LogFunction $func "DryRun: Parameters: '$params'"
-        Write-LogFunction $func $params
         Write-LogFunction $func "DryRun: Skipping install"
     }
 
     Write-LogFunction $func "Microsoft SQL Server Express installation completed"
-    Write-LogExitFunction $func $fTime.Elapsed.ToString()
+    Write-LogFunctionExit $func $fTime.Elapsed.ToString()
 }
 
 function Install-PIServer() {
     $func = "Install-PIServer"
-    Write-LogEnterFunction $func
+    Write-LogFunctionEnter $func
 	
     $fTime = [System.Diagnostics.Stopwatch]::StartNew()
 
@@ -300,7 +302,7 @@ function Install-PIServer() {
         $preference = $ErrorActionPreference
         $ErrorActionPreference = "Continue"     
         if (-not ($sqlservice.Status -eq "Running")) {
-            Write-LogErrorFunction $func "SQL Server ($SqlInstance) was not found or is not running."
+            Write-LogFunctionError $func "SQL Server ($SqlInstance) was not found or is not running."
         }
         $ErrorActionPreference = $preference
     }
@@ -329,7 +331,7 @@ function Install-PIServer() {
     
         if (($rc.ExitCode -ne 0) -and ($rc.ExitCode -ne 3010)) {
             # 3010 means ok, but need to reboot
-            Write-LogErrorFunction $func "PI Server Installation failed with error code: $($rc.ExitCode)"
+            Write-LogFunctionError $func "PI Server Installation failed with error code: $($rc.ExitCode)"
         }
     }
     else {
@@ -338,12 +340,12 @@ function Install-PIServer() {
     }
 
     Write-LogFunction $func "PI Server installation completed"
-    Write-LogExitFunction $func $fTime.Elapsed.ToString()
+    Write-LogFunctionExit $func $fTime.Elapsed.ToString()
 }
 
 function Update-Environment {
     $func = "Update-Environment"
-    Write-LogEnterFunction $func
+    Write-LogFunctionEnter $func
 
     Write-LogFunction $func "Updating PowerShell PATH with new PI variables..."
 
@@ -376,12 +378,12 @@ function Update-Environment {
     }
 
     Write-LogFunction $func "PowerShell PATH updated"
-    Write-LogExitFunction $func
+    Write-LogFunctionExit $func
 }
 
 function Update-KST() {
     $func = "Update-KST"
-    Write-LogEnterFunction $func
+    Write-LogFunctionEnter $func
 
     Write-LogFunction $func "Updating local Known Servers Table with new local PI Data Archive..."
 
@@ -393,12 +395,12 @@ function Update-KST() {
     }
 
     Write-LogFunction $func "Known Servers Table updated"
-    Write-LogExitFunction $func
+    Write-LogFunctionExit $func
 }
 
 function Add-InitialAFDatabase() {
     $func = "Add-IntialAFDatabase"
-    Write-LogEnterFunction $func
+    Write-LogFunctionEnter $func
 
     Write-LogFunction $func "Adding PI AF Database..."
     if ($dryRun -eq $true) {
@@ -411,12 +413,12 @@ function Add-InitialAFDatabase() {
     }
 
     Write-LogFunction $func "PI AF Database added"
-    Write-LogExitFunction $func
+    Write-LogFunctionExit $func
 }
 
 function Expand-PIBundle() {
     $func = "Expand-PIBundle"
-    Write-LogEnterFunction $func
+    Write-LogFunctionEnter $func
 
     Write-LogFunction $func "Expanding self-extracting PI install exe..."
     $baseName = (Get-Item $pibundle).BaseName
@@ -430,17 +432,17 @@ function Expand-PIBundle() {
 
         if ($rc.ExitCode -ne 0) {
             # 0 means ok
-            Write-LogErrorFunction $func "Expanding self-extracting PI install exe failed with error code: $($rc.ExitCode)"
+            Write-LogFunctionError $func "Expanding self-extracting PI install exe failed with error code: $($rc.ExitCode)"
         }
     }
 
     Write-LogFunction $func "Self-extracting PI install exe expanded"
-    Write-LogExitFunction $func
+    Write-LogFunctionExit $func
 }
 
 function Install-PIBundle() {
     $func = "Install-PIBundle"
-    Write-LogEnterFunction $func
+    Write-LogFunctionEnter $func
 
     $fTime = [System.Diagnostics.Stopwatch]::StartNew()
 
@@ -461,12 +463,12 @@ function Install-PIBundle() {
         
         if (($rc.ExitCode -ne 0) -and ($rc.ExitCode -ne 3010)) {
             # 3010 means ok, but need to reboot
-            Write-LogErrorFunction $func "Installing PI setup kit failed with error code: $($rc.ExitCode)"
+            Write-LogFunctionError $func "Installing PI setup kit failed with error code: $($rc.ExitCode)"
         }
     }
 	
     Write-LogFunction $func "PI setup kit installed"
-    Write-LogExitFunction $func $fTime.Elapsed.ToString()
+    Write-LogFunctionExit $func $fTime.Elapsed.ToString()
 }
 #endregion
 
