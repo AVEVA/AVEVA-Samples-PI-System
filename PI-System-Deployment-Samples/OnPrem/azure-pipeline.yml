@@ -43,8 +43,6 @@ jobs:
           ConnectedServiceName: 'product-readiness.SCVMM'
           VMList: $(srv16vm)
           CheckPointName: Initial
-          ScopeFilter: CloudFiltering
-          CloudFilter: 'OAK_Self'
           CreateBoundaryVM: false
           NoDetailedLogs: false
         displayName: 'SCVMM :Restore VM Checkpoint'
