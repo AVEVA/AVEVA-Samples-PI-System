@@ -64,6 +64,7 @@ jobs:
         inputs:
           contents: '$(Build.SourcesDirectory)$(projPath)/*.ps1'
           targetFolder: '\\$(srv16vm)\C$\Test'
+          flattenFiles: true
         displayName: 'Copy PowerShell script'
 
       - task: PowerShellOnTargetMachines@3
