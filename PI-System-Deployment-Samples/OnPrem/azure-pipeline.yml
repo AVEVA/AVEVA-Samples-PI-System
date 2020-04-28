@@ -33,7 +33,7 @@ variables:
     value: PRGPSDSRV16
 
 jobs:
-  - job: Tests Windows Server 2016
+  - job: Tests_SRV16
     pool:
       name: 00-OSIManaged-Test
       demands: COMPUTERNAME -equals $(buildAgent)
