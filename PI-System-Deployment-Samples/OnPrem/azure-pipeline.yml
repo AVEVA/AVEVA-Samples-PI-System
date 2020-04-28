@@ -43,9 +43,11 @@ jobs:
           ConnectedServiceName: 'product-readiness.SCVMM'
           VMList: $(srv16vm)
           CheckPointName: Initial
+          ScopeFilter: CloudFiltering
+          CloudFilter: 'OAK'
           CreateBoundaryVM: false
           NoDetailedLogs: false
-        displayName: 'SCVMM :Restore VM Checkpoint'
+        displayName: 'SCVMM: Restore VM Checkpoint'
 
       - task: CopyFiles@2
         inputs:
