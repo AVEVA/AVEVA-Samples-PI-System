@@ -69,7 +69,6 @@ jobs:
           scriptType: filePath
           scriptPath: 'C:\Test\Verify-PIServer.ps1'
         displayName: 'Run tests'
-
   # - job: Tests Windows 10
   #   pool:
   #     name: 00-OSIManaged-Test
@@ -78,7 +77,6 @@ jobs:
   #     - script: ''
   #       workingDirectory: $(Build.SourcesDirectory)$(projPath)
   #       displayName: 'Run tests'
-
-  - template: '/miscellaneous/build_templates/analysis.yml'
-    parameters:
-      language: powershell
+  # - template: '/miscellaneous/build_templates/analysis.yml'
+  #   parameters:
+  #     language: powershell
