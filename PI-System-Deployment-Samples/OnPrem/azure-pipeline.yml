@@ -72,7 +72,7 @@ jobs:
           machines: $(srv16vm)
           communicationProtocol: http
           scriptType: filePath
-          scriptPath: '.\Install-PIServer.ps1'
+          scriptPath: 'C:\Test\Install-PIServer.ps1'
           scriptArguments: '-sql .\SQL\SETUP.EXE -piserver .\PIServer.exe -pilicdir C:\Test -afdatabase TestDatabase -pibundle .\PIProcessBook.exe'
           workingDirectory: 'C:\Test'
         displayName: 'Run PowerShell script'
@@ -82,8 +82,7 @@ jobs:
           machines: $(srv16vm)
           communicationProtocol: http
           scriptType: filePath
-          scriptPath: '.\Verify-PIServer.ps1'
-          workingDirectory: 'C:\Test'
+          scriptPath: 'C:\Test\Verify-PIServer.ps1'
         displayName: 'Run tests'
 
       - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
