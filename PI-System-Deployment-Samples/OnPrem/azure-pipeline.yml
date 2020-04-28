@@ -62,9 +62,9 @@ jobs:
 
       - task: CopyFiles@2
         inputs:
-          contents: '$(Build.SourcesDirectory)$(projPath)/*.ps1'
+          sourceFolder: $(Build.SourcesDirectory)$(projPath)
+          contents: '*.ps1'
           targetFolder: '\\$(srv16vm)\C$\Test'
-          flattenFiles: true
         displayName: 'Copy PowerShell script'
 
       - task: PowerShellOnTargetMachines@3
@@ -92,6 +92,7 @@ jobs:
           CreateBoundaryVM: false
           NoDetailedLogs: false
         displayName: 'SCVMM: Stop VM'
+        condition: always()
   # - job: Tests Windows 10
   #   pool:
   #     name: 00-OSIManaged-Test
