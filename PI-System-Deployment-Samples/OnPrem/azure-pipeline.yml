@@ -73,7 +73,7 @@ jobs:
           communicationProtocol: http
           scriptType: filePath
           scriptPath: 'C:\Test\Install-PIServer.ps1'
-          scriptArguments: '-sql SQL\SETUP.EXE -piserver PIServer.exe -pilicdir C:\Test -afdatabase TestDatabase -pibundle PIProcessBook.exe'
+          scriptArguments: '-sql .\SQL\SETUP.EXE -piserver .\PIServer.exe -pilicdir C:\Test -afdatabase TestDatabase -pibundle .\PIProcessBook.exe'
         displayName: 'Run PowerShell script'
 
       - task: PowerShellOnTargetMachines@3
