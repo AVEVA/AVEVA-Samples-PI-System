@@ -70,6 +70,7 @@ jobs:
       - task: PowerShellOnTargetMachines@3
         inputs:
           machines: $(srv16vm)
+          communicationProtocol: http
           scriptType: filePath
           scriptPath: 'C:\Test\Install-PIServer.ps1'
           scriptArguments: '-sql SQL\SETUP.EXE -piserver PIServer.exe -pilicdir C:\Test -afdatabase TestDatabase -pibundle PIProcessBook.exe'
@@ -78,6 +79,7 @@ jobs:
       - task: PowerShellOnTargetMachines@3
         inputs:
           machines: $(srv16vm)
+          communicationProtocol: http
           scriptType: filePath
           scriptPath: 'C:\Test\Verify-PIServer.ps1'
         displayName: 'Run tests'
