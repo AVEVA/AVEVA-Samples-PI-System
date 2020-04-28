@@ -301,7 +301,7 @@ function Install-PIServer() {
         $sqlservice = Get-Service -DisplayName "SQL Server ($SqlInstance)" -ErrorAction SilentlyContinue
         $preference = $ErrorActionPreference
         $ErrorActionPreference = "Continue"     
-        if (-not ($sqlservice.Status -eq "Running")) {
+        if ($sqlservice.Status -ne "Running") {
             Write-LogFunctionError $func "SQL Server ($SqlInstance) was not found or is not running."
         }
         $ErrorActionPreference = $preference
@@ -405,11 +405,11 @@ function Add-InitialAFDatabase() {
     Write-LogFunction $func "Adding PI AF Database..."
     if ($dryRun -eq $true) {
         Write-LogFunction $func "DryRun: Skipping 'Get-AFServer -Name $env:computername'"
-        Write-LogFunction $func "DryRun: Skipping 'Add-AFDatabase -Name $piconndb' -AFServer {server}"
+        Write-LogFunction $func "DryRun: Skipping 'Add-AFDatabase -Name $afdatabase' -AFServer {server}"
     }
     else {
         $afserver = Get-AFServer -Name $env:computername
-        Add-AFDatabase -Name $piconndb -AFServer $afserver
+        Add-AFDatabase -Name $afdatabase -AFServer $afserver
     }
 
     Write-LogFunction $func "PI AF Database added"
