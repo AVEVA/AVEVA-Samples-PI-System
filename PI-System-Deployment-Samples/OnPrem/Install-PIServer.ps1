@@ -391,7 +391,7 @@ function Update-Environment {
 }
 
 function Add-InitialAFDatabase() {
-    $func = "Add-IntialAFDatabase"
+    $func = "Add-InitialAFDatabase"
     Write-LogFunctionEnter $func
 
     Write-LogFunction $func "Adding PI AF Database..."

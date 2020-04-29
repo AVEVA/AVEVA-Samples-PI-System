@@ -90,7 +90,7 @@ jobs:
       - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
         inputs:
           ConnectedServiceName: 'product-readiness.SCVMM'
-          VMList: $(srv16vm)
+          VMList: $(vmName)
           Action: StopVM
           ScopeFilter: CloudFiltering
           CloudFilter: OAK

@@ -7,6 +7,28 @@ $piarchss = Get-Service -DisplayName "PI Archive Subsystem"
 if ($piarchss.Status -ne "Running") {
   throw "PI Archive Subsystem not running after script completed."
 }
+# Update PATH so PI PowerShell can be used
+$locations = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+'HKCU:\Environment'
+$locations | ForEach-Object {
+  $k = Get-Item $_
+  $k.GetValueNames() | ForEach-Object {
+    $name = $_
+    $value = $k.GetValue($_)
+
+    if ($dryRun -eq $true) {
+      Write-LogFunction $func "DryRun: Found variable '$name' with value '$value'"
+    }
+    elseif ($userLocation -and $name -ieq 'PATH') {
+      $Env:Path += ";$value"
+    }
+    else {
+      Set-Item -Path Env:\$name -Value $value
+    }
+  }
+
+  $userLocation = $true
+}
 $afserver = Get-AFServer -Name $env:computername
 $afdatabase = Get-AFDatabase -AFServer $afserver -Name 'TestDatabase'
 if ($null -eq $afdatabase) {
