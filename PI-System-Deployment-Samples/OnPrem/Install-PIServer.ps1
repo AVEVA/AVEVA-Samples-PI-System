@@ -309,7 +309,7 @@ function Install-PIServer() {
         # Check that SQL is running
         $sqlservice = Get-Service -DisplayName "SQL Server ($SqlInstance)" -ErrorAction SilentlyContinue
         $preference = $ErrorActionPreference
-        $ErrorActionPreference = "Continue"     
+        $ErrorActionPreference = "Continue"
         if ($sqlservice.Status -ne "Running") {
             Write-LogFunctionError $func "SQL Server ($SqlInstance) was not found or is not running."
         }
@@ -387,23 +387,6 @@ function Update-Environment {
     }
 
     Write-LogFunction $func "PowerShell PATH updated"
-    Write-LogFunctionExit $func
-}
-
-function Update-KST() {
-    $func = "Update-KST"
-    Write-LogFunctionEnter $func
-
-    Write-LogFunction $func "Updating local Known Servers Table with new local PI Data Archive..."
-
-    if ($dryRun -eq $true) {
-        Write-LogFunction $func "DryRun: Skipping 'Add-PIDataArchiveConnectionConfiguration $env:computername'"
-    }
-    else {
-        Add-PIDataArchiveConnectionConfiguration $env:computername
-    }
-
-    Write-LogFunction $func "Known Servers Table updated"
     Write-LogFunctionExit $func
 }
 
@@ -502,7 +485,6 @@ if ($piserver -ne "") {
     Write-Log "-piserver flag specified, starting PI Server Install"
     Install-PIServer
     Update-Environment
-    Update-KST
     if ($afdatabse -ne "") {
         Add-InitialAFDatabase
     }
