@@ -272,7 +272,7 @@ function Install-SQLServerExpress() {
 
     if ($remote -eq $true) {
         # Install kit auto update does not work from remote PowerShell session
-        $params.Add("/UPDATEENABLED=FALSE")
+        $params += ("/UPDATEENABLED=FALSE")
         # Enable server role, otherwise may encounter error generating XML document
         Enable-WSManCredSSP -Role "Server"
     }
