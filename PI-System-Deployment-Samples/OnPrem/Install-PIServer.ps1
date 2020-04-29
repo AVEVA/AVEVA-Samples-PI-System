@@ -74,7 +74,6 @@ $PiServerLogFile = ".\Install-PIServer $StartTime.piserver.log"
 $SqlInstance = "SQLExpress"
 $ErrorActionPreference = "Stop"
 Write-Output "Using log file: $LogFile"
-whoami.exe
 #endregion
 
 #region Helper Functions
