@@ -27,49 +27,56 @@ variables:
   - template: '/miscellaneous/build_templates/variables.yml'
   - name: projPath
     value: '/PI-System-Deployment-Samples/OnPrem'
-  - name: win10vm
-    value: PRGPSDWIN10
-  - name: srv16vm
-    value: PRGPSDSRV16
 
 jobs:
   - job: Tests_SRV16
+    strategy:
+      matrix:
+        srv16:
+          vmName: PRGPSDSRV16
+        # win10:
+        #   vmName: PRGPSDWIN10
     pool:
       name: 00-OSIManaged-Test
       demands: COMPUTERNAME -equals $(buildAgent)
     steps:
-      # - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
-      #   inputs:
-      #     ConnectedServiceName: 'product-readiness.SCVMM'
-      #     VMList: $(srv16vm)
-      #     CheckPointName: Initial
-      #     ScopeFilter: CloudFiltering
-      #     CloudFilter: OAK
-      #     CreateBoundaryVM: false
-      #     NoDetailedLogs: false
-      #   displayName: 'SCVMM: Restore VM Checkpoint'
+      - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
+        inputs:
+          ConnectedServiceName: 'product-readiness.SCVMM'
+          VMList: $(vmName)
+          CheckPointName: Initial
+          ScopeFilter: CloudFiltering
+          CloudFilter: OAK
+          CreateBoundaryVM: false
+          NoDetailedLogs: false
+        displayName: 'SCVMM: Restore VM Checkpoint'
 
-      # - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
-      #   inputs:
-      #     ConnectedServiceName: 'product-readiness.SCVMM'
-      #     VMList: $(srv16vm)
-      #     Action: StartVM
-      #     ScopeFilter: CloudFiltering
-      #     CloudFilter: OAK
-      #     CreateBoundaryVM: false
-      #     NoDetailedLogs: false
-      #   displayName: 'SCVMM: Start VM'
+      - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
+        inputs:
+          ConnectedServiceName: 'product-readiness.SCVMM'
+          VMList: $(vmName)
+          Action: StartVM
+          ScopeFilter: CloudFiltering
+          CloudFilter: OAK
+          CreateBoundaryVM: false
+          NoDetailedLogs: false
+        displayName: 'SCVMM: Start VM'
 
-      # - task: CopyFiles@2
-      #   inputs:
-      #     sourceFolder: $(Build.SourcesDirectory)$(projPath)
-      #     contents: '*.ps1'
-      #     targetFolder: '\\$(srv16vm)\C$\Test'
-      #   displayName: 'Copy PowerShell script'
+      - task: Delay@1
+        inputs:
+          delayForMinutes: 5
+        displayName: 'Wait 5 minutes for VM to finish starting...'
+
+      - task: CopyFiles@2
+        inputs:
+          sourceFolder: $(Build.SourcesDirectory)$(projPath)
+          contents: '*.ps1'
+          targetFolder: '\\$(vmName)\C$\Test'
+        displayName: 'Copy PowerShell script'
 
       - task: PowerShellOnTargetMachines@3
         inputs:
-          machines: $(srv16vm)
+          machines: $(vmName)
           communicationProtocol: http
           scriptType: filePath
           scriptPath: 'C:\Test\Install-PIServer.ps1'
@@ -79,7 +86,7 @@ jobs:
 
       - task: PowerShellOnTargetMachines@3
         inputs:
-          machines: $(srv16vm)
+          machines: $(vmName)
           communicationProtocol: http
           scriptType: filePath
           scriptPath: 'C:\Test\Verify-PIServer.ps1'
@@ -95,14 +102,3 @@ jobs:
       #     NoDetailedLogs: false
       #   displayName: 'SCVMM: Stop VM'
       #   condition: always()
-  # - job: Tests Windows 10
-  #   pool:
-  #     name: 00-OSIManaged-Test
-  #     demands: COMPUTERNAME -equals $(buildAgent)
-  #   steps:
-  #     - script: ''
-  #       workingDirectory: $(Build.SourcesDirectory)$(projPath)
-  #       displayName: 'Run tests'
-  # - template: '/miscellaneous/build_templates/analysis.yml'
-  #   parameters:
-  #     language: powershell

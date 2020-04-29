@@ -15,6 +15,9 @@ Developed using PowerShell 5.1
   - For `-sql`, Microsoft SQL Server Express kit may need to be expanded, should use `SETUP.EXE`
   - For `-piserver`, PI Server install kit with `pilicense.dat` in same directory
   - For `-pibundle`, a self-extracting PI install kit with prepared `silent.ini` (or script will use defaults)
+- The `-piserver` install flag requires that the required .NET Framework version is already installed
+  - PI Server 2018 SP3 and PI Server 2018 SP3 Patch 1 require [.NET Framework 4.8](https://dotnet.microsoft.com/download/dotnet-framework/net48)
+  - .NET Framework installation usually requires a restart and is not included in this script
 - The `-piserver` install flag requires that a local copy of Microsoft SQL Server Express is running in order to install the PI Server
   - The script can install Microsoft SQL Server Express using the `-sql` flag and the kit available from Microsoft [here](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
   - The script can install if a local copy of Microsoft SQL Express is already running
