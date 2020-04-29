@@ -12,17 +12,34 @@ Developed using PowerShell 5.1
 
 - Powershell 5+
 - Install kits for products to be installed
-  - For `-sql`, Microsoft SQL Server Express kit may need to be expanded, should use `SETUP.EXE`
-  - For `-piserver`, PI Server install kit with `pilicense.dat` in same directory
-  - For `-pibundle`, a self-extracting PI install kit with prepared `silent.ini` (or script will use defaults)
-- The `-piserver` install flag requires that the required .NET Framework version is already installed
+
+### Microsoft SQL Server Express Requirements
+
+Use the `-sql` flag to specify the path to `SETUP.EXE`.
+
+- The Microsoft SQL Server Express kit may need to be expanded first
+
+### PI Server Requirements
+
+Use the `-piserver` flag to specify the path to the PI Server install kit.
+
+- The PI Data Archive `pilicense.dat` should be in the same directory, otherwise, use the `-pilicdir` flag to specify the path to a directory containing the `pilicense.dat` file
+- The required .NET Framework version must be installed before running this command
   - PI Server 2018 SP3 and PI Server 2018 SP3 Patch 1 require [.NET Framework 4.8](https://dotnet.microsoft.com/download/dotnet-framework/net48)
   - .NET Framework installation usually requires a restart and is not included in this script
-- The `-piserver` install flag requires that a local copy of Microsoft SQL Server Express is running in order to install the PI Server
+- Microsoft SQL Server Express must be running locally in order to install the PI Server
   - The script can install Microsoft SQL Server Express using the `-sql` flag and the kit available from Microsoft [here](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-  - The script can install if a local copy of Microsoft SQL Express is already running
-  - The script could be modified to install PI AF Server against a remote server or local SQL instance other than SQLExpress
-- The `-pibundle` install flag requires that [7-zip](https://www.7-zip.org/) is installed on the local machine
+  - The script can install the PI Server if a local copy of Microsoft SQL Express is already running
+  - The script could also be modified to install PI AF Server against a remote server or local SQL instance other than SQLExpress
+
+### Self-Extracting PI Install Kit Requirements
+
+Use the `-pibundle` flag to specify the path to a self-extracting PI install kit.
+
+- [7-zip](https://www.7-zip.org/) must be installed on the local machine
+- This flag can be used in combination with the `-silentini` to perform a custom silent installation, by specifying a valid `silent.ini` file for the product to be installed
+  - To build a `silent.ini` file, either consult documentation, or extract the installation kit and review the default `silent.ini` file in the output directory
+- If the `-silentini` flag is not specified, the script will install using the default `silent.ini` file that is extracted from the install kit
 
 ## Running the Sample
 
@@ -46,7 +63,7 @@ To install the PI Server, include the `-piserver` flag to the script, and use it
 
 The PI Server installation will use the `TYPICAL` flag, which will install the PI Data Archive, PI AF Server, and supporting products. To see the full list of products installed using the `TYPICAL` flag, start the install kit normally, and at the "Feature Selection" step, click the "Select Typical" button. The "Summary" panel will list the products to be installed, or the "Individual Features" tab can also be used to inspect the list of checked features.
 
-#### Self-extracting PI Install Kit
+#### Self-Extracting PI Install Kit
 
 The `-pibundle` flag can be used to install most other PI installation kits. This flag will extract the bundle to a local directory, and then silently run the `Setup.exe` inside that folder. To override the default silent installation, use the `-silentini` flag to the script to specify a file to use.
 
