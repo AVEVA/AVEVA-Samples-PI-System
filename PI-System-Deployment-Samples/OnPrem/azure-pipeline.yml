@@ -34,8 +34,8 @@ jobs:
       matrix:
         server2016:
           vmName: PRGPSDSRV16
-        # windows10:
-        #   vmName: PRGPSDWIN10
+        windows10:
+          vmName: PRGPSDWIN10
     pool:
       name: 00-OSIManaged-Test
       demands: COMPUTERNAME -equals $(buildAgent)
@@ -86,14 +86,15 @@ jobs:
           scriptType: filePath
           scriptPath: 'C:\Test\Verify-PIServer.ps1'
         displayName: 'Run tests'
-      # - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
-      #   inputs:
-      #     ConnectedServiceName: 'product-readiness.SCVMM'
-      #     VMList: $(srv16vm)
-      #     Action: StopVM
-      #     ScopeFilter: CloudFiltering
-      #     CloudFilter: OAK
-      #     CreateBoundaryVM: false
-      #     NoDetailedLogs: false
-      #   displayName: 'SCVMM: Stop VM'
-      #   condition: always()
+
+      - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
+        inputs:
+          ConnectedServiceName: 'product-readiness.SCVMM'
+          VMList: $(srv16vm)
+          Action: StopVM
+          ScopeFilter: CloudFiltering
+          CloudFilter: OAK
+          CreateBoundaryVM: false
+          NoDetailedLogs: false
+        displayName: 'SCVMM: Stop VM'
+        condition: always()
