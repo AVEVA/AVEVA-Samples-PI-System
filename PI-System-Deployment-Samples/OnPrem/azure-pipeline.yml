@@ -40,34 +40,34 @@ jobs:
       name: 00-OSIManaged-Test
       demands: COMPUTERNAME -equals $(buildAgent)
     steps:
-      # - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
-      #   inputs:
-      #     ConnectedServiceName: 'product-readiness.SCVMM'
-      #     VMList: $(vmName)
-      #     CheckPointName: Initial
-      #     ScopeFilter: CloudFiltering
-      #     CloudFilter: OAK
-      #     CreateBoundaryVM: false
-      #     NoDetailedLogs: false
-      #   displayName: 'SCVMM: Restore VM Checkpoint'
+      - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
+        inputs:
+          ConnectedServiceName: 'product-readiness.SCVMM'
+          VMList: $(vmName)
+          CheckPointName: Initial
+          ScopeFilter: CloudFiltering
+          CloudFilter: OAK
+          CreateBoundaryVM: false
+          NoDetailedLogs: false
+        displayName: 'SCVMM: Restore VM Checkpoint'
 
-      # - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
-      #   inputs:
-      #     ConnectedServiceName: 'product-readiness.SCVMM'
-      #     VMList: $(vmName)
-      #     Action: StartVM
-      #     ScopeFilter: CloudFiltering
-      #     CloudFilter: OAK
-      #     CreateBoundaryVM: false
-      #     NoDetailedLogs: false
-      #   displayName: 'SCVMM: Start VM'
+      - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
+        inputs:
+          ConnectedServiceName: 'product-readiness.SCVMM'
+          VMList: $(vmName)
+          Action: StartVM
+          ScopeFilter: CloudFiltering
+          CloudFilter: OAK
+          CreateBoundaryVM: false
+          NoDetailedLogs: false
+        displayName: 'SCVMM: Start VM'
 
-      # - task: CopyFiles@2
-      #   inputs:
-      #     sourceFolder: $(Build.SourcesDirectory)$(projPath)
-      #     contents: '*.ps1'
-      #     targetFolder: '\\$(vmName)\C$\Test'
-      #   displayName: 'Copy PowerShell script'
+      - task: CopyFiles@2
+        inputs:
+          sourceFolder: $(Build.SourcesDirectory)$(projPath)
+          contents: '*.ps1'
+          targetFolder: '\\$(vmName)\C$\Test'
+        displayName: 'Copy PowerShell script'
 
       - task: PowerShellOnTargetMachines@3
         inputs:
