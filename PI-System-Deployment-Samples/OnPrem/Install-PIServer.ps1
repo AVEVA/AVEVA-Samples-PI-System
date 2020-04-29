@@ -74,14 +74,6 @@ $PiServerLogFile = ".\Install-PIServer $StartTime.piserver.log"
 $SqlInstance = "SQLExpress"
 $ErrorActionPreference = "Stop"
 Write-Output "Using log file: $LogFile"
-Write-Output "Testing admin credentials..."
-echo "Hi" > c:\temp.txt
-Write-Output "Testing IsInRole..."
-If (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Output "Does not appear to be administrator"
-    Break
-}
-Write-Output "Continue..."
 #endregion
 
 #region Helper Functions
@@ -269,6 +261,7 @@ function Install-SQLServerExpress() {
         "/ACTION=INSTALL",
         "/FEATURES=SQLENGINE,FULLTEXT",
         "/INSTANCENAME=$SqlInstance",
+        "/UPDATEENABLED=FALSE",
         "/SQLCOLLATION=SQL_LATIN1_GENERAL_CP1_CI_AS",
         "/SQLSYSADMINACCOUNTS=BUILTIN\ADMINISTRATORS"
     )

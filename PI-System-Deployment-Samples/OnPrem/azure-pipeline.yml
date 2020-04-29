@@ -71,8 +71,6 @@ jobs:
         inputs:
           machines: $(srv16vm)
           communicationProtocol: http
-          # userName: $(svcUsername)
-          # userPassword: $(svcPassword)
           scriptType: filePath
           scriptPath: 'C:\Test\Install-PIServer.ps1'
           scriptArguments: '-sql .\SQL\SETUP.EXE -piserver .\PIServer.exe -pilicdir C:\Test -afdatabase TestDatabase -pibundle .\PIProcessBook.exe'
