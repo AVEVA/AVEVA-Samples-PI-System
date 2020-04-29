@@ -62,9 +62,6 @@ jobs:
           NoDetailedLogs: false
         displayName: 'SCVMM: Start VM'
 
-      - bash: sleep 300
-        displayName: 'Wait 5 minutes for VM to stabilize...'
-
       - task: CopyFiles@2
         inputs:
           sourceFolder: $(Build.SourcesDirectory)$(projPath)
