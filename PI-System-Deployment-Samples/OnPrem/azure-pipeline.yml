@@ -29,12 +29,12 @@ variables:
     value: '/PI-System-Deployment-Samples/OnPrem'
 
 jobs:
-  - job: Tests_SRV16
+  - job: Tests
     strategy:
       matrix:
-        srv16:
+        server2016:
           vmName: PRGPSDSRV16
-        # win10:
+        # windows10:
         #   vmName: PRGPSDWIN10
     pool:
       name: 00-OSIManaged-Test
@@ -63,7 +63,7 @@ jobs:
         displayName: 'SCVMM: Start VM'
 
       - bash: sleep 300
-        displayName: 'Wait 5 minutes for VM to finish starting...'
+        displayName: 'Wait 5 minutes for VM to stabilize...'
 
       - task: CopyFiles@2
         inputs:
@@ -78,7 +78,7 @@ jobs:
           communicationProtocol: http
           scriptType: filePath
           scriptPath: 'C:\Test\Install-PIServer.ps1'
-          scriptArguments: '-sql .\SQL\SETUP.EXE -piserver .\PIServer.exe -pilicdir C:\Test -afdatabase TestDatabase -pibundle .\PIProcessBook.exe'
+          scriptArguments: '-sql .\SQL\SETUP.EXE -piserver .\PIServer.exe -pilicdir C:\Test -afdatabase TestDatabase -pibundle .\PIProcessBook.exe -remote'
           workingDirectory: 'C:\Test'
         displayName: 'Run PowerShell script'
 

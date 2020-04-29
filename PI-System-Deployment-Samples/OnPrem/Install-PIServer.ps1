@@ -33,6 +33,9 @@
 .PARAMETER dryRun
     Specifies to run the script in Dry-Run mode. Logs will be written, but no install/configuration actions will occur.
 
+.PARAMETER remote
+    Specifies script is being run by remote PowerShell session. This flag is used by the test pipeline.
+
 .EXAMPLES
 
 .EXAMPLE
@@ -61,7 +64,8 @@ param(
     [string]$afdatabase, # Optional PI AF Database to create after install
     [string]$pibundle, # Path to self-extracting PI install kit
     [string]$silentini, # Path to silent.ini for self-extracting PI install kit
-    [switch]$dryRun # Dry run, log but do not install
+    [switch]$dryRun, # Dry run, log but do not install
+    [switch]$remote # Remote PowerShell
 )
 #endregion
 
@@ -265,6 +269,13 @@ function Install-SQLServerExpress() {
         "/SQLCOLLATION=SQL_LATIN1_GENERAL_CP1_CI_AS",
         "/SQLSYSADMINACCOUNTS=BUILTIN\ADMINISTRATORS"
     )
+
+    if ($remote -eq $true) {
+        # Install kit auto update does not work from remote PowerShell session
+        $params.Add("/UPDATEENABLED=FALSE")
+        # Enable server role, otherwise may encounter error generating XML document
+        Enable-WSManCredSSP -Role "Server"
+    }
 
     if ($dryRun -ne $true) {
         Write-LogFunction $func "Starting install..."
