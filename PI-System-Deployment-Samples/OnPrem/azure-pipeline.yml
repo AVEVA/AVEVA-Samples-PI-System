@@ -62,9 +62,7 @@ jobs:
           NoDetailedLogs: false
         displayName: 'SCVMM: Start VM'
 
-      - task: Delay@1
-        inputs:
-          delayForMinutes: 5
+      - bash: sleep 300
         displayName: 'Wait 5 minutes for VM to finish starting...'
 
       - task: CopyFiles@2
