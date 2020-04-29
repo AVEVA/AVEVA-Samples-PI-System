@@ -257,7 +257,6 @@ function Install-SQLServerExpress() {
     $params = 
     @(
         "/Q",
-        "/HIDECONSOLE",
         "/IACCEPTSQLSERVERLICENSETERMS=TRUE",
         "/ACTION=INSTALL",
         "/FEATURES=SQLENGINE,FULLTEXT",
