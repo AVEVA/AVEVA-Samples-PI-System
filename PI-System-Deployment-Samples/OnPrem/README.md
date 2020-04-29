@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0
 
-Build status goes here
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/Deployment_OnPrem?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=1640&branchName=master)
 
 This sample uses PowerShell to install Microsoft SQL Server Express, the PI Server including PI Data Archive and PI AF Server, and/or a generic self-extracting PI install kit. The script only installs the packages that are specified by flags, so it can be used to run all three installs or only one.
 
@@ -19,6 +19,7 @@ Developed using PowerShell 5.1
   - The script can install Microsoft SQL Server Express using the `-sql` flag and the kit available from Microsoft [here](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
   - The script can install if a local copy of Microsoft SQL Express is already running
   - The script could be modified to install PI AF Server against a remote server or local SQL instance other than SQLExpress
+- The `-pibundle` install flag requires that [7-zip](https://www.7-zip.org/) is installed on the local machine
 
 ## Running the Sample
 

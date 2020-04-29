@@ -213,7 +213,6 @@ function Confirm-Params() {
 
     # Checks for PI Bundle
     if ($pibundle -ne "") {
-        Write-Output "$pibundle"
         # Installing PI Bundle
         if (Test-Path $pibundle -type leaf) {
             Write-LogFunction $func "Found self-extracting PI install kit at: '$pibundle'"
@@ -258,6 +257,7 @@ function Install-SQLServerExpress() {
     $params = 
     @(
         "/Q",
+        "/HIDECONSOLE",
         "/IACCEPTSQLSERVERLICENSETERMS=TRUE",
         "/ACTION=INSTALL",
         "/FEATURES=SQLENGINE,FULLTEXT",
