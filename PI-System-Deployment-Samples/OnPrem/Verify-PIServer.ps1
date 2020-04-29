@@ -1,5 +1,5 @@
 # Verify test install completed successfully
-$sqlservice = Get-Service -DisplayName "SQL Server ($SqlInstance)"
+$sqlservice = Get-Service -DisplayName "SQL Server (SQLExpress)"
 if ($sqlservice.Status -ne "Running") {
   throw "SQL Service is not running after script completed."
 }
