@@ -6,7 +6,7 @@
 
 This sample uses PowerShell to install Microsoft SQL Server Express, the PI Server including PI Data Archive and PI AF Server, and/or a generic self-extracting PI install kit. The script only installs the packages that are specified by flags, so it can be used to run all three installs or only one.
 
-Developed using PowerShell 5.1
+Developed using PowerShell 5.1, Microsoft SQL Server 2017 Express, PI Server 2018 SP3 Patch 1, and PI ProcessBook 2015 R3 Patch 1.
 
 ## Requirements
 
@@ -70,6 +70,23 @@ The `-pibundle` flag can be used to install most other PI installation kits. Thi
 ### Logs
 
 The script will log detailed information to a local timestamped log file, which will be listed in the output of the script. If the PI Server is installed, additional (non-timestamped) logs will be created by that install kit.
+
+### Verify Script
+
+The test pipeline uses the script `.\Verify-PIServer.ps1` to verify installations have succeeded. The test pipeline uses remote PowerShell to run the script with the parameters:
+
+```PowerShell
+.\Install-PIServer.ps1 -sql .\SQL\SETUP.EXE -piserver .\PIServer.exe -pilicdir C:\Test -afdatabase TestDatabase -pibundle .\PIProcessBook.exe -remote
+```
+
+This installs Microsoft SQL Server Express, PI Server, and PI ProcessBook, and also creates an AF Database named 'TestDatabase.' The test script then checks:
+
+- SQL Server Express (instance SQLExpress) is running
+- PI Archive Subsystem is running
+- PI AF Database 'TestDatabase' was created
+- PI ProcessBook executable is found in `%PIHOME%`
+
+The test script is intended for use in the automated test pipeline, but can also be modified to verify the desired deployment.
 
 ---
 

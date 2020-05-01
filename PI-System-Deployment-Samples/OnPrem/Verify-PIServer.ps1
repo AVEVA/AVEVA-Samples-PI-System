@@ -1,4 +1,5 @@
 # Verify test install completed successfully
+# This script is used by the automated test pipeline, but can be modified to verify specific deployments
 $sqlservice = Get-Service -DisplayName "SQL Server (SQLExpress)"
 if ($sqlservice.Status -ne "Running") {
   throw "SQL Service is not running after script completed."
