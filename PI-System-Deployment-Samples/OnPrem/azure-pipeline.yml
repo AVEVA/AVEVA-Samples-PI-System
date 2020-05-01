@@ -27,6 +27,10 @@ variables:
   - template: '/miscellaneous/build_templates/variables.yml'
   - name: projPath
     value: '/PI-System-Deployment-Samples/OnPrem'
+  - name: covStream
+    value: Deployment_OnPrem
+  - name: bdProject
+    value: Deployment_OnPrem
 
 jobs:
   - job: Tests
@@ -98,3 +102,7 @@ jobs:
           NoDetailedLogs: false
         displayName: 'SCVMM: Stop VM'
         condition: always()
+
+  - template: '/miscellaneous/build_templates/analysis.yml'
+    parameters:
+      language: powershell
