@@ -103,6 +103,11 @@ jobs:
         displayName: 'SCVMM: Stop VM'
         condition: always()
 
+  - job: BlackDuck
+    pool:
+      name: 00-OSIManaged-Test
+      demands: COMPUTERNAME -equals $(buildAgent)
+    steps:
       - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
         inputs:
           Products: BD
