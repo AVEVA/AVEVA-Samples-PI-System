@@ -38,7 +38,7 @@ namespace PIUploadUtility
         {
             HttpResponseMessage response = await client.GetAsync(uri);
 
-            Console.WriteLine("GET response code ", response.StatusCode);
+            Console.WriteLine("GET response code " + response.StatusCode);
             string content = await response.Content.ReadAsStringAsync();
 
             if(!response.IsSuccessStatusCode)
@@ -54,7 +54,7 @@ namespace PIUploadUtility
             HttpResponseMessage response = await client.PostAsync(
                 uri, new StringContent(data, Encoding.UTF8, "application/json"));
 
-            Console.WriteLine("POST response code ", response.StatusCode);
+            Console.WriteLine("POST response code " + response.StatusCode);
             string content = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
