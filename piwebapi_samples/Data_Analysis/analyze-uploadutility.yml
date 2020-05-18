@@ -37,6 +37,16 @@ variables:
     value: PIWebAPI_Data_Analysis_Upload
 
 jobs:
+  - job: NugetRestore
+    pool:
+     name: 00-OSIManaged-Test
+     demands: COMPUTERNAME -equals $(buildAgent)
+    steps:
+      - task: NuGetCommand@2
+        inputs:
+          command: 'restore'
+          restoreSolution: '**/PIUploadUtility.sln'
+          feedsToUse: 'select'
   - template: '/miscellaneous/build_templates/analysis.yml'
     parameters:
       language: dotnet
