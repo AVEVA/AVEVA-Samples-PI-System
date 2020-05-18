@@ -1,0 +1,6 @@
+Building_Data_101215.AnalogValue1.PresentValue,Float32,classic
+VAVCO 2-03.Setpoint Offset Current.1315f488-6e35-5fba-1531-384ac098e1ef,Float64,base
+Building_Data_101221.AnalogValue1.PresentValue,Float32,classic
+VAVCO 2-09.Setpoint Offset Current.1315f49e-6e35-5fba-1531-384ac098e1ef,Float64,base
+VAVCO 2-09.Predicted Cooling Time,Float64,base
+VAVCO 2-03.Predicted Cooling Time,Float64,base
