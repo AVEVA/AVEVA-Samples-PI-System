@@ -51,11 +51,13 @@ jobs:
         inputs:
           versionSpec: 
       - task: DotNetCoreCLI@2
+        displayName: Restore
         inputs:
           command: 'restore'
           projects: '**/UploadUtility.csproj'
           feedsToUse: 'select'
       - task: DotNetCoreCLI@2
+        displayName: Build
         inputs:
           command: 'build'
           projects: '**/UploadUtility.csproj'
