@@ -53,11 +53,11 @@ jobs:
       - task: NuGetCommand@2
         inputs:
           command: 'restore'
-          restoreSolution: '**/PIUploadUtility.sln'
+          restoreSolution: '**/UploadUtility.sln'
           feedsToUse: 'select'
       - task: VSBuild@1
         inputs:
-          solution: '**\PIUploadUtility.sln'
+          solution: '**\UploadUtility.sln'
           configuration: Debug
       - task: CopyFiles@2
         displayName: Copy Build Output Files
@@ -70,12 +70,12 @@ jobs:
       - task: PublishBuildArtifacts@1
         inputs:
           PathtoPublish: '$(Build.BinariesDirectory)'
-          ArtifactName: 'PIUploadUtility'
+          ArtifactName: 'UploadUtility'
           publishLocation: 'Container'
       - task: PowerShell@2
         inputs:
           targetType: 'inline'
-          script: '&"$(Build.BinariesDirectory)/PIUploadUtility.exe" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/PIUploadUtility/PIUploadUtility/Building Example.xml" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/PIUploadUtility/PIUploadUtility/tagdefinition.csv" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/PIUploadUtility/PIUploadUtility/pidata.csv" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/test_config.json"'
+          script: '&"$(Build.BinariesDirectory)/UploadUtility.exe" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/UploadUtility/Building Example.xml" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/UploadUtility/tagdefinition.csv" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/UploadUtility/pidata.csv" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/test_config.json"'
 
   - job: Tests
     pool:
