@@ -26,7 +26,7 @@ schedules:
 variables:
   - template: '/miscellaneous/build_templates/variables.yml'
   - name: projPath
-    value: '/piwebapi_samples/Data_Analysis/PIUploadUtility/PIUploadUtility'
+    value: '/piwebapi_samples/Data_Analysis/UploadUtility'
   - name: CredFile
     value: test_config.json
   - name: CredFileLibrary
