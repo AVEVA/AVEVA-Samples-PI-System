@@ -79,6 +79,19 @@ namespace UploadUtility
             }
         }
 
+        public async Task DeleteAsync(string uri)
+        {
+            HttpResponseMessage response = await client.DeleteAsync(uri);
+            Console.WriteLine("DELETE response code " + response.StatusCode);
+            string content = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var responseMessage = "Response status code does not indicate success: " + (int)response.StatusCode + " (" + response.StatusCode + " ). ";
+                throw new HttpRequestException(responseMessage + Environment.NewLine + content);
+            }
+        }
+
         public JObject GetRequest(string url)
         {
             Task<JObject> t = this.GetAsync(url);
@@ -98,6 +111,12 @@ namespace UploadUtility
                 Task t = this.PostAsync(url, data);
                 t.Wait();
             }
+        }
+
+        public void DeleteRequest(string url)
+        {
+            Task t = this.DeleteAsync(url);
+            t.Wait();
         }
 
         public void Dispose()

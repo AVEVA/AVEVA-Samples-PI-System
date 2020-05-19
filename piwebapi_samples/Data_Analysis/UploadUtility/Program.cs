@@ -10,7 +10,7 @@ namespace UploadUtility
     class Program
     {
         static readonly string defaultConfigFile = @"..\..\..\..\test_config.json";
-        static readonly string defaultDatabaseFileFile = @"..\..\..\Building Example.xml";
+        static readonly string defaultDatabaseFile = @"..\..\..\Building Example.xml";
         static readonly string defaultTagDefinitionFile = @"..\..\..\tagdefinition.csv";
         static readonly string defaultPIDataFile = @"..\..\..\pidata.csv";
 
@@ -135,6 +135,24 @@ namespace UploadUtility
             
             return true;
         }
+
+        static void DeleteExistingDatabase(string assetserver)
+        {
+            string databaseName = config["AF_DATABASE_NAME"].ToString();
+            string databasePath = "\\\\" + assetserver + "\\" + databaseName;
+            string databaseWebID = GetWebIDByPath(databasePath, "assetdatabases");
+
+            string deleteQuery = "assetdatabases/" + databaseWebID;
+            try
+            {
+                client.DeleteRequest(deleteQuery);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.InnerException.Message);
+            }
+
+        }
         static void UpdateValues(string dataserver, string tagDefinitionLocation, string PIDataLocation)
         {
             var tags = File.ReadLines(tagDefinitionLocation);
@@ -194,7 +212,7 @@ namespace UploadUtility
                 or use the values provided by command line arguments*/
 
             string configFile = defaultConfigFile;
-            string databaseFile = defaultDatabaseFileFile;
+            string databaseFile = defaultDatabaseFile;
             string tagDefinitionFile = defaultTagDefinitionFile;
             string piDataFile = defaultPIDataFile;
 
@@ -226,6 +244,9 @@ namespace UploadUtility
 
             string dataserver = config["PI_SERVER_NAME"].ToString();
             string assetserver = config["AF_SERVER_NAME"].ToString();
+
+            //Delete existing AF Database if it exists
+            DeleteExistingDatabase(assetserver);
 
             //Create and Import Database from Building Example file
             XmlDocument doc = new XmlDocument();
