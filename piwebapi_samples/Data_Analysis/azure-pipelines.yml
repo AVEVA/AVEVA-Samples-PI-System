@@ -55,10 +55,10 @@ jobs:
           command: 'restore'
           restoreSolution: '**/UploadUtility.sln'
           feedsToUse: 'select'
-      - task: VSBuild@1
+      - task: DotNetCoreCLI@2
         inputs:
-          solution: '**\UploadUtility.sln'
-          configuration: Debug
+          command: 'build'
+          projects: '**/UploadUtility.csproj'
       - task: CopyFiles@2
         displayName: Copy Build Output Files
         inputs:
