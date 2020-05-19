@@ -50,21 +50,23 @@ jobs:
       - task: NuGetToolInstaller@1
         inputs:
           versionSpec: 
-      - task: NuGetCommand@2
+      - task: DotNetCoreCLI@2
+        displayName: Restore
         inputs:
           command: 'restore'
-          restoreSolution: '**/UploadUtility.sln'
+          projects: '**/UploadUtility.csproj'
           feedsToUse: 'select'
-      - task: VSBuild@1
+      - task: DotNetCoreCLI@2
+        displayName: Build
         inputs:
-          solution: '**\UploadUtility.sln'
-          configuration: Debug
+          command: 'build'
+          projects: '**/UploadUtility.csproj'
       - task: CopyFiles@2
         displayName: Copy Build Output Files
         inputs:
           sourceFolder: "$(Build.SourcesDirectory)"
           targetFolder: "$(Build.BinariesDirectory)"
-          contents: "**/bin/Debug/*"
+          contents: "**/bin/Debug/netcoreapp3.1/*"
           overWrite: true
           flattenFolders: true
       - task: PublishBuildArtifacts@1
