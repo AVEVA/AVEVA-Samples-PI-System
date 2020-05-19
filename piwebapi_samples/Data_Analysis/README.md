@@ -42,7 +42,7 @@ For example:
 	"AF_DATABASE_NAME": "AFDatabaseNAme",
 	"USER_NAME": "MyUserName",
 	"USER_PASSWORD": "MyUserPassword",
-	"AUTH_TYPE": "basic" # Basic or Kerberos 
+	"AUTH_TYPE": "basic"
 ```
 - `Building Example.xml` assumes that the PI Server is on the same system. Edit the `Building Example.xml` to replace all occurences of `localhost`to your PI Server.
 - Run `PIUploadUtility.sln` which imports the AF database from `Building Example.xml`, creates PI tags outlined in `tagdefinition.csv` and uploads the values in `pidata.csv` to PI Data Archive.
