@@ -109,7 +109,48 @@ namespace UploadUtility
                 }
             }
         }
+        static void DeleteExistingDatabase(string assetserver)
+        {
+            string databaseName = config["AF_DATABASE_NAME"].ToString();
+            string databasePath = "\\\\" + assetserver + "\\" + databaseName;
+            string databaseWebID = GetWebIDByPath(databasePath, "assetdatabases");
 
+            string deleteQuery = "assetdatabases/" + databaseWebID;
+            try
+            {
+                client.DeleteRequest(deleteQuery);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.InnerException.Message);
+            }
+
+        }
+        static bool DoesDatabaseExist(string assetserver)
+        {
+            string databaseName = config["AF_DATABASE_NAME"].ToString();
+            string databasePath = "\\\\" + assetserver + "\\" + databaseName;
+
+            string getDatabaseQuery = "assetdatabases/?path=" + databasePath;
+
+            try
+            {
+                JObject result = client.GetRequest(getDatabaseQuery);
+            }
+            catch (Exception e)
+            {
+                if (e.InnerException.Message.Contains("404"))
+                {
+                    return false;
+                }
+                else
+                {
+                    Console.WriteLine(e.InnerException.Message);
+                }
+            }
+
+            return true;
+        }
         static bool DoesTagExist(string dataserver)
         {
             string tagname = "VAVCO 2-09.Predicted Cooling Time";
@@ -135,24 +176,7 @@ namespace UploadUtility
             
             return true;
         }
-
-        static void DeleteExistingDatabase(string assetserver)
-        {
-            string databaseName = config["AF_DATABASE_NAME"].ToString();
-            string databasePath = "\\\\" + assetserver + "\\" + databaseName;
-            string databaseWebID = GetWebIDByPath(databasePath, "assetdatabases");
-
-            string deleteQuery = "assetdatabases/" + databaseWebID;
-            try
-            {
-                client.DeleteRequest(deleteQuery);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.InnerException.Message);
-            }
-
-        }
+        
         static void UpdateValues(string dataserver, string tagDefinitionLocation, string PIDataLocation)
         {
             var tags = File.ReadLines(tagDefinitionLocation);
@@ -246,8 +270,11 @@ namespace UploadUtility
             string assetserver = config["AF_SERVER_NAME"].ToString();
 
             //Delete existing AF Database if it exists
-            DeleteExistingDatabase(assetserver);
-
+            if(DoesDatabaseExist(assetserver))
+            {
+                DeleteExistingDatabase(assetserver);
+            }
+            
             //Create and Import Database from Building Example file
             XmlDocument doc = new XmlDocument();
             doc.Load(databaseFile);

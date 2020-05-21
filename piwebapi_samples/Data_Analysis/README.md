@@ -46,7 +46,6 @@ For example:
 ```
 - `Building Example.xml` assumes that the PI Server is on the same system. Edit the `Building Example.xml` to replace all occurences of `localhost`to your PI Server.
 - Run `PIUploadUtility.sln` which imports the AF database from `Building Example.xml`, creates PI tags outlined in `tagdefinition.csv` and uploads the values in `pidata.csv` to PI Data Archive.
-- The 
 - You can open up PI System Explorer and check out the AF database you just created to further understand the data and the hierarchy.
 
 ### Running Jupyter Notebook
