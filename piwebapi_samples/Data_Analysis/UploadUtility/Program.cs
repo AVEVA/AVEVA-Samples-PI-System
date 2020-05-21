@@ -19,7 +19,7 @@ namespace UploadUtility
 
         static string GetWebIDByPath(string path, string resource)
         {
-            string query = resource + "?path=" + path;
+            string query = $"{resource}?path={path}";
 
             try
             {
@@ -36,10 +36,10 @@ namespace UploadUtility
 
         static void CreateDatabase(XmlDocument doc, string assetserver)
         {
-            string serverPath = "\\\\" + assetserver;
+            string serverPath = $"\\\\{assetserver}";
             string assetserverWebID = GetWebIDByPath(serverPath, "assetservers");
 
-            string createDBQuery = "assetservers/" + assetserverWebID + "/assetdatabases";
+            string createDBQuery = $"assetservers/{assetserverWebID}/assetdatabases";
 
             string databaseName = config["AF_DATABASE_NAME"].ToString();
 
@@ -60,9 +60,9 @@ namespace UploadUtility
                 Console.WriteLine(e.InnerException.Message);
             }
             
-            string databasePath = serverPath + "\\" + databaseName;
+            string databasePath = $"{serverPath}\\{databaseName}";
             string databaseWebID = GetWebIDByPath(databasePath, "assetdatabases");
-            string importQuery = "assetdatabases/" + databaseWebID + "/import";
+            string importQuery = $"assetdatabases/{databaseWebID}/import";
 
             try
             {
@@ -76,9 +76,9 @@ namespace UploadUtility
 
         static void CreatePIPoint(string dataserver, string tagDefinitionLocation)
         {
-            string path = "\\\\PIServers[" + dataserver + "]";
+            string path = $"\\\\PIServers[{dataserver}]";
             string dataserverWebID = GetWebIDByPath(path, "dataservers");
-            string createPIPointQuery = "dataservers/" + dataserverWebID + "/points";
+            string createPIPointQuery = $"dataservers/{dataserverWebID}/points";
             
             var tagDefinitions = File.ReadLines(tagDefinitionLocation);
             string name, pointType, pointClass;
@@ -112,10 +112,10 @@ namespace UploadUtility
         static void DeleteExistingDatabase(string assetserver)
         {
             string databaseName = config["AF_DATABASE_NAME"].ToString();
-            string databasePath = "\\\\" + assetserver + "\\" + databaseName;
+            string databasePath = $"\\\\{assetserver}\\{databaseName}";
             string databaseWebID = GetWebIDByPath(databasePath, "assetdatabases");
 
-            string deleteQuery = "assetdatabases/" + databaseWebID;
+            string deleteQuery = $"assetdatabases/{databaseWebID}";
             try
             {
                 client.DeleteRequest(deleteQuery);
@@ -129,9 +129,9 @@ namespace UploadUtility
         static bool DoesDatabaseExist(string assetserver)
         {
             string databaseName = config["AF_DATABASE_NAME"].ToString();
-            string databasePath = "\\\\" + assetserver + "\\" + databaseName;
+            string databasePath = $"\\\\{assetserver}\\{databaseName}";
 
-            string getDatabaseQuery = "assetdatabases/?path=" + databasePath;
+            string getDatabaseQuery = $"assetdatabases/?path={databasePath}";
 
             try
             {
@@ -155,8 +155,8 @@ namespace UploadUtility
         {
             string tagname = "VAVCO 2-09.Predicted Cooling Time";
            
-            string path = "\\\\" + dataserver + "\\" + tagname;
-            string getPointQuery = "points?path=" + path;
+            string path = $"\\\\{dataserver}\\{tagname}";
+            string getPointQuery = $"points?path={path}";
 
             try
             {
@@ -196,7 +196,7 @@ namespace UploadUtility
                     }
                 }
 
-                string path = "\\\\" + dataserver + "\\" + tagname;
+                string path = $"\\\\{dataserver}\\{tagname}";
                 string webid = GetWebIDByPath(path, "points");
                 string updateValueQuery = "streamsets/recorded";
 

@@ -1,4 +1,3 @@
-
 # PI Web API Data Analysis Sample
 
 **Version:** 1.0.0 
@@ -9,7 +8,7 @@ The sample code in this folder demonstrates how to utilize the PI Web API to do 
 
 ## Background and Problem
 ### Background
-San Leandro Technical Campus (SLTC) is OSIsoft's headquarters in San Leandro, California. Like every office building, SLTC also needs temperature control systems to maintain a comfortable working environment. Now, consider a normal working day: The building starts getting occupied at around 7 AM. The building management system has to turn on the systems beforehand in order to reach a set temperature (say 70 deg F) by 7 AM. So let's say they have the control systems set to turn on at around 5 AM. 
+San Leandro Technical Campus (SLTC) is OSIsoft's headquarters in San Leandro, California. Like every office building, SLTC needs temperature control systems to maintain a comfortable working environment. Now, consider a normal working day: The building starts getting occupied at around 7 AM. The building management system has to turn on the systems beforehand in order to reach a set temperature (say 70 deg F) by 7 AM. So let's say they have the control systems set to turn on at around 5 AM. 
 
 The problem here is that these control systems are not identical. They all have different cooling rates so all of them don't take exactly 2 hours to reach the set point. Suppose one of them (Unit A) might reach the set point of 70 deg F by 6 AM. Unit A is now running for an extra hour in order to maintain the temperature of the office when there is nobody in the office. Our motivation here is to minimize this extra time so that we can save our costs and save some wasted energy as well.
 
@@ -23,7 +22,7 @@ We will be utilizing the data that we have and do some basic data analysis and p
 ### Data Overview
 In this sample, we are denoting these control systems as two different `VAVCO` units which are represented as AF Elements. Each of these elements have different attributes which mimic an actual cooling unit such as `% cooling` and `Set Point Offset`.
 
-There are also eventframes of the template `VAVCO startup` which represent the start up events of the cooling unit. They have some attributes which capture the metadata on start time as well as end time. 
+There are also AF EventFrames of the template `VAVCO startup` which represent the start up events of the cooling unit. They have some attributes which capture the metadata on start time as well as end time. 
 
 All this data is available as part of `Building Data.xml`. There is a helpful utility which will import this database as well as create and populate the PI Points. Find more on how to use it in the next section.
 
