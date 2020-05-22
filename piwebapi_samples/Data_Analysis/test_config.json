@@ -1,0 +1,9 @@
+{
+	"PIWEBAPI_URL": "https://localhost/piwebapi",
+	"AF_SERVER_NAME": "",
+	"PI_SERVER_NAME": "",
+	"AF_DATABASE_NAME": "",
+	"USER_NAME": "",
+	"USER_PASSWORD": "",
+	"AUTH_TYPE": "basic"
+}

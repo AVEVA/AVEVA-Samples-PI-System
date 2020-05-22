@@ -1,0 +1,120 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/Data_Analysis'
+
+pr:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/Data_Analysis'
+
+schedules:
+  - cron: '0 0 * * 0'
+    displayName: Weekly build
+    branches:
+      include:
+        - master
+    always: true
+
+variables:
+  - template: '/miscellaneous/build_templates/variables.yml'
+  - name: projPath
+    value: '/piwebapi_samples/Data_Analysis'
+  - name: CredFile
+    value: test_config.json
+  - name: CredFileLibrary
+    value: product-readiness.piweb_da.json
+  - name: covStream
+    value: PIWebAPI_Data_Analysis
+  - name: bdProject
+    value: PIWebAPI_Data_Analysis
+
+jobs:
+  - job: BuildUploadUtility
+    pool:
+      name: 00-OSIManaged-Test
+      demands: COMPUTERNAME -equals $(buildAgent)
+    steps:
+      - template: '/miscellaneous/build_templates/config.yml'
+        parameters:
+          fileOriginal: $(CredFile)
+          fileLibrary: $(CredFileLibrary)
+          filePath: $(projPath)
+      - task: NuGetToolInstaller@1
+        inputs:
+          versionSpec: 
+      - task: DotNetCoreCLI@2
+        displayName: Restore
+        inputs:
+          command: 'restore'
+          projects: '**/UploadUtility.csproj'
+          feedsToUse: 'select'
+      - task: DotNetCoreCLI@2
+        displayName: Build
+        inputs:
+          command: 'build'
+          projects: '**/UploadUtility.csproj'
+      - task: CopyFiles@2
+        displayName: Copy Build Output Files
+        inputs:
+          sourceFolder: "$(Build.SourcesDirectory)"
+          targetFolder: "$(Build.BinariesDirectory)"
+          contents: "**/bin/Debug/netcoreapp3.1/*"
+          overWrite: true
+          flattenFolders: true
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.BinariesDirectory)'
+          ArtifactName: 'UploadUtility'
+          publishLocation: 'Container'
+      - task: PowerShell@2
+        inputs:
+          targetType: 'inline'
+          script: '&"$(Build.BinariesDirectory)/UploadUtility.exe" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/UploadUtility/Building Example.xml" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/UploadUtility/tagdefinition.csv" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/UploadUtility/pidata.csv" "$(Build.SourcesDirectory)/piwebapi_samples/Data_Analysis/test_config.json"'
+
+  - job: Tests
+    pool:
+      name: 00-OSIManaged-Test
+      demands: COMPUTERNAME -equals $(buildAgent)
+    dependsOn: BuildUploadUtility
+    steps:
+      - template: '/miscellaneous/build_templates/config.yml'
+        parameters:
+          fileOriginal: $(CredFile)
+          fileLibrary: $(CredFileLibrary)
+          filePath: $(projPath)
+
+      - script: |
+          echo Install pip
+          call python -m pip install --upgrade pip
+          echo Install tools
+          call pip install requests
+          call pip install requests_kerberos
+          call pip install unittest
+          call pip install unittest-xml-reporting
+          echo Install requirements
+          call pip install -r requirements.txt
+          echo Run tests
+          call jupyter nbconvert --to notebook --inplace --ExecuteProcessor.timeout=6000 --execute Notebook.ipynb
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)
+        displayName: 'Run tests'
+
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '**\output.xml'
+          searchFolder: $(Build.SourcesDirectory)$(projPath)
+          testRunTitle: 'Publish test results'
+
+  - template: '/miscellaneous/build_templates/analysis.yml'
+    parameters:
+      language: python
