@@ -9,10 +9,10 @@ namespace UploadUtility
 {
     class Program
     {
-        static readonly string defaultConfigFile = @"..\..\..\..\test_config.json";
-        static readonly string defaultDatabaseFile = @"..\..\..\Building Example.xml";
-        static readonly string defaultTagDefinitionFile = @"..\..\..\tagdefinition.csv";
-        static readonly string defaultPIDataFile = @"..\..\..\pidata.csv";
+        static readonly string defaultConfigFile = "test_config.json";
+        static readonly string defaultDatabaseFile = "Building Example.xml";
+        static readonly string defaultTagDefinitionFile = "tagdefinition.csv";
+        static readonly string defaultPIDataFile = "pidata.csv";
 
         static JObject config;
         static PIWebAPIClient client;
