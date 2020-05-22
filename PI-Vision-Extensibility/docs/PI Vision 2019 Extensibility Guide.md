@@ -33,7 +33,7 @@ Contents
 Guidelines for Usage
 ================
 
-With PI Vision 2019, the development of custom symbols using the PI Vision extensibility framework is now fully supported. 
+With PI Vision 2019, the development of custom symbols using the PI Vision extensibility framework is now fully supported.
 
 The guidelines below cover the supported functionality of the PI Vision extensibility framework. Any customization of the PI Vision application outside of these guidelines is not permitted.
 
