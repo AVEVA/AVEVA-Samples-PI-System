@@ -28,6 +28,40 @@ namespace OSIsoft.PISystemDeploymentTests
         private ITestOutputHelper Output { get; }
 
         /// <summary>
+        /// Tests to see if the current PI Vision patch is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchVision3()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.PIVISIONCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
+        /// Creates a test Display Folder in PI Vision if missing.
+        /// </summary>
+        /// <remarks>
+        /// Test Steps:
+        /// <para>Check if PI Vision Server is set in the App.Config</para>
+        /// <para>If config is not set, skip check</para>
+        /// <para>If config is set, create new Vision fixture</para>
+        /// <para>With the fixture, attempt to create display folder in PI Vision</para>
+        /// </remarks>
+        [OptionalFact(KeySetting, KeySettingTypeCode)]
+        public async void CreatePIVisionDisplayFolderTest()
+        {
+            Output.WriteLine("Create a new display folder into the database.");
+            using (var response = await Fixture.FindOrCreateTestFolder().ConfigureAwait(false))
+            {
+                Assert.True(response.IsSuccessStatusCode, "PI Vision cannot save a display folder. " +
+                Vision3Fixture.CommonVisionIssues);
+            }
+        }
+
+        /// <summary>
         /// Verifies that test can connect to PI Vision server.
         /// </summary>
         /// <remarks>

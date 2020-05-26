@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using OSIsoft.AF;
 using OSIsoft.AF.Asset;
 
 namespace OSIsoft.PISystemDeploymentTests
@@ -29,41 +30,16 @@ namespace OSIsoft.PISystemDeploymentTests
         /// </summary>
         public PIWebAPIFixture()
         {
-            Client.Headers.Add("X-Requested-With", "XMLHttpRequest");
-            if (Settings.SkipCertificateValidation)
-                ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true;
+            var clientCopy = Client;
+            var configElementCopy = ConfigElement;
+            var disableWriteCopy = DisableWrites;
+            var anonymousAuthenticationCopy = AnonymousAuthentication;
 
-            var configurationElement = Settings.PIWebAPI.Split('.')[0];
-            if (!string.IsNullOrEmpty(Settings.PIWebAPIConfigurationInstance))
-            {
-                configurationElement = Settings.PIWebAPIConfigurationInstance;
-            }
-
-            var path = $"\\\\{Settings.AFServer}\\Configuration\\OSIsoft\\PI Web API\\{configurationElement}\\System Configuration";
-            var results = AFElement.FindElementsByPath(new string[] { path }, AFFixture.PISystem);
-            ConfigElement = results.FirstOrDefault();
-            if (!Equals(ConfigElement, null))
-            {
-                DisableWrites = (bool)ConfigElement.Attributes["DisableWrites"].GetValue().Value;
-                var methods = (string[])ConfigElement.Attributes["AuthenticationMethods"].GetValue().Value;
-                if (methods.Length > 0)
-                {
-                    if (string.Equals(methods[0], "Basic", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Client.UseDefaultCredentials = false;
-                        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(Settings.PIWebAPIUser + ":" + Settings.PIWebAPIPassword));
-                        Client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
-                    }
-                    else if (string.Equals(methods[0], "Anonymous", StringComparison.OrdinalIgnoreCase))
-                    {
-                        AnonymousAuthentication = true;
-                    }
-                }
-                else
-                {
-                    throw new InvalidOperationException("PI Web API Authentication Methods are not specified in the Configuration database.");
-                }
-            }
+            GetWebApiClient(ref clientCopy, ref configElementCopy, ref disableWriteCopy, ref anonymousAuthenticationCopy);
+            Client = clientCopy;
+            ConfigElement = configElementCopy;
+            DisableWrites = disableWriteCopy;
+            AnonymousAuthentication = anonymousAuthenticationCopy;
 
             if (SkipReason == null)
             {
@@ -160,6 +136,53 @@ namespace OSIsoft.PISystemDeploymentTests
             PIFixture.Dispose();
             Client.Dispose();
             ServicePointManager.ServerCertificateValidationCallback = null;
+        }
+
+        internal static void GetWebApiClient(ref WebClient client, ref AFElement configElement, ref bool disableWrites, ref bool anonymousAuthentication)
+        {
+            PISystem pisys = AFFixture.GetPISystemFromConfig();
+            if (client == null)
+                client = new WebClient { UseDefaultCredentials = true };
+
+            client.Headers.Add("X-Requested-With", "XMLHttpRequest");
+
+            ServicePointManager.ServerCertificateValidationCallback = null;
+            if (Settings.SkipCertificateValidation)
+#pragma warning disable CA5359 // Do Not Disable Certificate Validation
+                ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true;
+#pragma warning restore CA5359 // Do Not Disable Certificate Validation
+
+            var configurationElement = Settings.PIWebAPI.Split('.')[0];
+            if (!string.IsNullOrEmpty(Settings.PIWebAPIConfigurationInstance))
+            {
+                configurationElement = Settings.PIWebAPIConfigurationInstance;
+            }
+
+            var path = $"\\\\{Settings.AFServer}\\Configuration\\OSIsoft\\PI Web API\\{configurationElement}\\System Configuration";
+            var results = AFElement.FindElementsByPath(new string[] { path }, pisys);
+            configElement = results.FirstOrDefault();
+            if (!Equals(configElement, null))
+            {
+                disableWrites = (bool)configElement.Attributes["DisableWrites"].GetValue().Value;
+                var methods = (string[])configElement.Attributes["AuthenticationMethods"].GetValue().Value;
+                if (methods.Length > 0)
+                {
+                    if (string.Equals(methods[0], "Basic", StringComparison.OrdinalIgnoreCase))
+                    {
+                        client.UseDefaultCredentials = false;
+                        var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(Settings.PIWebAPIUser + ":" + Settings.PIWebAPIPassword));
+                        client.Headers[HttpRequestHeader.Authorization] = "Basic " + credentials;
+                    }
+                    else if (string.Equals(methods[0], "Anonymous", StringComparison.OrdinalIgnoreCase))
+                    {
+                        anonymousAuthentication = true;
+                    }
+                }
+                else
+                {
+                    throw new InvalidOperationException("PI Web API Authentication Methods are not specified in the Configuration database.");
+                }
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 # PI Web API AngularJS Sample
 
+**Version:** 1.0.1
+
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_AngularJS?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=958&branchName=master)
 
 The sample code in this folder demonstrates how to utilize the PI Web API in AngularJS. You must have already [downloaded AngularJS](https://angularjs.org/) to run this sample application.

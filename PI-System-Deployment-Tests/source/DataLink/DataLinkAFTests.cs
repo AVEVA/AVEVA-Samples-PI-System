@@ -54,6 +54,19 @@ namespace OSIsoft.PISystemDeploymentTests
         private ITestOutputHelper Output { get; }
 
         /// <summary>
+        /// Tests to see if the current patch of PI DataLink is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchDataLink()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.DATALINKCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
         /// Use DataLink library to search for Event Frames that started within the last 12 hours.
         /// </summary>
         /// <remarks>

@@ -19,7 +19,7 @@ Test group | Description
  AFTests, AFDataTests, AFPITests, AFPluginTests | Performs create, read, update, search, and delete operations on all AF objects.
 AnalysisTests   | Performs create, read, update, search, and delete operations on analyses.
  EFTests                                                      | Performs create, read, update, search, delete, and hierarchy tests on event frames. 
- PIDAEventTests, PIDATests, PIDAConnectionsTests, PIDAUpdateTests, PIDAPointTests | Verifies the user connects to PI Data Archive with the piadmins identity. Sends data to a set of new PI points, verifies all events are archived, and then removes the PI points. Reads data from a set of sinusoid PI points and verifies the periodic pattern. Retrieves PI events for multiple use cases from ClassData.  Verifies the PI point count for a given point mask is expected. 
+ PIDAEventTests, PIDATests, PIDAConnectionsTests, PIDAUpdateTests, PIDAPointTests | Verifies the user connects to PI Data Archive with the a PI Identity. Sends data to a set of new PI points, verifies all events are archived, and then removes the PI points. Reads data from a set of sinusoid PI points and verifies the periodic pattern. Retrieves PI events for multiple use cases from ClassData.  Verifies the PI point count for a given point mask is expected. 
 
 ### Optional
 
@@ -33,5 +33,5 @@ AnalysisTests   | Performs create, read, update, search, and delete operations o
 | PIWebAPITests     | Exercises features of the PI Web API Server product.         |
 | Vision3Tests      | Tests the ability to create, open, save, and delete displays in PI Vision server. |
 
-Return to the main [PI System Deployment Tests landing page](../).
+Return to the main [PI System Deployment Tests landing page](../../../).
 

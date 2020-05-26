@@ -34,6 +34,45 @@ namespace OSIsoft.PISystemDeploymentTests
         private ITestOutputHelper Output { get; }
 
         /// <summary>
+        /// Tests to see if the current patch of RTQP Engine is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchRTQPEngine()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.RTQPCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
+        /// Tests to see if the current patch of PI SQL Client OLEDB is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchSqlClientOLEDB()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.PISQLOLEDBCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
+        /// Tests to see if the current patch of PI SQL Client ODBC is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchSqlClientODBC()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.PISQLODBCCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
         /// Executes basic Master.Element.Element table queries against the PI SQL Data Access Server (RTQP Engine)
         /// using the PI SQL Client OLEDB provider.
         /// </summary>

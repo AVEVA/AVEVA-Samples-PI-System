@@ -67,8 +67,8 @@ namespace OSIsoft.PISystemDeploymentTests
         public const string WebServicePlugInAssemblyFileName = "OSIsoft.AF.Notification.DeliveryChannel.WebService";
 
         private static readonly char[] _defaultAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
-        private readonly List<Guid> _notificationContactTemplatIds = new List<Guid>();
-        private Guid _soapWebServiceId;
+        private readonly List<Guid> _notificationContactTemplateIds = new List<Guid>();
+        private Guid _soapWebServiceId = Guid.Empty;
 
         /// <summary>
         /// Creates an instance of the NotificationsFixture.
@@ -102,7 +102,7 @@ namespace OSIsoft.PISystemDeploymentTests
 
             SoapWebServiceHost?.Close();
 
-            foreach (var id in _notificationContactTemplatIds)
+            foreach (var id in _notificationContactTemplateIds)
             {
                 try
                 {
@@ -133,22 +133,23 @@ namespace OSIsoft.PISystemDeploymentTests
             // Initialize a web service notification contact template
             AFFixture = afFixture;
             Service = new TestWebService();
-            SoapWebServiceHost = new BasicWebServiceHost(Service, typeof(IWebService))
-            {
-                UseExactMatchForLocalhost = false,
-            };
+            SoapWebServiceHost = new BasicWebServiceHost(Service, typeof(IWebService));
 
             try
             {
                 SoapWebServiceHost.Start(ServiceName, ServiceUri);
             }
-            catch (AddressAccessDeniedException ex)
+            catch (AddressAccessDeniedException)
             {
-                throw new Exception(
-                    $"Endpoint [{ServiceUri}] could not be opened. There are 3 possible solutions: " +
-                    "1) If notifications service and the tests are run on the same machine, set UseExactMatchForLocalhost=true; " +
-                    "2) Use netsh add urlacl to add the current user for the service prefix http://+:9001/notificationtest; " +
-                    "3) Run tests as administrator.", ex);
+                SoapWebServiceHost = null;
+                Service = null;
+
+                output.WriteLine($"Warning: The Web Service endpoint [{ServiceUri}] could not be opened.");
+                output.WriteLine("There are two ways how to fix the problem:");
+                output.WriteLine("1. Use netsh add urlacl to add the current user for the service prefix http://+:9001/notificationtest");
+                output.WriteLine("2. Run tests as administrator.");
+
+                return;
             }
 
             var webServiceSoap = new AFNotificationContactTemplate(afFixture.PISystem, $"{TestPrefix}_{TestInfix}_WebServiceSoap*")
@@ -158,7 +159,7 @@ namespace OSIsoft.PISystemDeploymentTests
             };
 
             _soapWebServiceId = webServiceSoap.ID;
-            _notificationContactTemplatIds.Add(webServiceSoap.ID);
+            _notificationContactTemplateIds.Add(webServiceSoap.ID);
 
             AFFixture.PISystem.CheckIn();
             output.WriteLine($"Created web service notification contact template [{webServiceSoap.Name}].");
