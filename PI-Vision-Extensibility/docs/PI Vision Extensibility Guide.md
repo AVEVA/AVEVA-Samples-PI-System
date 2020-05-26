@@ -1,38 +1,55 @@
-# PI Vision Extensibility Guide
+# PI Vision 2019 Extensibility Guide
 
 <a id="top"></a>
 
 Contents
 ========
-
-* [Symbol extension](#1)
-* [Layers of a PI Vision symbol](#2)
-* [File layout](#3)
-* [File naming convention](#4)
-* [Before you begin](#5)
-* [Implementation layer](#6)
-* [Definition and registration](#7)
-* [Initialization](#8)
-* [Data shapes](#9)
-* [Data updates](#10)
-* [Presentation layer](#11)
-* [Custom styles](#12)
-* [Configuration layer](#13)
-* [Configuration options](#14)
-* [Symbol formats](#15)
-* [Common format names](#16)
-* [FormatOptions object](#17)
-* [Symbol type switching](#18)
-* [Upgrading from previous versions](#19)
-* [PI Coresight 2016 to 2016 R2](#20)
-* [PI Coresight 2016 R2 to PI Vision 2017](#21)
-* [Tool pane extension](#22)
-* [Layers of a PI Vision tool pane](#23)
-* [File layout](#24)
-* [Implementation layer](#25)
-* [Badging](#26)
+* [Guidelines](#1)
+* [Symbol extension](#2)
+* [Layers of a PI Vision symbol](#3)
+* [File layout](#4)
+* [File naming convention](#5)
+* [Before you begin](#6)
+* [Implementation layer](#7)
+* [Definition and registration](#8)
+* [Initialization](#9)
+* [Data shapes](#10)
+* [Data updates](#11)
+* [Presentation layer](#12)
+* [Custom styles](#13)
+* [Configuration layer](#14)
+* [Configuration options](#15)
+* [Symbol formats](#16)
+* [Common format names](#17)
+* [FormatOptions object](#18)
+* [Symbol type switching](#19)
+* [Tool pane extension](#20)
+* [Layers of a PI Vision tool pane](#21)
+* [File layout](#22)
+* [Implementation layer](#23)
+* [Badging](#24)
 
 <a id="1"></a>
+Guidelines for Usage
+================
+
+With PI Vision 2019, the development of custom symbols using the PI Vision extensibility framework is now fully supported.
+
+The guidelines below cover the supported functionality of the PI Vision extensibility framework. Any customization of the PI Vision application outside of these guidelines is not permitted.
+
+1. The PI Vision extensibility framework enables the development of custom symbols and their associated tool panes as documented in Getting Started with PI Vision Extensibility and the PI Vision Extensibility Guide. 
+	1. This framework does not enable full display automation and therefore does not allow for cross-symbol interactions or time range manipulation.
+	2. Use of PI Vision client libraries that are outside of the extensibility framework is not supported.
+2. Modification of code distributed by PI Vision is not permitted, including the native PI Vision symbols (Value, Trend, Gauge, etc.) as this violates OSIsoft’s Product Usage Terms.
+3. Icons used for custom symbols must be visually distinct from existing native PI Vision symbols. 
+4. A license to use PI Vision does not provide a license to use any of the third-party libraries used in PI Vision. For example, use of the Kendo UI library without a separate license is strictly prohibited.
+
+The PI Vision extensibility framework is supported within the current application framework and is subject to change as the framework evolves.
+
+
+[Back to top](#top)
+
+<a id="2"></a>
 Symbol extension
 ================
 
@@ -40,7 +57,7 @@ You can extend your PI Vision installation to show data with custom symbols that
 
 [Back to top](#top)
 
-<a id="2"></a>
+<a id="3"></a>
 Layers of a PI Vision symbol
 ----------------------------
 
@@ -54,7 +71,7 @@ The implementation layer is a JavaScript file that handles all of the symbol’s
 
 [Back to top](#top)
 
-<a id="3"></a>
+<a id="4"></a>
 ### File layout
 
 You should save all files for a symbol except for the symbol image file in the same directory, in the`ext` folder, under:
@@ -69,7 +86,7 @@ If you have external library files, create a `libraries` subfolder under the `ex
 
 [Back to top](#top)
 
-<a id="4"></a>
+<a id="5"></a>
 ### File naming convention
 
 Symbol files should adhere to the following naming conventions:
@@ -83,7 +100,7 @@ Symbol files should adhere to the following naming conventions:
 
 [Back to top](#top)
 
-<a id="5"></a>
+<a id="6"></a>
 ### Before you begin
 
 Before you begin development, OSIsoft recommends that you place PI Vision into debug mode. To do so, edit the `web.config` file in your PI Vision installation folder to change the compilation tag, under `system.web`, from:
@@ -104,11 +121,11 @@ Note that in debug mode, PI Vision does not process minified JavaScript files.
 
 [Back to top](#top)
 
-<a id="6"></a>
+<a id="7"></a>
 Implementation layer
 --------------------
 
-<a id="7"></a>
+<a id="8"></a>
 ### Definition and registration
 
 The JavaScript implementation file has three parts: definition, registration, and initialization.
@@ -285,7 +302,8 @@ Below is a sample definition object from the native PI Vision Value symbol:
 var def = {
         typeName: 'value',
         displayName: PV.ResourceStrings.ValueSymbol,
-        datasourceBehavior: PV.Extensibility.Enums.DatasourceBehaviors.Single,
+        datasourceBehavior:
+                     PV.Extensibility.Enums.DatasourceBehaviors.Single,
         iconUrl: 'Images/chrome.value.svg',
         getDefaultConfig: function () {
             var config = PV.SymValueLabelOptions.getDefaultConfig({
@@ -323,15 +341,14 @@ var def = {
         StateVariables: ['Fill', 'Blink'],
         inject: ['symValueLabelOptions'],
         visObjectType: valVis,
-        configTemplateUrl: 'scripts/app/editor/symbols/sym-value- config.html',
+ configTemplateUrl: 'scripts/app/editor/symbols/
+                         sym-value- config.html',
         configTitle: PV.ResourceStrings.FormatValueOption,
-        formatMap: {
-            BackgroundColor: 'Fill', 
-            TextColor: 'Stroke',
-            ValueColor: 'ValueStroke', 
-            TextResize: 'TextResize',
-            Alignment: 'Alignment'
-        },
+        formatMap: {BackgroundColor: 'Fill', 
+TextColor: 'Stroke',
+                     ValueColor: 'ValueStroke', 
+TextResize: 'TextResize',
+                     Alignment: 'Alignment'},
         setAlignment: setAlignment,
         updateHeight: updateHeight,
         supportsCollections: true
@@ -340,7 +357,7 @@ var def = {
 
 [Back to top](#top)
 
-<a id="8"></a>
+<a id="9"></a>
 
 ### Initialization
 
@@ -430,7 +447,7 @@ function resize(width, height) {
 
 [Back to top](#top)
 
-<a id="9"></a>
+<a id="10"></a>
 
 ### Data shapes
 
@@ -574,7 +591,7 @@ If you set `FormatType` to `null`, numbers are returned in invariant format with
 
 [Back to top](#top)
 
-<a id="10"></a>
+<a id="11"></a>
 ### Data updates
 
 Based on the symbol's configuration and its datasources, PI Vision requests data and calls the `dataUpdate` method that is defined when the symbol is initialized. The object passed to this function depends on the symbol's `DataShape`.
@@ -676,7 +693,7 @@ If data cannot be retrieved for a data item, the `IsGood` field is added to the 
 
 [Back to top](#top)
 
-<a id="11"></a>
+<a id="12"></a>
 Presentation layer
 ------------------
 
@@ -699,7 +716,7 @@ In the ng-style, PI Vision sets the background color to be whatever is configure
 
 [Back to top](#top)
 
-<a id="12"></a>
+<a id="13"></a>
 ### Custom styles
 
 You can add custom CSS files to provide styling for symbols. Place CSS files in the same directory as the symbol, `\Scripts\app\editor\symbols\ext\`. The files should follow the naming convention of `sym-<YourSymbolName>.css`. Note that custom CSS files placed in this directory are subject to overrides by the application styles. If a custom style selector has the same target and specificity as another style in the application, the custom style may not be applied. You should not use CSS styles added to this directory for application theming.
@@ -723,7 +740,7 @@ Styles can then target this symbol without interfering with other parts of the a
 ```
 [Back to top](#top)
 
-<a id="13"></a>
+<a id="14"></a>
 Configuration layer
 -------------------
 
@@ -757,7 +774,7 @@ The important part of this section is the ng-model attribute. This is used to bi
 
 [Back to top](#top)
 
-<a id="14"></a>
+<a id="15"></a>
 ### Configuration options
 
 A symbol can define the entries in a context menu that is shown when the symbol is right-clicked or after a long press with a touch-enabled device. The options are defined in the symbol definitions `configOptions` function. This function is called when the menu is opened so the list of options can be dynamically populated based on the state of the symbol that was clicked.
@@ -799,7 +816,7 @@ The third option defines an immediate action that invokes a function defined on 
 
 [Back to top](#top)
 
-<a id="15"></a>
+<a id="16"></a>
 Symbol formats
 --------------
 
@@ -810,11 +827,11 @@ This section describes standardized format names, conventions, and their usage f
 * Support forward compatibility 
     * For example, the ability to open/edit displays from prior PI Vision versions with formats that they were saved with
 
-PI Vision supports switching a symbol from one type to another supported type (for example, Value to LinearGauge). Standard format options and options common to a symbol family are preserved when changing types. The addition of a new object called `FormatOptions` to the symbol configuration object allows you to define anything format related that you want to participate in any format copying that PI Vision has now or will provide in the future.
+PI Vision 2019 supports switching a symbol from one type to another supported type (for example, Value to LinearGauge). Standard format options and options common to a symbol family are preserved when changing types. The addition of a new object called `FormatOptions` to the symbol configuration object allows you to define anything format related that you want to participate in any format copying that PI Vision has now or will provide in the future.
 
 [Back to top](#top)
 
-<a id="16"></a>
+<a id="17"></a>
 ### Common format names 
 
 The list below provides the standard format names used to share formats between symbols:
@@ -888,7 +905,7 @@ The list below provides the standard format names used to share formats between 
 
 [Back to top](#top)
 
-<a id="17"></a>
+<a id="18"></a>
 ### FormatOptions object 
 
 To make it easy to share formats between symbols, a new object called `FormatOptions` (which is a collection of formats) is created as one of the collection properties returned by `getDefaultConfig`. The `FormatOptions` object can contain as properties either standard format names or custom names. Any format that is part of this object is automatically shared when a symbol is switched to another allowed type or for future format sharing features. 
@@ -957,7 +974,7 @@ var def = {
 
 [Back to top](#top)
 
-<a id="18"></a>
+<a id="19"></a>
 ### Symbol type switching 
 
 Once created, you can switch PI Vision symbols into other supported types. For example, you can switch a Trend symbol into a Table symbol type and vice versa and you can switch a Value symbol into any Gauge symbol type and vice versa. When a symbol switch happens, all matching formats from the defined `formatMap` and all formats in the `FormatOptions` object are copied from the source type to the destination type. For example, when a Value symbol is switched to a Gauge symbol type, the `ValueColor` format is copied to the Gauge symbol. The Value symbol type has no defined `FormatOptions` object.
@@ -968,72 +985,8 @@ A symbol definition can define a property called `symbolFamily`. If the source a
 
 [Back to top](#top)
 
-<a id="19"></a>
-Upgrading from previous versions
---------------
-
-The following sections describe changes that have been made between previous releases. Unless otherwise indicated, these updates are required for all later versions as well. For example, the changes listed in [PI Coresight 2016 to 2016 R2](#20) will also apply if upgrading from PI Coresight 2016 to PI Vision 2019. Similarly, a change that is required when upgrading from PI Vision 2017 R2 to PI Vision 2019 would also need to be made when upgrading from PI Vision 2017 to PI Vision 2019.
-
-[Back to top](#top)
 
 <a id="20"></a>
-###  PI Coresight 2016 to 2016 R2
-
-The major change in PI Coresight 2016 R2 was the addition of the helper functions for deriving symbols from a base symbol definition and the use of prototypical inheritance to set the `init` function. To upgrade a symbol from PI Coresight 2016 to PI Vision 2016 R2 or later, perform the following:
-
-
-1. Create a function object to hold the symbol object.
-    
-    ```javascript
-    function symbolVis() { }
-        PV.deriveVisualizationFromBase(symbolVis);
-    ```
-2. Add an `init` onto the prototype of the function created above which can point to your original `init` function.
-    
-    ```javascript
-    symbolVis.prototype.init = function (scope, element) {
-
-    ```
-3. Rather than returning anything from your `init` function, you now set the update, resize, etc, event on the this pointer in your `init` function. These functions can point to your existing handler functions:
-
-    ```javascript
-    this.onDataUpdate = dataUpdate;
-    this.onConfigChange = configChanged;
-    this.onResize = resize;
-    ```
-4. Remove the `init` section from the symbol definition object.
-5. Update the `datasourceBehavior` in the `init` section to point to the new location of the enumeration, `PV.Extensibility.Enums.DatasourceBehaviors`.
-6. Update `init` section to add `visObjectType` and point it to the function object created in step 1.
-
-[Back to top](#top)
-
-<a id="21"></a>
-###  PI Coresight 2016 R2 to PI Vision 2017
-
-The major change was the renaming of files and variables to a more generic convention. In previous versions, global methods and properties were added to the `window.Coresight` namespace. In PI Vision 2017, this has been renamed to `window.PIVisualization`.
-
-In PI Coresight 2016 and 2016 R2, the following convention was used.
-
-```javascript
-(function (CS) {
-'use strict';
-})(window.Coresight);
-```
-
-To upgrade a symbol to PI Vision 2017 or later, change the argument to `window.PIVisualization`.
-
-```javascript
-(function (PV) {
-'use strict';
-})(window.PIVisualization);
-```
-
-For simplicity, you may keep the parameter name CS as an alias for the `window.PIVisualization` argument so that existing code will continue to work with this name.
-Several HTML helper directives used in configuration panes were also updated. To upgrade these directives in your configuration panes, simple change the ‘cs’ prefix to a ‘pv’. For example, `cs-color-picker` becomes `pv-color-picker`.
-
-[Back to top](#top)
-
-<a id="22"></a>
 Tool pane extension
 ===================
 
@@ -1041,7 +994,7 @@ You can extend your PI Vision installation with custom tool panes.
 
 [Back to top](#top)
 
-<a id="23"></a>
+<a id="21"></a>
 Layers of a PI Vision tool pane
 -------------------------------
 
@@ -1052,7 +1005,7 @@ PI Vision tool panes are broken up into two major layers:
 
 [Back to top](#top)
 
-<a id="24"></a>
+<a id="22"></a>
 ### File layout
 
 Save files for a tool pane in the same directory, the `ext` folder, under:
@@ -1065,7 +1018,7 @@ If the `ext` folder is not present, create it.
 
 [Back to top](#top)
 
-<a id="25"></a>
+<a id="23"></a>
 Implementation layer
 --------------------
 
@@ -1130,7 +1083,7 @@ They will share the same space as the built in Search and Events tool panes.
 
 [Back to top](#top)
 
-<a id="26"></a>
+<a id="24"></a>
 ### Badging
 
 All tool extensions automatically have a property called `Badge` set on their scope. You can use this to display text in a badge on the tool tab's icon. This is typically used to show a count of new items available for viewing on an inactive tab. Click the tab to erase the badge until the next time it is set. To set the badge, call the raise method on the `Badge` object with the text you want to display. `Badge` is only capable of showing 1-3 characters due to space constraints.
