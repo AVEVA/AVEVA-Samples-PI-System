@@ -13,7 +13,7 @@ steps:
       echo Run tests
       call ng test --watch=false
       echo Complete
-    workingDirectory: $(Build.SourcesDirectory)$(projPath)
+    workingDirectory: $(Build.SourcesDirectory)/piwebapi_samples/Angular/AngularPIWebAPISample
     displayName: 'Run tests'
   
   - task: PublishTestResults@2
