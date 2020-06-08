@@ -1,3 +1,6 @@
+parameters:
+  projectPath: ''
+
 steps:
   - task: NodeTool@0
     inputs:
@@ -13,7 +16,7 @@ steps:
       echo Run tests
       call ng test --watch=false
       echo Complete
-    workingDirectory: $(Build.SourcesDirectory)/piwebapi_samples/Angular/AngularPIWebAPISample
+    workingDirectory: ${{ parameters.projectPath }}
     displayName: 'Run tests'
   
   - task: PublishTestResults@2
