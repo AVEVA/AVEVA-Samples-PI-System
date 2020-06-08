@@ -4,20 +4,21 @@ steps:
       versionSpec: '10.x'
     displayName: 'Specify Node version'
   
-#   - script: |
-#       echo Install Angular CLI
-#       call npm install -g @angular/cli
-#       echo NPM CI
-#       call npm ci
-#       echo Run tests
-#       call ng test --watch=false
-#       echo Complete
-#   workingDirectory: $(Build.SourcesDirectory)$(projPath)
-#   displayName: 'Run tests'
+  # This should really be split up into multiple steps
+  - script: |
+      echo Install Angular CLI
+      call npm install -g @angular/cli
+      echo NPM CI
+      call npm ci
+      echo Run tests
+      call ng test --watch=false
+      echo Complete
+    workingDirectory: $(Build.SourcesDirectory)$(projPath)
+    displayName: 'Run tests'
   
-#   - task: PublishTestResults@2
-#   condition: succeededOrFailed()
-#   inputs:
-#       testRunner: JUnit
-#       testResultsFiles: '**/TESTS-*.xml'
-#   displayName: 'Publish test results'
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testRunner: JUnit
+      testResultsFiles: '**/TESTS-*.xml'
+    displayName: 'Publish test results'
