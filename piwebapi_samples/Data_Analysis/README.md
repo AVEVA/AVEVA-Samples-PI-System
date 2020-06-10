@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0 
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Data_Analysis?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=1644&branchName=master)
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Data_Analysis?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=1644&branchName=master)
 
 The sample code in this folder demonstrates how to utilize the PI Web API to do some basic data analysis using Python Jupyter Notebook. In order to run this sample, you need to have [Python](https://www.python.org/downloads/) installed.
 

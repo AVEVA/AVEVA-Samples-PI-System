@@ -21,7 +21,7 @@ It is expected for users to execute the xUnit test source code 'as is' and unmod
 
 PI System Deployment Tests have been designed and tested on English operating systems.
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/PI%20System%20Deployment%20Tests/PI%20System%20Deployment%20Tests%20Sprint%20Build?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=437&branchName=master)
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/PI%20System%20Deployment%20Tests/PI%20System%20Deployment%20Tests%20Sprint%20Build?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=437&branchName=master)
 
 ### Directories
 

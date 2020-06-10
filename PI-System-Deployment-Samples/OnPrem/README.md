@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/Deployment_OnPrem?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=1640&branchName=master)
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/Deployment_OnPrem?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=1640&branchName=master)
 
 This sample uses PowerShell to install Microsoft SQL Server Express, the PI Server including PI Data Archive and PI AF Server, and/or a generic self-extracting PI install kit. The script only installs the packages that are specified by flags, so it can be used to run all three installs or only one.
 
