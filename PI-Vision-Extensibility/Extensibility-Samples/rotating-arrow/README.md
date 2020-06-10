@@ -20,4 +20,4 @@ If your support question or issue is related to a non-modified sample (or test) 
 
 The PI Vision Extensibility Samples in this repository are licensed under the [Apache 2 license](https://github.com/osisoft/OSI-Samples/blob/master/LICENSE).
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/PI%20Vision/extensibility-sample.unit-tests?branchName=47718_ExtensibilitySample)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=1311&branchName=47718_ExtensibilitySample)
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/PI%20Vision/extensibility-sample.unit-tests?branchName=47718_ExtensibilitySample)](https://dev.azure.com/osieng/engineering/_build?definitionId=1311&branchName=47718_ExtensibilitySample)
