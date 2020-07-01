@@ -111,10 +111,10 @@ jobs:
           Products: BD
           BlackDuckService: 'product-readiness.BlackDuck'
           DetectArguments: |
-            --detect.project.name="product-readiness.$(bdProject)"
+            --detect.project.name="product-readiness.$(analysisProject)"
             --detect.project.version.name="$(Build.SourceBranchName)"
             --detect.binary.scan.file.path="C:\Program Files\7-Zip\7-Zip.zip"
-            --detect.bom.aggregate.name="bom_$(bdProject)_$(Build.SourceBranchName)_7-Zip"
+            --detect.bom.aggregate.name="bom_$(analysisProject)_$(Build.SourceBranchName)_7-Zip"
         displayName: 'Synopsys: Detect (7-Zip)'
 
   - template: '/miscellaneous/build_templates/analysis.yml'
