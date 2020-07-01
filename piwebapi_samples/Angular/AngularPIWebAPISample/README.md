@@ -1,5 +1,7 @@
 # PI Web API Angular Sample
 
+**Version:** 1.0.17
+
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Angular?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=953&branchName=master)
 
 The sample code in this folder demonstrates how to utilize the PI Web API in Angular. You must have already [configured your Angular development environment](https://angular.io/guide/quickstart) in order to run this sample application.
@@ -8,9 +10,7 @@ The sample code in this folder demonstrates how to utilize the PI Web API in Ang
 
 ## Prerequisites
 
-```
-Note: This application is hosted on HTTP.  This is not secure.  You should use a certificate and HTTPS.
-```
+**Note: This application is hosted on HTTP. This is not secure. You should use a certificate and HTTPS.**
 
 ## Getting Started
 
@@ -39,7 +39,7 @@ export const testConfig = {
   userName: 'MyUserName', // Or, `domain\\userName`
   userPassword: 'MyUserPassword',
   authType: 'Basic', // Basic or Kerberos
-  DEFAULT_TIMEOUT_INTERVAL: null
+  DEFAULT_TIMEOUT_INTERVAL: null,
 };
 ```
 
@@ -64,20 +64,20 @@ In order to run this sample, you must configure PI Web API with the proper secur
 
 In addition, PI Web API must be configured to allow CORS as follows:
 
-| Attribute               | Value                                                                | Type    |
-| ----------------------- | -------------------------------------------------------------------- | ------- |
-| CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location                  | String  |
-| CorsHeaders             | \*                                                                   | String  |
-| CorsMethods             | \*                                                                   | String  |
-| CorsOrigins             | https://localhost:9876                                               | String  |
-| CorsSupportsCredentials | True                                                                 | Boolean |
-| DisableWrites           | False                                                                | Boolean |
+| Attribute               | Value                                               | Type    |
+| ----------------------- | --------------------------------------------------- | ------- |
+| CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location | String  |
+| CorsHeaders             | \*                                                  | String  |
+| CorsMethods             | \*                                                  | String  |
+| CorsOrigins             | [https://localhost:9876](https://localhost:9876)    | String  |
+| CorsSupportsCredentials | True                                                | Boolean |
+| DisableWrites           | False                                               | Boolean |
 
 On your client machine running this code, it is assumed that you have configured the system to trust the certficate used by PI Web API.
 
 If you don't you will see an error similar to this in the Result box on the webpage:
 
-```
+```shell
 An error occured:  Http failure response for [...]: 0 Unknown Error
 ```
 

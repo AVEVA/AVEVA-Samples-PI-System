@@ -1,6 +1,6 @@
 # PI Web API AngularJS Sample
 
-**Version:** 1.0.1
+**Version:** 1.0.17
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_AngularJS?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=958&branchName=master)
 
@@ -12,9 +12,7 @@ The sample code in this folder demonstrates how to utilize the PI Web API in Ang
 
 - This application by default will use Port 8000
 
-```
-Note: This application is hosted on HTTP.  This is not secure.  You should use a certificate and HTTPS.
-```
+**Note: This application is hosted on HTTP. This is not secure. You should use a certificate and HTTPS.**
 
 ## Getting Started
 
@@ -43,15 +41,15 @@ var testConfig = {
   userName: 'MyUserName', // Or, 'domain\\userName'
   userPassword: 'MyUserPassword',
   authType: 'Basic', // Basic or Kerberos
-  DEFAULT_TIMEOUT_INTERVAL: null
+  DEFAULT_TIMEOUT_INTERVAL: null,
 };
 ```
 
 - In the terminal, use the following command to run the tests: `npx karma start`
 - If you run into any issues with the Jasmine tests timing out, use the `DEFAULT_TIMEOUT_INTERVAL` setting in `test-config.js` and set it to a higher value. For example:
 
-```
-DEFAULT_TIMEOUT_INTERVAL: 10000
+```javascript
+DEFAULT_TIMEOUT_INTERVAL: 10000;
 ```
 
 ## System Configuration
@@ -68,20 +66,20 @@ In order to run this sample, you must configure PI Web API with the proper secur
 
 In addition, PI Web API must be configured to allow CORS as follows:
 
-| Attribute               | Value                                                                | Type    |
-| ----------------------- | -------------------------------------------------------------------- | ------- |
-| CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location                  | String  |
-| CorsHeaders             | \*                                                                   | String  |
-| CorsMethods             | \*                                                                   | String  |
-| CorsOrigins             | https://localhost:9876                                               | String  |
-| CorsSupportsCredentials | True                                                                 | Boolean |
-| DisableWrites           | False                                                                | Boolean |
+| Attribute               | Value                                               | Type    |
+| ----------------------- | --------------------------------------------------- | ------- |
+| CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location | String  |
+| CorsHeaders             | \*                                                  | String  |
+| CorsMethods             | \*                                                  | String  |
+| CorsOrigins             | [https://localhost:9876](https://localhost:9876)    | String  |
+| CorsSupportsCredentials | True                                                | Boolean |
+| DisableWrites           | False                                               | Boolean |
 
 On your client machine running this code, it is assumed that you have configured the system to trust the certficate used by PI Web API.
 
 If you don't you will see an error similar to this in the Result box on the webpage:
 
-```
+```shell
 An error occurred.
 ```
 
