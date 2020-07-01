@@ -84,14 +84,14 @@ jobs:
         inputs:
           AnalyzeTarget: '$(Build.SourcesDirectory)\*.dll;$(Build.SourcesDirectory)\*.exe'
           toolVersion: LatestPreRelease
-        condition: and(eq('${{ parameters.language }}', 'dotnet'))
+        condition: eq('${{ parameters.language }}', 'dotnet')
 
       - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-postanalysis.PostAnalysis@1
         displayName: 'BinSkim (DotNet): Post-Analysis'
         inputs:
           BinSkim: true
           BinSkimBreakOn: WarningAbove
-        condition: and(eq('${{ parameters.language }}', 'dotnet'))
+        condition: eq('${{ parameters.language }}', 'dotnet')
 
       # Synopsys Polaris
       - powershell: |
@@ -102,7 +102,7 @@ jobs:
           # Call Polaris, set the configuration file path and run analyze with wait option
           & 'polaris.exe' -c polaris.yml analyze -w
         workingDirectory: $(Build.SourcesDirectory)$(projPath)/
-        condition: eq({{ parameters.skipPolaris }}, false)
+        condition: eq(${{ parameters.skipPolaris }}, false)
         displayName: 'Polaris Analyze'
 
       # Synopsys BlackDuck
