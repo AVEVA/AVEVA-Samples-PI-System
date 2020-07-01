@@ -1,0 +1,20 @@
+version: '1'
+serverUrl: https://osisoft.polaris.synopsys.com
+install:
+  coverity:
+    version: default
+project:
+  organization: osisoft
+  name: ${env.POLARIS_PROJECT_NAME}
+  branch: ${scm.git.branch}
+  revision:
+    name: ${scm.git.commit}
+    date: ${scm.git.commit.date}
+capture:
+  fileSystem:
+    python:
+      extensions: [py]
+      files:
+        - directory: .
+analyze:
+  mode: central

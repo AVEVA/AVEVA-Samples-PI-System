@@ -1,7 +1,6 @@
 parameters:
   language: ''
-  web: false
-  skipBinSkim: false
+  skipPolaris: false
 
 jobs:
   - job: Analysis
@@ -85,93 +84,51 @@ jobs:
         inputs:
           AnalyzeTarget: '$(Build.SourcesDirectory)\*.dll;$(Build.SourcesDirectory)\*.exe'
           toolVersion: LatestPreRelease
-        condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
+        condition: and(eq('${{ parameters.language }}', 'dotnet'))
 
       - task: ms-codeanalysis.vss-microsoft-security-code-analysis-devops.build-task-postanalysis.PostAnalysis@1
         displayName: 'BinSkim (DotNet): Post-Analysis'
         inputs:
           BinSkim: true
           BinSkimBreakOn: WarningAbove
-        condition: and(eq('${{ parameters.language }}', 'dotnet'), eq(${{ parameters.skipBinSkim }}, false))
+        condition: and(eq('${{ parameters.language }}', 'dotnet'))
 
-      # Synopsys
+      # Synopsys Polaris
+      - powershell: |
+          # Set up Polaris Project Name, Access Token
+          New-Item -Path Env:\ -Name POLARIS_PROJECT_NAME -Value $(analysisProject)
+          New-Item -Path Env:\ -Name POLARIS_ACCESS_TOKEN -Value $(polarisToken)
+
+          # Call Polaris, set the configuration file path and run analyze with wait option
+          & 'polaris.exe' -c polaris.yml analyze -w
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
+        condition: eq({{ parameters.skipPolaris }}, false)
+        displayName: 'Polaris Analyze'
+
+      # Synopsys BlackDuck
       - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
         inputs:
           Products: BD
           BlackDuckService: 'product-readiness.BlackDuck'
           DetectArguments: |
-            --detect.project.name="product-readiness.$(bdProject)"
+            --detect.project.name="product-readiness.$(analysisProject)"
             --detect.project.version.name="$(Build.SourceBranchName)"
             --detect.source.path=$(Build.SourcesDirectory)$(projPath)/
-            --detect.code.location.name="code_location_$(bdProject)_$(Build.SourceBranchName)"
-            --detect.bom.aggregate.name="bom_$(bdProject)_$(Build.SourceBranchName)"
+            --detect.code.location.name="code_location_$(analysisProject)_$(Build.SourceBranchName)"
+            --detect.bom.aggregate.name="bom_$(analysisProject)_$(Build.SourceBranchName)"
         condition: and(succeeded(), ne('${{ parameters.language }}', 'python'))
-        displayName: 'Synopsys: Detect'
+        displayName: 'Synopsys Detect: BlackDuck'
 
-      # Needs Pip < 20 due to issue described in https://github.com/blackducksoftware/synopsys-detect/pull/107
-      - script: call python -m pip install pip==19.3.1
-        condition: and(succeeded(), eq('${{ parameters.language }}', 'python'))
-        displayName: 'Synopsys (Python): Install pip 19.3.1'
       - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
         inputs:
           Products: BD
           BlackDuckService: 'product-readiness.BlackDuck'
           DetectArguments: |
-            --detect.project.name="product-readiness.$(bdProject)"
+            --detect.project.name="product-readiness.$(analysisProject)"
             --detect.project.version.name="$(Build.SourceBranchName)"
             --detect.source.path=$(Build.SourcesDirectory)$(projPath)/
-            --detect.code.location.name="code_location_$(bdProject)_$(Build.SourceBranchName)"
-            --detect.bom.aggregate.name="bom_$(bdProject)_$(Build.SourceBranchName)"
+            --detect.code.location.name="code_location_$(analysisProject)_$(Build.SourceBranchName)"
+            --detect.bom.aggregate.name="bom_$(analysisProject)_$(Build.SourceBranchName)"
             --detect.pip.requirements.path=$(Build.SourcesDirectory)$(projPath)/requirements.txt
         condition: and(succeeded(), eq('${{ parameters.language }}', 'python'))
-        displayName: 'Synopsys (Python): Detect (Requirements.txt)'
-
-      # Coverity
-      - script: if not exist $(covFolder) mkdir $(covFolder)
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
-        displayName: 'Coverity: Make dir'
-        continueOnError: true
-
-      # - DotNet
-      - script: |
-          echo Clean
-          call dotnet clean
-          echo Restore
-          call dotnet restore
-          echo Build
-          "$(covPath)cov-build" --dir $(covFolder) dotnet build
-          echo Complete
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
-        displayName: 'Coverity (DotNet): Build'
-        condition: eq('${{ parameters.language }}', 'dotnet')
-
-      # - Java
-      - script: |
-          echo Clean
-          call mvn clean
-          echo Build
-          "$(covPath)cov-build" --dir $(covFolder) mvn compile
-          echo Complete
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
-        displayName: 'Coverity (Java): Build'
-        condition: eq('${{ parameters.language }}', 'java')
-
-      # - Angular
-      - script: '"$(covPath)cov-build" --dir . --no-command --fs-capture-search ../src'
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
-        displayName: 'Coverity (Angular): Build'
-        condition: eq('${{ parameters.language }}', 'angular')
-
-      # - Default
-      - script: '"$(covPath)cov-build" --dir . --no-command --fs-capture-search ../'
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
-        displayName: 'Coverity (Default): Build'
-        condition: and(ne('${{ parameters.language }}', 'angular'), or(and(ne('${{ parameters.language }}', 'dotnet'), ne('${{ parameters.language }}', 'java')), eq(${{ parameters.web }}, true)))
-
-      - script: '"$(covPath)cov-analyze" --dir .'
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
-        displayName: 'Coverity: Analyze'
-
-      - script: '"$(covPath)cov-commit-defects" --stream "Engineering Incubation - $(covStream)" --host $(covServer) --https-port 8443 --auth-key-file "$(covAuthPath)" --dir .'
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/$(covFolder)/
-        displayName: 'Coverity: Upload'
+        displayName: 'Synopsys Detect: BlackDuck (Python Requirements.txt)'

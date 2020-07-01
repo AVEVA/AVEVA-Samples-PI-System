@@ -31,9 +31,7 @@ variables:
     value: test_config.json
   - name: CredFileLibrary
     value: product-readiness.piweb_da.json
-  - name: covStream
-    value: PIWebAPI_Data_Analysis
-  - name: bdProject
+  - name: analysisProject
     value: PIWebAPI_Data_Analysis
 
 jobs:
@@ -49,7 +47,7 @@ jobs:
           filePath: $(projPath)
       - task: NuGetToolInstaller@1
         inputs:
-          versionSpec: 
+          versionSpec:
       - task: DotNetCoreCLI@2
         displayName: Restore
         inputs:
@@ -64,9 +62,9 @@ jobs:
       - task: CopyFiles@2
         displayName: Copy Build Output Files
         inputs:
-          sourceFolder: "$(Build.SourcesDirectory)"
-          targetFolder: "$(Build.BinariesDirectory)"
-          contents: "**/bin/Debug/netcoreapp3.1/*"
+          sourceFolder: '$(Build.SourcesDirectory)'
+          targetFolder: '$(Build.BinariesDirectory)'
+          contents: '**/bin/Debug/netcoreapp3.1/*'
           overWrite: true
           flattenFolders: true
       - task: PublishBuildArtifacts@1
