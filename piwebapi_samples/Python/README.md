@@ -1,5 +1,7 @@
 # PI Web API Python Sample
 
+**Version:** 1.0.12
+
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=963&branchName=master)
 
 The sample code in this folder demonstrates how to utilize the PI Web API using Python. You must have already [installed Python](https://www.python.org/downloads/) in order to run this sample application.
@@ -52,14 +54,14 @@ In order to run this sample, you must configure PI Web API with the proper secur
 
 In addition, PI Web API must be configured to allow CORS as follows:
 
-| Attribute               | Value                                                                | Type    |
-| ----------------------- | -------------------------------------------------------------------- | ------- |
-| CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location                  | String  |
-| CorsHeaders             | \*                                                                   | String  |
-| CorsMethods             | \*                                                                   | String  |
-| CorsOrigins             | https://localhost:9876                                               | String  |
-| CorsSupportsCredentials | True                                                                 | Boolean |
-| DisableWrites           | False                                                                | Boolean |
+| Attribute               | Value                                               | Type    |
+| ----------------------- | --------------------------------------------------- | ------- |
+| CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location | String  |
+| CorsHeaders             | \*                                                  | String  |
+| CorsMethods             | \*                                                  | String  |
+| CorsOrigins             | [https://localhost:9876](https://localhost:9876)    | String  |
+| CorsSupportsCredentials | True                                                | Boolean |
+| DisableWrites           | False                                               | Boolean |
 
 ## Functionality
 
@@ -85,7 +87,6 @@ The functionality included with this sample includes(recommended order of execut
 - Delete the element
 - Delete the element template
 - Delete the sample database
-
 
 Complete dependencies listed in [DEPENDENCIES.md](DEPENDENCIES.md)
 

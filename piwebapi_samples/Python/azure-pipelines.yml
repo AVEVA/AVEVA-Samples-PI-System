@@ -31,9 +31,7 @@ variables:
     value: test_config.py
   - name: CredFileLibrary
     value: product-readiness.piwebapi_python.py
-  - name: covStream
-    value: PIWebAPIPython
-  - name: bdProject
+  - name: analysisProject
     value: PIWebAPI_Python
 
 jobs:
