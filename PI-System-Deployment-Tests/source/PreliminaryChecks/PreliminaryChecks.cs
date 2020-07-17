@@ -265,7 +265,7 @@ namespace OSIsoft.PISystemDeploymentTests
         [Fact]
         public void CheckMinimumPISQLClientSecurity()
         {
-            using (AFFixture fixture = new AFFixture())
+            using (var fixture = new AFFixture())
             {
                 if (Settings.PISqlClientTests)
                 {
@@ -418,7 +418,7 @@ namespace OSIsoft.PISystemDeploymentTests
                             "recommended to use a trusted certificate, but if desired, this check can be bypassed by setting " +
                             "SkipCertificateValidation to True in the App.config.");
                         Assert.True(ex.Status == WebExceptionStatus.TrustFailure,
-                            $"Failed to load PI Manual Logger home page. Encountered a WebException:{Environment.NewLine}{ex.ToString()}");
+                            $"Failed to load PI Manual Logger home page. Encountered a WebException:{Environment.NewLine}{ex}");
                     }
                 }
             }
@@ -436,7 +436,6 @@ namespace OSIsoft.PISystemDeploymentTests
         /// <para>Check if the SQL Objects have execute permission</para>
         /// </remarks>
         [Fact]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "This does not accept any user input so the risk for SQL injection is low.")]
         public void CheckMinimumManualLoggerSecurity()
         {
             var impersonationUserSetting = Settings.PIManualLoggerWebImpersonationUser;
@@ -476,7 +475,7 @@ namespace OSIsoft.PISystemDeploymentTests
                     "LEFT OUTER JOIN sys.database_principals AS DP2\n" +
                     "\tON DRM.member_principal_id = DP2.principal_id\n" +
                     "WHERE (DP1.name = 'db_datareader' OR DP1.name = 'db_datawriter')\n" +
-                    "AND DP2.name = '" + currentUser + "'\n" + 
+                    "AND DP2.name = @userName\n" + 
                     "ORDER BY DP1.name;\n";
 
                 using (var connection = new SqlConnection(connectionString))
@@ -484,6 +483,7 @@ namespace OSIsoft.PISystemDeploymentTests
                     connection.Open();
                     using (var command = new SqlCommand(query, connection))
                     {
+                        command.Parameters.AddWithValue("userName", currentUser);
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -509,7 +509,7 @@ namespace OSIsoft.PISystemDeploymentTests
 
                 query = "SELECT OBJECT_NAME(major_id) as ObjectName, permission_name as PermissionName\n" +
                         "FROM sys.database_permissions p\n" +
-                        "WHERE USER_NAME(grantee_principal_id) = '" + currentUser + "'\n" +
+                        "WHERE USER_NAME(grantee_principal_id) = @userName\n" +
                         "AND class = 1";
 
                 var storedProcedures = new List<string>() 
@@ -531,6 +531,7 @@ namespace OSIsoft.PISystemDeploymentTests
                     connection.Open();
                     using (var command = new SqlCommand(query, connection))
                     {
+                        command.Parameters.AddWithValue("userName", currentUser);
                         using (SqlDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -540,11 +541,7 @@ namespace OSIsoft.PISystemDeploymentTests
 
                                 if (dbPermission.Equals("EXECUTE", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    var index = storedProcedures.IndexOf(dbObject);
-                                    if (index > -1)
-                                    {
-                                        storedProcedures[index] = null;
-                                    }
+                                    storedProcedures.Remove(dbObject);
                                 }
                             }
                         }
@@ -629,7 +626,7 @@ namespace OSIsoft.PISystemDeploymentTests
                             "recommended to use a trusted certificate, but if desired, this check can be bypassed by setting " +
                             "SkipCertificateValidation to True in the App.config.");
                         Assert.True(ex.Status == WebExceptionStatus.TrustFailure,
-                            $"Failed to load PI Web API home page. Encountered a WebException:{Environment.NewLine}{ex.ToString()}");
+                            $"Failed to load PI Web API home page. Encountered a WebException:{Environment.NewLine}{ex}");
                     }
                 }
             }
