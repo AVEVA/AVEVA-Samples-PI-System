@@ -6,6 +6,7 @@
 import unittest
 import xmlrunner
 
+
 class TestSequenceFunctions(unittest.TestCase):
 
     def test_a_createdatabase(self):
@@ -68,8 +69,9 @@ class TestSequenceFunctions(unittest.TestCase):
         from test_create_sandbox import TestStringMethods as SandboxMethods
         SandboxMethods.test_deletedatabase(self)
 
+
 if __name__ == '__main__':
-    with open('output.xml', 'wb') as output:
+    with open('output.xml', 'w') as output:
         unittest.main(
             testRunner=xmlrunner.XMLTestRunner(output=output),
             failfast=False, buffer=False, catchbreak=False)
