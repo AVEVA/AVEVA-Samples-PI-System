@@ -7,3 +7,6 @@ Prior to running the PI System Deployment Tests, verify that the user running th
 
 # Found in Version
 PI System Deployment Tests 1.0.2
+
+# Fixed in Version
+PI System Deployment Tests 1.0.3
