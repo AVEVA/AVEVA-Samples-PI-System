@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.Management;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.ServiceProcess;
 using OSIsoft.AF.Time;
@@ -141,6 +142,59 @@ namespace OSIsoft.PISystemDeploymentTests
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        /// Determine if a test is running on a particular target Server.
+        /// </summary>
+        /// <param name="targetServerNameOrIP">Name or IP address of the target server </param>
+        /// <returns>True if running on the target Server; False otherwise.</returns>
+        public static bool IsRunningOnTargetServer(string targetServerNameOrIP)
+        {
+            if (string.IsNullOrEmpty(targetServerNameOrIP))
+                return false;
+            if (IPAddress.TryParse(targetServerNameOrIP, out _))
+            {
+                string localIPAddress = GetLocalIPAddress();
+                return string.Equals(targetServerNameOrIP, localIPAddress, StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            string localMachineName = Environment.MachineName;
+            if (string.Equals(targetServerNameOrIP, localMachineName, StringComparison.InvariantCultureIgnoreCase))
+                return true;
+
+            string hostName = Dns.GetHostName();
+            if (string.Equals(targetServerNameOrIP, hostName, StringComparison.InvariantCultureIgnoreCase))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Get the IP address for a specific host name.
+        /// </summary>
+        /// <returns>The first found IPv4 address for the specified host name.</returns>
+        private static string GetIPAddress(string hostName)
+        {
+            var host = Dns.GetHostEntry(hostName);
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+
+            throw new Exception($"Unable to determine IP address for host named [{hostName}]. No network adapters with an IPv4 address in the system.");
+        }
+
+        /// <summary>
+        /// Get the IP address for this machine.
+        /// </summary>
+        /// <returns>The first found IPv4 address for this machine.</returns>
+        private static string GetLocalIPAddress()
+        {
+            return GetIPAddress(Dns.GetHostName());
         }
     }
 }

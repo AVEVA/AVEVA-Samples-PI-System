@@ -78,7 +78,7 @@ namespace OSIsoft.PISystemDeploymentTests
         /// <returns>The arguments to be included in the command line for the PI tools.</returns>
         private static string GenerateRemotePIToolArgumentsAsNeeded(string hostName)
         {
-            if (IsRunningOnTargetPIServer())
+            if (Utils.IsRunningOnTargetServer(Settings.PIDataArchive))
                 return string.Empty;
 
             /*
@@ -96,60 +96,6 @@ namespace OSIsoft.PISystemDeploymentTests
             */
             string results = $" -node {hostName} -windows "; // pre and post spaces included for simplicity of usage
             return results;
-        }
-
-        /// <summary>
-        /// Get the IP address for a specific host name.
-        /// </summary>
-        /// <returns>The first found IPv4 address for the specified host name.</returns>
-        private static string GetIPAddress(string hostName)
-        {
-            var host = Dns.GetHostEntry(hostName);
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-
-            throw new Exception($"Unable to determine IP address for host named [{hostName}]. No network adapters with an IPv4 address in the system.");
-        }
-
-        /// <summary>
-        /// Get the IP address for this machine.
-        /// </summary>
-        /// <returns>The first found IPv4 address for this machine.</returns>
-        private static string GetLocalIPAddress()
-        {
-            return GetIPAddress(Dns.GetHostName());
-        }
-
-        /// <summary>
-        /// Determine if running on the testing target PI Server.
-        /// </summary>
-        /// <returns>True if running on the testing target PI Server; False otherwise.</returns>
-        private static bool IsRunningOnTargetPIServer()
-        {
-            string targetServerName = Settings.PIDataArchive;
-            if (string.IsNullOrEmpty(targetServerName))
-                return false;
-            bool targetServerNameIsIPAddress = IPAddress.TryParse(targetServerName, out _);
-            if (targetServerNameIsIPAddress)
-            {
-                string localIPAddress = GetLocalIPAddress();
-                return string.Equals(targetServerName, localIPAddress, StringComparison.InvariantCultureIgnoreCase);
-            }
-
-            string localMachineName = Environment.MachineName;
-            if (string.Equals(targetServerName, localMachineName, StringComparison.InvariantCultureIgnoreCase))
-                return true;
-
-            string hostName = Dns.GetHostName();
-            if (string.Equals(targetServerName, hostName, StringComparison.InvariantCultureIgnoreCase))
-                return true;
-
-            return false;
         }
 
         /// <summary>

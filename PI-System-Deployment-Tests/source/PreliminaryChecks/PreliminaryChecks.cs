@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json.Linq;
@@ -130,8 +131,8 @@ namespace OSIsoft.PISystemDeploymentTests
                         case AFSecurityItem.NotificationContactTemplate:
                         case AFSecurityItem.NotificationRuleTemplate:
                         case AFSecurityItem.Table:
-                            Assert.True(security.CanRead && 
-                                security.CanWrite && 
+                            Assert.True(security.CanRead &&
+                                security.CanWrite &&
                                 security.CanDelete, "The current user must have Read, Write, and Delete permission to the following System collections:\n" +
                                 "\tAnalysis Templates\n" +
                                 "\tCategories\n" +
@@ -151,9 +152,9 @@ namespace OSIsoft.PISystemDeploymentTests
                                 "\tTransfers");
                             break;
                         case AFSecurityItem.Analysis:
-                            Assert.True(security.CanRead && 
-                                security.CanWrite && 
-                                security.CanDelete && 
+                            Assert.True(security.CanRead &&
+                                security.CanWrite &&
+                                security.CanDelete &&
                                 security.CanExecute, "The current user must have Read, Write, Execute, and Delete permission to the Analyses System collection.");
                             break;
                         case AFSecurityItem.Element:
@@ -264,7 +265,7 @@ namespace OSIsoft.PISystemDeploymentTests
         [Fact]
         public void CheckMinimumPISQLClientSecurity()
         {
-            using (AFFixture fixture = new AFFixture())
+            using (var fixture = new AFFixture())
             {
                 if (Settings.PISqlClientTests)
                 {
@@ -417,8 +418,139 @@ namespace OSIsoft.PISystemDeploymentTests
                             "recommended to use a trusted certificate, but if desired, this check can be bypassed by setting " +
                             "SkipCertificateValidation to True in the App.config.");
                         Assert.True(ex.Status == WebExceptionStatus.TrustFailure,
-                            $"Failed to load PI Manual Logger home page. Encountered a WebException:{Environment.NewLine}{ex.ToString()}");
+                            $"Failed to load PI Manual Logger home page. Encountered a WebException:{Environment.NewLine}{ex}");
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks if the current user has db_datareader, db_datawriter, and execute permissions 
+        /// on PI Manual Logger stored procedures in the PimlWindows database.
+        /// </summary>
+        /// <remarks>
+        /// <para>Test Steps:</para>
+        /// <para>Get SQL Roles assigned to current user</para>
+        /// <para>Check if the db_datareader and db_datawriter roles are present</para>
+        /// <para>Get SQL Objects assigned to the current user</para>
+        /// <para>Check if the SQL Objects have execute permission</para>
+        /// </remarks>
+        [Fact]
+        public void CheckMinimumManualLoggerSecurity()
+        {
+            var impersonationUserSetting = Settings.PIManualLoggerWebImpersonationUser;
+
+            if (string.IsNullOrEmpty(Settings.PIManualLogger))
+            {
+                Output.WriteLine($"'PIManualLogger' setting value is not set in app.config. Check if minimum security check was skipped.");
+            } 
+            else if (string.IsNullOrEmpty(Settings.PIManualLoggerSQL))
+            {
+                Output.WriteLine($"'PIManualLoggerSQL' setting value is not set in app.config. Check if minimum security check was skipped.");
+            }
+            else
+            {
+                var hasDataReader = false;
+                var hasDataWriter = false;
+                string currentUser;
+
+                if (!string.IsNullOrEmpty(impersonationUserSetting))
+                {
+                    currentUser = impersonationUserSetting;
+                } 
+                else
+                {
+                    currentUser = $@"{Environment.UserDomainName}\{Environment.UserName}";
+                    if (string.IsNullOrWhiteSpace(Environment.UserDomainName))
+                    {
+                        currentUser = Environment.UserName;
+                    }
+                }
+
+                var connectionString = $"Server={Settings.PIManualLoggerSQL};Database=PimlWindows;Integrated Security=SSPI";
+                var query = "SELECT DP1.name AS DatabaseRoleName\n" +
+                    "FROM sys.database_role_members AS DRM\n" +
+                    "RIGHT OUTER JOIN sys.database_principals AS DP1\n" +
+                    "\tON DRM.role_principal_id = DP1.principal_id\n" +
+                    "LEFT OUTER JOIN sys.database_principals AS DP2\n" +
+                    "\tON DRM.member_principal_id = DP2.principal_id\n" +
+                    "WHERE (DP1.name = 'db_datareader' OR DP1.name = 'db_datawriter')\n" +
+                    "AND DP2.name = @userName\n" + 
+                    "ORDER BY DP1.name;\n";
+
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("userName", currentUser);
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var dbRole = reader["DatabaseRoleName"].ToString().ToUpperInvariant();
+
+                                if (dbRole.Equals("DB_DATAREADER", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    hasDataReader = true;
+                                }
+
+                                if (dbRole.Equals("DB_DATAWRITER", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    hasDataWriter = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Assert.True(hasDataReader, $"The user {currentUser} does not have the db_datareader role on the PimlWindows Database.");
+                Assert.True(hasDataWriter, $"The user {currentUser} does not have the db_datawriter role on the PimlWindows Database.");
+
+                query = "SELECT OBJECT_NAME(major_id) as ObjectName, permission_name as PermissionName\n" +
+                        "FROM sys.database_permissions p\n" +
+                        "WHERE USER_NAME(grantee_principal_id) = @userName\n" +
+                        "AND class = 1";
+
+                var storedProcedures = new List<string>() 
+                {
+                    "GetAllPreviousValuesForItem",
+                    "GetDigitalStatesForDigitalSet",
+                    "GetPreviousNumericValueForItemByDataItemName",
+                    "InsertOrUpdatePreviousValueEventForItem",
+                    "GetTourIDsForUserSID",
+                    "GetUserForUserSID",
+                    "DoesTourRunIDExist",
+                    "DeleteTourRunByID",
+                    "GetGlobalOptions",
+                    "GetTourOptionsForDataEntry",
+                };
+
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("userName", currentUser);
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var dbObject = reader["ObjectName"].ToString();
+                                var dbPermission = reader["PermissionName"].ToString().ToUpperInvariant();
+
+                                if (dbPermission.Equals("EXECUTE", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    storedProcedures.Remove(dbObject);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                foreach (var item in storedProcedures)
+                {
+                    Assert.True(item == null, $"The user {currentUser} does not have execute permissions on {item} object");
                 }
             }
         }
@@ -494,7 +626,7 @@ namespace OSIsoft.PISystemDeploymentTests
                             "recommended to use a trusted certificate, but if desired, this check can be bypassed by setting " +
                             "SkipCertificateValidation to True in the App.config.");
                         Assert.True(ex.Status == WebExceptionStatus.TrustFailure,
-                            $"Failed to load PI Web API home page. Encountered a WebException:{Environment.NewLine}{ex.ToString()}");
+                            $"Failed to load PI Web API home page. Encountered a WebException:{Environment.NewLine}{ex}");
                     }
                 }
             }

@@ -45,7 +45,7 @@ If you want the test associated with an optional PI System component to run, ind
 | PI Notification Service | PI Notification Service 2018 SP2                        | "**PINotificationsService**" key: Name of the machine where Notifications Service is installed. | NotificationTests                   |
 | PI Web API              | PI Web API 2019                                         | "**PIWebAPI**" key: Name of the target PI web API Server.<br />"**PIWebAPICrawler**" key: Name of the target PI Web API Crawler machine if different from PI Web API server.<br />"**PIWebAPIUser**" and "**PIWebAPIPassword**" keys: Username and password if using basic authentication.<br /> "**PIWebAPIConfigurationInstance**" key: Name of PI Web API configuration instance in AF server if different from machine name.<br /> "**SkipCertificateValidation**" key: Enter "**True**" to allow clients to bypass certificate validation for testing. | PIWebAPITests                       |
 | PI Vision               | PI Vision 2019                                          | "**PIVisionServer**" key: URL of target PI Vision Server.<br />"**SkipCertificateValidation**" key: Enter "**True**" to allow clients to bypass certificate validation for testing. | Vision3Tests                        |
-| PI Manual Logger        | PI Manual Logger PC 2014 & PI Manual Logger Web 2017 R2 | "**PIManualLogger**" key: Name of target PI Manual Logger's Server.<br /> "**SkipCertificateValidation**" key: Enter "**True**" to allow clients to bypass certificate validation for testing. | ManualLoggerTests                   |
+| PI Manual Logger        | PI Manual Logger PC 2014 & PI Manual Logger Web 2017 R2 | "**PIManualLogger**" key: Name of target PI Manual Logger's Server.<br /> "**SkipCertificateValidation**" key: Enter "**True**" to allow clients to bypass certificate validation for testing.<br />"**PIManualLoggerSQL**" key: Name of target PI Manual Logger's SQL Server.<br />"**PIManualLoggerWebImpersonationUser**" key: Name of PI Manual Logger Web <span>ASP.Net</span> Impersonation User. | ManualLoggerTests                   |
 | PI Data Link            | PI Data Link 2019 SP1                                   | "**PIDataLinkTests**" key: Enter "**True**" to run tests; enter "**False**" to not run tests. PI Data Link is required to be installed on the test client machine. | DataLinkAFTests,  DataLinkPIDATests |
 | PI SQL Client           | PI SQL Client 2018 R2                                   | "**PIsqlClientTests**" key: Enter "**True**" to run tests; enter "**False**" to not run tests. PI SQL Client is expected to be installed on the test client machine. | PIsqlClientTests                    |
 
@@ -129,7 +129,17 @@ Notifications Web Service Delivery Channel.
 
 The user needs access to the SQL Server where the PIMLWindows SQL database is located.
 
-The user needs membership to the db_denydatareader and db_denydatawriter roles for the PIMLWindows SQL database.
+The user needs membership to the db_datareader and db_datawriter roles for the PIMLWindows SQL database and execute permissions on the following stored procedures: 
+- GetAllPreviousValuesForItem
+- GetDigitalStatesForDigitalSet
+- GetPreviousNumericValueForItemByDataItemName
+- InsertOrUpdatePreviousValueEventForItem
+- GetTourIDsForUserSID
+- GetUserForUserSID
+- DoesTourRunIDExist
+- DeleteTourRunByID
+- GetGlobalOptions
+- GetTourOptionsForDataEntry
 
 ### PI SQL Client
 

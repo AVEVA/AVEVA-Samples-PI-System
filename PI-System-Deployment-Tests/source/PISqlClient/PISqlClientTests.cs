@@ -128,11 +128,7 @@ namespace OSIsoft.PISystemDeploymentTests
         [InlineData("SELECT * FROM [Master].[Element].[FindElements]('Template:=Turbine')", AFFixture.TotalTurbineCount)]
         public void FindElementQueryTest(string query, int expectedRowCount)
         {
-            using (var result = ExecuteQuery(query))
-            {
-                Assert.True(expectedRowCount.Equals(result.Rows.Count),
-                    $"Query expected to return {expectedRowCount} but returned {result.Rows.Count}.");
-            }
+            ExecuteQuery(query, expectedRowCount).Dispose();
         }
 
         /// <summary>
@@ -208,14 +204,14 @@ namespace OSIsoft.PISystemDeploymentTests
         /// </remarks>
         /// <param name="query">Query to execute.</param>
         [OptionalTheory(KeySetting, KeySettingTypeCode)]
-        [InlineData(@"SELECT TOP 100 eh.Path, eh.Name Element, ea.Name Attribute, a.Value, a.Value_Int, a.Value_Double, a.Value_String, a.Value_DateTime, 
-	                  a.IsValueAnnotated, a.IsValueGood, a.IsValueQuestionable, a.IsValueSubstituted, a.Error
+        [InlineData(@"SELECT TOP 100 eh.Path, eh.Name Element, ea.Name Attribute, a.Value, a.Value_Int, a.Value_Double, a.Value_String, a.Value_DateTime,
+                      a.IsValueAnnotated, a.IsValueGood, a.IsValueQuestionable, a.IsValueSubstituted, a.Error
                       FROM
                       (
-	                      SELECT TOP 5 Path, Name, ElementID
-	                      FROM [Master].[Element].[ElementHierarchy]
-	                      WHERE Level = 2
-	                      ORDER BY Path, Name
+                          SELECT TOP 5 Path, Name, ElementID
+                          FROM [Master].[Element].[ElementHierarchy]
+                          WHERE Level = 2
+                          ORDER BY Path, Name
                       ) eh
                       INNER JOIN [Master].[Element].[Attribute] ea ON ea.ElementID = eh.ElementID
                       INNER JOIN [Master].[Element].[Archive] a ON a.AttributeID = ea.ID
@@ -224,16 +220,8 @@ namespace OSIsoft.PISystemDeploymentTests
         public void ArchiveQueryTest(string query)
         {
             Output.WriteLine($"Executing query [{query}].");
-            using (var result = ExecuteQuery(query))
+            using (var result = ExecuteQuery(query, expectedRowCount: 100, expectedColumnCount: 13))
             {
-                Output.WriteLine($"Checking Rows and Columns are equal.");
-                Assert.True(
-                    result.Columns.Count == 13,
-                    $"Expected 13 columns from the following SQL command but {result.Columns.Count} were retrieved from query [{query}].");
-                Assert.True(
-                    result.Rows.Count == 100,
-                    $"Expected 100 rows from the following SQL command but {result.Rows.Count} were retrieved from query [{query}].");
-
                 Output.WriteLine($"Checking Data returned by query.");
                 foreach (DataRow row in result.Rows)
                 {
@@ -259,16 +247,12 @@ namespace OSIsoft.PISystemDeploymentTests
         [OptionalTheory(KeySetting, KeySettingTypeCode)]
         [InlineData(@"SELECT * FROM [Master].[Element].[Element] e
                      INNER JOIN [Master].[Element].[Attribute] ea ON ea.ElementID = e.ID
-                     CROSS APPLY[Master].[Element].[GetSummary] (ea.ID, 'y', 't', 'Average', 'TimeWeighted', 'MostRecentTime' ) s
+                     CROSS APPLY[Master].[Element].[GetSummary] (ea.ID, 'y', 't', 'Average', 'TimeWeighted', 'MostRecentTime') s
                      WHERE e.Template = 'Turbine' AND ea.Path = '|Analog|' AND ValueType = 'Double'", AFFixture.TotalTurbineCount * 2)]
         public void SummaryQueryTest(string query, int expectedRowCount)
         {
             Output.WriteLine($"Checking that expected row count is equal to the row count returned by query [{query}].");
-            using (var result = ExecuteQuery(query))
-            {
-                Assert.True(expectedRowCount.Equals(result.Rows.Count),
-                    $"Expected {expectedRowCount} rows but query returned {result.Rows.Count}.");
-            }
+            ExecuteQuery(query, expectedRowCount).Dispose();
         }
 
         /// <summary>
@@ -290,11 +274,7 @@ namespace OSIsoft.PISystemDeploymentTests
         public void SampledValueQueryTest(string query, int expectedRowCount)
         {
             Output.WriteLine($"Checking that expected row count is equal to the row count returned by query [{query}].");
-            using (var result = ExecuteQuery(query))
-            {
-                Assert.True(expectedRowCount.Equals(result.Rows.Count),
-                    $"Expected {expectedRowCount} rows but query returned {result.Rows.Count}.");
-            }
+            ExecuteQuery(query, expectedRowCount).Dispose();
         }
 
         /// <summary>
@@ -303,56 +283,45 @@ namespace OSIsoft.PISystemDeploymentTests
         /// </summary>
         /// <remarks>
         /// Test Steps:
-        /// <para>Run set of queries</para>
-        /// <para>Make sure that the affected rows is equal to -1</para>
+        /// <para>Run set of queries.</para>
+        /// <para>Make sure that the affected rows is equal to -1.</para>
         /// </remarks>
         [OptionalFact(KeySetting, KeySettingTypeCode)]
         public void CreateAlterAndDropFunctionTest()
         {
+            Output.WriteLine("Run set of DDL queries.");
+
             try
             {
-                Output.WriteLine($"Run set queries and check affected rows.");
-                var affectedRows = ExecuteNonQuery("CREATE Catalog CustomCatalog");
-                Assert.True((-1).Equals(affectedRows), $"Query [CREATE Catalog CustomCatalog] returned {affectedRows} instead of -1.");
-                affectedRows = ExecuteNonQuery("CREATE Schema CustomCatalog.CustomSchema");
-                Assert.True((-1).Equals(affectedRows), $"Query [CREATE Schema CustomCatalog.CustomSchema] returned" +
-                    $" {affectedRows} instead of -1.");
+                ExecuteDdlQuery("CREATE Catalog CustomCatalog");
 
-                affectedRows = ExecuteNonQuery("CREATE Function CustomCatalog.CustomSchema.TestFunction(@param1 String)" +
+                ExecuteDdlQuery("CREATE Schema CustomCatalog.CustomSchema");
+
+                ExecuteDdlQuery("CREATE Function CustomCatalog.CustomSchema.TestFunction(@param1 String)" +
                     " AS SELECT 'Test' test WHERE @param1 = 'TestParam1'");
+                ExecuteQuery("SELECT * FROM CustomCatalog.CustomSchema.TestFunction('TestParam1')", 1, 1).Dispose();
 
-                Assert.True((-1).Equals(affectedRows), $"Query [CREATE Function CustomCatalog.CustomSchema.TestFunction(@param1 String)" +
-                    $" AS SELECT 'Test' test WHERE @param1 = 'TestParam1'] returned {affectedRows} instead of -1.");
+                ExecuteDdlQuery("ALTER Function CustomCatalog.CustomSchema.TestFunction(@param2 String)" +
+                    " AS SELECT 'Test2' test2 WHERE @param2 = 'TestParam2'");
+                ExecuteQuery("SELECT * FROM CustomCatalog.CustomSchema.TestFunction('TestParam2')", 1, 1).Dispose();
 
-                using (var result = ExecuteQuery("SELECT * FROM CustomCatalog.CustomSchema.TestFunction('TestParam1')"))
-                {
-                    affectedRows = ExecuteNonQuery("ALTER Function CustomCatalog.CustomSchema.TestFunction(@param2 String)" +
-                        " AS SELECT 'Test2' test2 WHERE @param2 = 'TestParam2'");
+                ExecuteDdlQuery("DROP Function CustomCatalog.CustomSchema.TestFunction");
 
-                    Assert.True((-1).Equals(affectedRows), $"Query [ALTER Function CustomCatalog.CustomSchema.TestFunction(@param2 String)" +
-                        $" AS SELECT 'Test2' test2 WHERE @param2 = 'TestParam2'] returned {affectedRows} instead of -1.");
-                }
+                ExecuteDdlQuery("DROP Schema CustomCatalog.CustomSchema");
 
-                using (var result = ExecuteQuery("SELECT * FROM CustomCatalog.CustomSchema.TestFunction('TestParam2')"))
-                {
-                    Assert.True(result.Rows.Count.Equals(1), $"Query [SELECT * FROM CustomCatalog.CustomSchema.TestFunction('TestParam2')]" +
-                        $" returns {result.Rows.Count} rows instead of 1.");
-
-                    Assert.True(result.Columns.Count.Equals(1), $"Query [SELECT * FROM CustomCatalog.CustomSchema.TestFunction('TestParam2')]" +
-                        $" returns {result.Columns.Count} columns instead of 1.");
-                }
-
-                affectedRows = ExecuteNonQuery("DROP Function CustomCatalog.CustomSchema.TestFunction");
-                Assert.True((-1).Equals(affectedRows), $"Query [DROP Function CustomCatalog.CustomSchema.TestFunction] returned" +
-                    $" {affectedRows} instead of -1.");
-
-                affectedRows = ExecuteNonQuery("DROP Schema CustomCatalog.CustomSchema");
-                Assert.True((-1).Equals(affectedRows), $"Query [DROP Schema CustomCatalog.CustomSchema] returned {affectedRows} instead of -1.");
+                ExecuteDdlQuery("DROP Catalog CustomCatalog");
             }
-            finally
+            catch
             {
-                var affectedRows = ExecuteNonQuery("DROP Catalog CustomCatalog");
-                Assert.True((-1).Equals(affectedRows), $"Query [DROP Catalog CustomCatalog] returned {affectedRows} instead of -1.");
+                try
+                {
+                    ExecuteNonQuery("DROP Catalog CustomCatalog");
+                }
+                catch
+                {
+                }
+
+                throw;
             }
         }
 
@@ -360,8 +329,10 @@ namespace OSIsoft.PISystemDeploymentTests
         /// Helper method used to execute queries.
         /// </summary>
         /// <param name="query">Query to execute.</param>
+        /// <param name="expectedRowCount">Expected result row count or -1 if the check is not required.</param>
+        /// <param name="expectedColumnCount">Expected result column count or -1 if the check is not required.</param>
         /// <returns>Result table.</returns>
-        private DataTable ExecuteQuery(string query)
+        private DataTable ExecuteQuery(string query, int expectedRowCount = -1, int expectedColumnCount = -1)
         {
             using (var oleDbConnection = new OleDbConnection(_connectionString))
             using (var oleDbCommand = new OleDbCommand(query, oleDbConnection))
@@ -373,10 +344,24 @@ namespace OSIsoft.PISystemDeploymentTests
                 using (var dataAdapter = new OleDbDataAdapter(oleDbCommand))
                 {
                     var dataTable = new DataTable("QueryResult");
-                    dataAdapter.Fill(dataTable);
-                    Output.WriteLine("Query executed successfully.");
+                    try
+                    {
+                        dataAdapter.Fill(dataTable);
+                        Output.WriteLine("Query executed successfully.");
 
-                    return dataTable;
+                        if (expectedRowCount > -1)
+                            Assert.True(dataTable.Rows.Count.Equals(expectedRowCount), $"Query [{query}] returns {dataTable.Rows.Count} rows instead of {expectedRowCount}.");
+
+                        if (expectedColumnCount > -1)
+                            Assert.True(dataTable.Columns.Count.Equals(expectedColumnCount), $"Query [{query}] returns {dataTable.Columns.Count} columns instead of {expectedColumnCount}.");
+
+                        return dataTable;
+                    }
+                    catch
+                    {
+                        dataTable.Dispose();
+                        throw;
+                    }
                 }
             }
         }
@@ -400,6 +385,16 @@ namespace OSIsoft.PISystemDeploymentTests
 
                 return affectedRows;
             }
+        }
+
+        /// <summary>
+        /// Helper method used to execute DDL queries.
+        /// </summary>
+        /// <param name="query">DDL query to execute.</param>
+        private void ExecuteDdlQuery(string query)
+        {
+            var affectedRows = ExecuteNonQuery(query);
+            Assert.True((-1).Equals(affectedRows), $"Query [{query}] returned {affectedRows} instead of -1.");
         }
     }
 }

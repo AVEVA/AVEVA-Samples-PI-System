@@ -81,6 +81,11 @@ namespace OSIsoft.PISystemDeploymentTests
         /// Specifies that the latest Patch of PI Vision is applied
         /// </summary>
         PIVISIONCURRENTPATCH,
+
+        /// <summary>
+        /// Specifies that the latest Patch of PI Manual Logger Web is applied
+        /// </summary>
+        MANUALLOGGERWEBCURRENTPATCH,
     }
 
     /// <summary>
@@ -116,11 +121,14 @@ namespace OSIsoft.PISystemDeploymentTests
         private static Version _sqlClientODBCCurrentVersion = new Version("4.1.19190.2");
         private static string _sqlClientODBCCurrentVersionString = "PI SQL Client 2018 R2";
 
-        private static Version _webAPICurrentVersion = new Version("1.12.0.6145");
-        private static string _webAPICurrentVersionString = "PI Web API 2019 Patch 1";
+        private static Version _webAPICurrentVersion = new Version("1.13.0.6518");
+        private static string _webAPICurrentVersionString = "PI Web API 2019 SP1";
 
         private static Version _visionCurrentVersion = new Version("3.4.1.0");
         private static string _visionCurrentVersionString = "PI Vision 2019 Patch 1";
+
+        private static Version _manualLoggerWebCurrentVersion = new Version("3.4.2.535");
+        private static string _manualLoggerWebCurrentVersionString = "PI Manual Logger Web R2 Patch 2";
 
         /// <summary>
         /// Skips a test based on the passed condition.
@@ -333,6 +341,30 @@ namespace OSIsoft.PISystemDeploymentTests
                     if (piVisionVersion < _visionCurrentVersion)
                     {
                         Skip = $@"Warning! You do not have the latest update: {_visionCurrentVersionString}! Please consider upgrading! You are currently on {piVisionVersion}";
+                    }
+
+                    break;
+                case TestCondition.MANUALLOGGERWEBCURRENTPATCH:
+                    string relativeAssemblyPath = @"Piml.Web\bin\PIML.web.dll";
+                    string pimlWebPath64 = Path.Combine(piHome64, relativeAssemblyPath);
+                    string pimlWebPath32 = Path.Combine(piHome32, relativeAssemblyPath);
+                    Version actualManualLoggerWebVersion;
+                    if (File.Exists(pimlWebPath64))
+                    {
+                        actualManualLoggerWebVersion = new Version(FileVersionInfo.GetVersionInfo(pimlWebPath64).FileVersion);
+                    }
+                    else if (File.Exists(pimlWebPath32))
+                    {
+                        actualManualLoggerWebVersion = new Version(FileVersionInfo.GetVersionInfo(pimlWebPath32).FileVersion);
+                    }
+                    else
+                    {
+                        throw new Exception($@"Warning! Unable to determine PI Manual Logger Web Version. Latest version is {_manualLoggerWebCurrentVersionString}!");
+                    }
+
+                    if (actualManualLoggerWebVersion < _manualLoggerWebCurrentVersion)
+                    {
+                        Skip = $@"Warning! You do not have the latest update: {_manualLoggerWebCurrentVersionString}! Please consider upgrading! You are currently on {actualManualLoggerWebVersion}";
                     }
 
                     break;

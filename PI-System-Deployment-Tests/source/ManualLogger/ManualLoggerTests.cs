@@ -21,6 +21,8 @@ namespace OSIsoft.PISystemDeploymentTests
     {
         internal const string KeySetting = "PIManualLogger";
         internal const string PortSetting = "PIManualLoggerPort";
+        internal const string SQLSetting = "PIManualLoggerSQL";
+        internal const string ImpersonationUserSetting = "PIManualLoggerWebImpersonationUser";
         internal const TypeCode KeySettingTypeCode = TypeCode.String;
         internal const string NoPreviousWebConfig = "Did not find a Web.config.previous file. This expected for new installations of PI Manual Logger.";
         private const string ConnectionName = "PIMLDB";
@@ -38,6 +40,20 @@ namespace OSIsoft.PISystemDeploymentTests
 
         private ManualLoggerFixture Fixture { get; }
         private ITestOutputHelper Output { get; }
+
+        /// <summary>
+        /// Tests to see if the current PI Manual Logger Web patch is applied.
+        /// </summary>
+        /// <remarks>
+        /// The test will be skipped if it is not run against PI Manual Logger Web on the test machine.
+        /// Errors if the current patch is not applied with a message telling the user to upgrade.
+        /// </remarks>
+        [ManualLoggerIsLocalFact]
+        public void HaveLatestPatchManualLoggerWeb()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.MANUALLOGGERWEBCURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
 
         /// <summary>
         /// Verifies that the PI Manual Logger API is running.
