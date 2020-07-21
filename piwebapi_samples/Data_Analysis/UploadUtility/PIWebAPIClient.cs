@@ -13,8 +13,11 @@ namespace UploadUtility
 
         public PIWebAPIClient()
         {
-            client = new HttpClient(new HttpClientHandler() { UseDefaultCredentials = true });
-            client.DefaultRequestHeaders.Add("X-Requested-With", "xhr");
+            using (var handler = new HttpClientHandler() { UseDefaultCredentials = true })
+            {
+                client = new HttpClient(handler);
+                client.DefaultRequestHeaders.Add("X-Requested-With", "xhr");
+            }
         }
 
         public PIWebAPIClient(string baseAddress, string username, string password)
