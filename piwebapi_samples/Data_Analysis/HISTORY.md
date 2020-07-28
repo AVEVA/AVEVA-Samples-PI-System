@@ -1,6 +1,10 @@
 # Version History
 
-## 1.0.1 / 2020-07-01
+## 1.0.3 / 2020-07-22
+
+- Updated to fix a coverity issue in upload utility
+
+## 1.0.2 / 2020-07-01
 
 - Updated to use Polaris in place of Coverity
 
