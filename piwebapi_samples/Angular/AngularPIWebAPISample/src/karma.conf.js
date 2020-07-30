@@ -14,7 +14,9 @@ module.exports = function (config) {
       require('karma-junit-reporter'),
     ],
     client: {
-      random: false, // Run tests in order
+      jasmine: {
+        random: false, // Run tests in order
+      },
       clearContext: false, // leave Jasmine Spec Runner output visible in browser
     },
     coverageIstanbulReporter: {
