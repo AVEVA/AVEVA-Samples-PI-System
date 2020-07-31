@@ -1,6 +1,6 @@
 # PI Web API R Sample
 
-**Version:** 1.0.9
+**Version:** 1.0.10
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_R?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=965&branchName=master)
 
@@ -26,7 +26,8 @@ To run the sample code:
 To run the sample tests:
 
 - Install [testthat](https://cran.r-project.org/web/packages/testthat/index.html) if not already installed. From the Console inside RStudio `install.packages("testthat")`
-- Open the file: `test_config.R`
+- The sample test is configured using the file [test_config.placeholder.R](test-config.placeholder.R). Before editing, rename this file to `test_config.R`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+- Open the file `test_config.R`
 - Replace the values with your system configuration.
 
 For example:
