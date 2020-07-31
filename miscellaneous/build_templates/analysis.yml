@@ -49,24 +49,6 @@ jobs:
         displayName: 'Build (Python): Install dependencies'
         condition: eq('${{ parameters.language }}', 'python')
 
-      # - Angular
-      - task: NodeTool@0
-        inputs:
-          versionSpec: '10.x'
-        displayName: 'Build (Angular): Specify Node version'
-        condition: eq('${{ parameters.language }}', 'angular')
-      - script: |
-          echo Angular CLI
-          call npm install -g @angular/cli
-          echo NPM CI
-          call npm ci
-          echo Build
-          call npm run build
-          echo Complete
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)/
-        displayName: 'Build (Angular)'
-        condition: eq('${{ parameters.language }}', 'angular')
-
       # - NodeJS
       - task: NodeTool@0
         inputs:

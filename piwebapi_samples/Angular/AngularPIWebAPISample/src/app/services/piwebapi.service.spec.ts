@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientModule } from '@angular/common/http';
 
 import { PIWebAPIService } from './piwebapi.service';
-import { testConfig } from '../../../test-config';
+import { testConfig } from '../../../test-config.placeholder';
 
 // Increase timeout interval for longer running http calls.
 if (testConfig.DEFAULT_TIMEOUT_INTERVAL) {
@@ -15,7 +15,7 @@ describe('Service: PIWebAPIService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientModule],
-      providers: [PIWebAPIService]
+      providers: [PIWebAPIService],
     });
     testService = TestBed.get(PIWebAPIService);
   });
@@ -27,7 +27,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the createDatabase method
    */
-  it('creating a new database should return a 201', done => {
+  it('creating a new database should return a 201', (done) => {
     //  make the createDatabase call and make sure the return code matches what we expect - 201
     testService
       .createDatabase(
@@ -37,7 +37,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(201);
         done();
       });
@@ -46,7 +46,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the createCategory method
    */
-  it('creating a new category should return a 201', done => {
+  it('creating a new category should return a 201', (done) => {
     //  make the createCategory call and make sure the return code matches what we expect - 201
     testService
       .createCategory(
@@ -56,7 +56,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(201);
         done();
       });
@@ -65,7 +65,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the createTemplate method
    */
-  it('creating a new template should return a 201', done => {
+  it('creating a new template should return a 201', (done) => {
     //  make the createTemplate call and make sure the return code matches what we expect - 201
     testService
       .createTemplate(
@@ -76,7 +76,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(201);
         done();
       });
@@ -85,7 +85,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the createElement method
    */
-  it('creating a new element should return a 200', done => {
+  it('creating a new element should return a 200', (done) => {
     //  make the createElement call and make sure the return code matches what we expect - 200
     testService
       .createElement(
@@ -95,7 +95,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(200);
         done();
       });
@@ -104,7 +104,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the writeSingleValue method
    */
-  it('writing a single value should return a 202', done => {
+  it('writing a single value should return a 202', (done) => {
     //  make the writeSingleValue call and make sure the return code matches what we expect - 202
     testService
       .writeSingleValue(
@@ -114,7 +114,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(202);
         done();
       });
@@ -123,7 +123,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the writeSetOfValues method
    */
-  it('writing a set of values should return a 202', done => {
+  it('writing a set of values should return a 202', (done) => {
     //  make the writeSetOfValues call and make sure the return code matches what we expect - 202
     testService
       .writeSetOfValues(
@@ -133,7 +133,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(202);
         done();
       });
@@ -142,7 +142,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the updateAttributeValue method
    */
-  it('updating an attribute value should return a 204', done => {
+  it('updating an attribute value should return a 204', (done) => {
     //  make the updateAttributeValue call and make sure the return code matches what we expect - 204
     testService
       .updateAttributeValue(
@@ -152,7 +152,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(204);
         done();
       });
@@ -161,7 +161,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the readSingleValue method
    */
-  it('reading a single value should return a 200', done => {
+  it('reading a single value should return a 200', (done) => {
     //  make the readSingleValue call and make sure the return code matches what we expect - 200
     testService
       .readSingleValue(
@@ -171,7 +171,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(200);
         done();
       });
@@ -180,7 +180,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the readSetOfValues method
    */
-  it('reading a set of values should return a 200', done => {
+  it('reading a set of values should return a 200', (done) => {
     //  make the readSetOfValues call and make sure the return code matches what we expect - 200
     testService
       .readSetOfValues(
@@ -190,7 +190,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(200);
         done();
       });
@@ -199,7 +199,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the reducePayloadWithSelectedFields method
    */
-  it('reading a set of values while reducing payload with selected fields should return a 200', done => {
+  it('reading a set of values while reducing payload with selected fields should return a 200', (done) => {
     //  make the reducePayloadWithSelectedFields call and make sure the return code matches what we expect - 200
     testService
       .reducePayloadWithSelectedFields(
@@ -209,7 +209,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(200);
         done();
       });
@@ -218,7 +218,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the doBatchCall method
    */
-  it('performing a batch call should return a 207', done => {
+  it('performing a batch call should return a 207', (done) => {
     //  make the doBatchCall call and make sure the return code matches what we expect - 207
     testService
       .doBatchCall(
@@ -228,7 +228,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(207);
         done();
       });
@@ -237,7 +237,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the deleteElement method
    */
-  it('deleting an element should return a 204', done => {
+  it('deleting an element should return a 204', (done) => {
     //  make the deleteElement call and make sure the return code matches what we expect - 204
     testService
       .deleteElement(
@@ -247,7 +247,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(204);
         done();
       });
@@ -256,7 +256,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the deleteTemplate method
    */
-  it('deleting a template should return a 204', done => {
+  it('deleting a template should return a 204', (done) => {
     //  make the deleteTemplate call and make sure the return code matches what we expect - 204
     testService
       .deleteTemplate(
@@ -266,7 +266,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(204);
         done();
       });
@@ -275,7 +275,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the deleteCategory method
    */
-  it('deleting a category should return a 204', done => {
+  it('deleting a category should return a 204', (done) => {
     //  make the deleteCategory call and make sure the return code matches what we expect - 204
     testService
       .deleteCategory(
@@ -285,7 +285,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(204);
         done();
       });
@@ -294,7 +294,7 @@ describe('Service: PIWebAPIService', () => {
   /**
    * Test the deleteDatabase method
    */
-  it('deleting a database should return a 204', done => {
+  it('deleting a database should return a 204', (done) => {
     //  make the deleteDatabase call and make sure the return code matches what we expect - 204
     testService
       .deleteDatabase(
@@ -304,7 +304,7 @@ describe('Service: PIWebAPIService', () => {
         testConfig.userPassword,
         testConfig.authType
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         expect(response.returnCode).toEqual(204);
         done();
       });
