@@ -6,25 +6,25 @@
   "repository": "https://github.com/angular/angular-seed",
   "license": "MIT",
   "dependencies": {
-    "angular": "^1.7.9",
-    "angular-loader": "^1.7.5",
-    "angular-route": "^1.7.5",
-    "html5-boilerplate": "0.0.1"
+    "angular": "^1.8.0",
+    "angular-loader": "^1.8.0",
+    "angular-route": "^1.8.0",
+    "html5-boilerplate": "8.0.0"
   },
   "devDependencies": {
-    "angular-mocks": "^1.7.5",
+    "angular-mocks": "^1.8.0",
     "cpx": "^1.5.0",
-    "eslint": "^5.16.0",
-    "eslint-config-google": "^0.13.0",
-    "http-server": "^0.12.0",
-    "jasmine-core": "^3.3.0",
-    "karma": "~4.1.0",
-    "karma-chrome-launcher": "~2.2.0",
-    "karma-coverage-istanbul-reporter": "~2.0.1",
-    "karma-jasmine": "^2.0.1",
-    "karma-jasmine-html-reporter": "^1.4.0",
-    "karma-junit-reporter": "^1.2.0",
-    "protractor": "^5.4.1"
+    "eslint": "^7.5.0",
+    "eslint-config-google": "^0.14.0",
+    "http-server": "^0.12.3",
+    "jasmine-core": "^3.5.0",
+    "karma": "~5.1.0",
+    "karma-chrome-launcher": "~3.1.0",
+    "karma-coverage-istanbul-reporter": "~3.0.3",
+    "karma-jasmine": "^3.3.1",
+    "karma-jasmine-html-reporter": "^1.5.4",
+    "karma-junit-reporter": "^2.0.1",
+    "protractor": "^7.0.0"
   },
   "scripts": {
     "postinstall": "npm run copy-libs",
