@@ -1,6 +1,6 @@
 # PI Web API Angular Sample
 
-**Version:** 1.0.17
+**Version:** 1.0.19
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Angular?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=953&branchName=master)
 
@@ -26,7 +26,8 @@ To run the sample code:
 
 To run the sample tests:
 
-- Open the test configuration file: `Angular\AngularPIWebAPISample\test-config.ts`
+- The sample test is configured using the file [test-config.placeholder.ts](test-config.placeholder.ts). Before editing, rename this file to `test-config.ts`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+- Open the test configuration file `test-config.ts`
 - Replace the values with your system configuration.
 
 For example:
