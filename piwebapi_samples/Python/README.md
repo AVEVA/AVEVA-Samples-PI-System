@@ -1,6 +1,6 @@
 # PI Web API Python Sample
 
-**Version:** 1.0.12
+**Version:** 1.0.14
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=963&branchName=master)
 
@@ -19,7 +19,8 @@ To run the sample code:
 
 To run the sample tests:
 
-- Open the test config file: `Python\test_config.py`
+- The sample test is configured using the file [test_config.placeholder.py](test_config.placeholder.py). Before editing, rename this file to `test_config.py`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+- Open the test config file `test_config.py`
 - Replace the values with your system configuration.
 
 For example:

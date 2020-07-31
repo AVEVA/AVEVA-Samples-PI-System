@@ -322,4 +322,5 @@ cov-int/
 product-readiness.*
 test-config.js
 test-config.ts
+test_config.py
 test_config.R
