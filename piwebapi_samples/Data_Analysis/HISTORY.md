@@ -1,5 +1,9 @@
 # Version History
 
+## 1.0.4 / 2020-07-31
+
+- Add sample credentials file to gitignore and replace with placeholder
+
 ## 1.0.3 / 2020-07-22
 
 - Updated to fix a coverity issue in upload utility
