@@ -1,5 +1,13 @@
 # Version History
 
+## 1.0.19 / 2020-07-31
+
+- Add sample credentials file to gitignore and replace with placeholder
+
+## 1.0.18 / 2020-07-31
+
+- Updated dependencies
+
 ## 1.0.17 / 2020-07-01
 
 - Updated to use Polaris in place of Coverity
