@@ -1,6 +1,6 @@
 # PI Web API AngularJS Sample
 
-**Version:** 1.0.17
+**Version:** 1.0.19
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_AngularJS?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=958&branchName=master)
 
@@ -28,7 +28,8 @@ To run the sample code:
 
 To run the sample tests:
 
-- Open the test config file: `AngularJS\test-config.js`
+- The sample test is configured using the file [test-config.placeholder.js](test-config.placeholder.js). Before editing, rename this file to `test-config.js`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+- Open the test config file `test-config.js`
 - Replace the values with your system configuration.
 
 For example:
