@@ -320,3 +320,4 @@ cov-int/
 
 # Credential Config Files
 product-readiness.*
+test_config.R
