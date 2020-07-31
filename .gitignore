@@ -320,4 +320,4 @@ cov-int/
 
 # Credential Config Files
 product-readiness.*
-test-config.js
+test-config.ts
