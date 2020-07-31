@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientModule } from '@angular/common/http';
 
 import { PIWebAPIService } from './piwebapi.service';
-import { testConfig } from '../../../test-config.placeholder';
+import { testConfig } from '../../../test-config';
 
 // Increase timeout interval for longer running http calls.
 if (testConfig.DEFAULT_TIMEOUT_INTERVAL) {
