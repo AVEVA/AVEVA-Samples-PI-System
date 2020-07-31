@@ -1,6 +1,6 @@
 # PI Web API Data Analysis Sample
 
-**Version:** 1.0.3
+**Version:** 1.0.4
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Data_Analysis?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=1644&branchName=master)
 
@@ -38,6 +38,7 @@ All this data is available as part of `Building Data.xml`. There is a helpful ut
 
 ### Setting up the AF database and the PI Data Archive
 
+- The sample test is configured using the file [test_config.placeholder.json](test_config.placeholder.json). Before editing, rename this file to `test_config.json`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
 - In the `Data_Analysis` folder, populate the values of `test_config.json` with your own system configuration.
   For example:
 

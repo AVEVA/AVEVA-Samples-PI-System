@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\test_config.json" Link="test_config.json">
+    <Content Include="..\test_config.json" Link="test_config.json" Condition="Exists('..\test_config.json')">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
