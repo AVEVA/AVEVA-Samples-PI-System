@@ -314,7 +314,7 @@ typings/
 .vscode/launch.json
 
 ocs_samples/library_samples/Java/ocs_sample_library_preview/ocs_sample_library_preview.iml
-# *.zip
+*.zip
 cov-int/
 *.binlog
 
