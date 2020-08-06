@@ -1,7 +1,7 @@
 {
   "name": "angular-seed",
   "private": true,
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "A starter project for AngularJS",
   "repository": "https://github.com/angular/angular-seed",
   "license": "MIT",
@@ -13,7 +13,6 @@
   },
   "devDependencies": {
     "angular-mocks": "^1.8.0",
-    "cpx": "^1.5.0",
     "eslint": "^7.6.0",
     "eslint-config-google": "^0.14.0",
     "http-server": "^0.12.3",
@@ -27,20 +26,13 @@
     "protractor": "^7.0.0"
   },
   "scripts": {
-    "postinstall": "npm run copy-libs",
-    "update-deps": "npm update",
-    "postupdate-deps": "npm run copy-libs",
-    "copy-libs": "cpx \"node_modules/{angular,angular-*,html5-boilerplate/dist}/**/*\" app/lib -C",
     "prestart": "echo 'WARNING: The web server used in this sample is intended for use in testing or debugging sample applications locally. It has not been reviewed for security issues.' && npm install",
     "start": "http-server -a localhost -p 8000 -c-1 ./app",
-    "pretest": "npm install",
     "test": "karma start karma.conf.js",
     "test-single-run": "npm test -- --single-run",
-    "preupdate-webdriver": "npm install",
     "//": "Do not install the Firefox driver to work around https://github.com/angular/webdriver-manager/issues/303.",
     "update-webdriver": "webdriver-manager update --gecko false",
     "preprotractor": "npm run update-webdriver",
-    "protractor": "protractor e2e-tests/protractor.conf.js",
-    "update-index-async": "node --eval \"var fs=require('fs'),indexFile='app/index-async.html',loaderFile='app/lib/angular-loader/angular-loader.min.js',loaderText=fs.readFileSync(loaderFile,'utf-8').split(/sourceMappingURL=angular-loader.min.js.map/).join('sourceMappingURL=lib/angular-loader/angular-loader.min.js.map'),indexText=fs.readFileSync(indexFile,'utf-8').split(/\\/\\/@@NG_LOADER_START@@[\\s\\S]*\\/\\/@@NG_LOADER_END@@/).join('//@@NG_LOADER_START@@\\n'+loaderText+'    //@@NG_LOADER_END@@');fs.writeFileSync(indexFile,indexText);\""
+    "protractor": "protractor e2e-tests/protractor.conf.js"
   }
 }
