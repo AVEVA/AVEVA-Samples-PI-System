@@ -19,19 +19,19 @@ To run the sample code:
 
 To run the sample tests:
 
-- The sample test is configured using the file [test_config.placeholder.py](test_config.placeholder.py). Before editing, rename this file to `test_config.py`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
-- Open the test config file `test_config.py`
+- The sample test is configured using the file [test_config.placeholder.ini](test_config.placeholder.ini). Before editing, rename this file to `test_config.ini`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+- Open the test config file `test_config.ini`
 - Replace the values with your system configuration.
 
 For example:
 
-```python
-PIWEBAPI_URL = 'https://mydomain.com/piwebapi'
-AF_SERVER_NAME = 'AssetServerName'
-PI_SERVER_NAME = 'PIServerName'
-USER_NAME = 'MyUserName' # Or, 'domain\\userName'
-USER_PASSWORD = 'MyUserPassword'
-AUTH_TYPE = 'basic' # Basic or Kerberos
+```ini
+PIWEBAPI_URL = https://mydomain.com/piwebapi
+AF_SERVER_NAME = AssetServerName
+PI_SERVER_NAME = PIServerName
+USER_NAME = MyUserName # Or, 'domain\\userName'
+USER_PASSWORD = MyUserPassword
+AUTH_TYPE = basic # Basic or Kerberos
 ```
 
 - Each test file (prefixed as "test\_..."), can be run independently or all the tests can be run in a single instance via the `run_all_tests.py` file.

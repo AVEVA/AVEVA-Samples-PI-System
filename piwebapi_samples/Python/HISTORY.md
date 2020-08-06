@@ -1,5 +1,9 @@
 # Version History
 
+## 1.0.15 / 2020-08-06
+
+- Resolve Polaris detected issues
+
 ## 1.0.14 / 2020-07-31
 
 - Add sample credentials file to gitignore and replace with placeholder

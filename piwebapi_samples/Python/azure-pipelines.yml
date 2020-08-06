@@ -28,9 +28,9 @@ variables:
   - name: projPath
     value: '/piwebapi_samples/Python'
   - name: CredFile
-    value: test_config.py
+    value: test_config.ini
   - name: CredFileLibrary
-    value: product-readiness.piwebapi_python.py
+    value: product-readiness.piwebapi_python.ini
   - name: analysisProject
     value: PIWebAPI_Python
 
@@ -50,8 +50,6 @@ jobs:
           echo Install pip
           call python -m pip install --upgrade pip
           echo Install tools
-          call pip install requests
-          call pip install requests_kerberos
           call pip install unittest
           call pip install unittest-xml-reporting
           echo Install requirements
