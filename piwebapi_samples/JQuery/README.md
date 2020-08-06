@@ -1,6 +1,6 @@
 # PI Web API JQuery Sample
 
-**Version:** 1.0.14
+**Version:** 1.0.15
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_JQuery?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=962&branchName=master)
 
