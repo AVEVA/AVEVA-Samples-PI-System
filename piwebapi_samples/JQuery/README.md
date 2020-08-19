@@ -1,6 +1,8 @@
 # PI Web API JQuery Sample
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_JQuery?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=962&branchName=master)
+**Version:** 1.0.15
+
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_JQuery?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=962&branchName=master)
 
 The sample code in this folder demonstrates how to utilize the PI Web API in jQuery. You must have already [downloaded jQuery](https://jquery.com/download/) in order to run this sample application.
 
@@ -28,7 +30,8 @@ To run the sample tests:
 
 - You must have [Karma](https://karma-runner.github.io/latest/index.html) installed in order to run automated tests.
   - You can install this in \JQuery\KarmaUnitTests with `npm install karma –-save-dev`
-- Open the test config file: `JQuery\test-config.js`
+- The sample test is configured using the file [test-config.placeholder.js](test-config.placeholder.js). Before editing, rename this file to `test-config.js`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+- Open the test config file `test-config.js`
 - Replace the values with your system configuration.
 
 For example:
@@ -41,14 +44,14 @@ var testConfig = {
   userName: 'MyUserName', // Or, 'domain\\userName'
   userPassword: 'MyUserPassword',
   authType: 'Basic', // Basic or Kerberos
-  DEFAULT_TIMEOUT_INTERVAL: null
+  DEFAULT_TIMEOUT_INTERVAL: null,
 };
 ```
 
 - If you run into any issues with the Jasmine tests timing out, use the `DEFAULT_TIMEOUT_INTERVAL` setting in `test-config.js` and set it to a higher value. For example:
 
-```
-DEFAULT_TIMEOUT_INTERVAL: 10000
+```javascript
+DEFAULT_TIMEOUT_INTERVAL: 10000;
 ```
 
 - Open the file: `launch.json`
@@ -79,7 +82,7 @@ In addition, PI Web API must be configured to allow CORS as follows:
 | CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location | String  |
 | CorsHeaders             | \*                                                  | String  |
 | CorsMethods             | \*                                                  | String  |
-| CorsOrigins             | \*                                                  | String  |
+| CorsOrigins             | [https://localhost:9876](https://localhost:9876)    | String  |
 | CorsSupportsCredentials | True                                                | Boolean |
 | DisableWrites           | False                                               | Boolean |
 
@@ -87,7 +90,7 @@ On your client machine running this code, it is assumed that you have configured
 
 If you don't you will see an error similar to this in the Result box on the webpage:
 
-```
+```shell
 Error finding server: undefined
 ```
 

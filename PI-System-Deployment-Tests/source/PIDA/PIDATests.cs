@@ -34,6 +34,19 @@ namespace OSIsoft.PISystemDeploymentTests
         private ITestOutputHelper Output { get; }
 
         /// <summary>
+        /// Tests to see if the current patch of the PI Data Archive is applied
+        /// </summary>
+        /// <remarks>
+        /// Errors if the current patch is not applied with a message telling the user to upgrade
+        /// </remarks>
+        [Fact]
+        public void HaveLatestPatchDataArchive()
+        {
+            var factAttr = new GenericFactAttribute(TestCondition.PIDACURRENTPATCH, true);
+            Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
         /// Sends data to a set of new PI Points and verifies all events are archived. Then removes the PI Points.
         /// </summary>
         /// <remarks>

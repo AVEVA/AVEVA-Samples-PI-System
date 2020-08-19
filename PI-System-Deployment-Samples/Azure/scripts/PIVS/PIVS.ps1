@@ -1,7 +1,7 @@
 Configuration PIVS
 {
     param(
-	[string]$PIVisionPath = 'D:\PI-Vision_2017-R2-SP1_.exe',
+	[string]$PIVisionPath = 'D:\PI Vision_2019 Patch 1_.exe',
     # Used to run installs. Account must have rights to AD and SQL to conduct successful installs/configs.
     [Parameter(Mandatory)]
     [pscredential]$runAsCredential,
@@ -189,6 +189,20 @@ Configuration PIVS
 			DependsOn = "[cChocoInstaller]installChoco"
         }
 
+        # 2D i. Install .NET Framework 4.8.
+		cChocoPackageInstaller 'dotnetfx' {
+            Name     = 'netfx-4.8-devpack'
+            Ensure   = 'Present'
+            Version  = '4.8.0.20190930'
+            DependsOn = '[cChocoInstaller]installChoco'
+		}
+
+        # 2D ii. Reboot to complete .NET installation.
+        xPendingReboot RebootDotNet {
+            Name      = 'RebootDotNet'
+            DependsOn = '[cChocoPackageInstaller]dotnetfx'
+        }
+
         # If a load balancer DNS record is passed, then this will generate a DNS CName. This entry is used as the PIVS load balanced endpoint.
         if ($deployHA -eq 'true') {
             # Tools needed to write DNS Records
@@ -210,7 +224,7 @@ Configuration PIVS
             }
         }
 
-        # 2D i. Custom DSC resource to install PI Vision.
+        # 2E i. Custom DSC resource to install PI Vision.
         # This resource helps update silent installation files to facilitate unattended install.
         xPIVisionInstall 'InstallPIVision' {
             InstallKitPath       = $PIVisionPath
@@ -222,22 +236,23 @@ Configuration PIVS
             PIHOME64             = $PIHOME64
             Ensure               = 'Present'
             PSDscRunAsCredential = $domainRunAsCredential
+            DependsOn            = '[xPendingReboot]RebootDotNet'
         }
 
-        # 2E i. Required to execute PI Vision SQL database install
+        # 2F i. Required to execute PI Vision SQL database install
         cChocoPackageInstaller 'sqlserver-odbcdriver' {
             Name = 'sqlserver-odbcdriver'
 			DependsOn = "[cChocoInstaller]installChoco"
         }
 
-        # 2E ii. Required to execute PI Vision SQL database install. Requires reboot to be functional.
+        # 2F ii. Required to execute PI Vision SQL database install. Requires reboot to be functional.
         cChocoPackageInstaller 'sqlserver-cmdlineutils' {
             Name = 'sqlserver-cmdlineutils'
 			DependsOn = "[cChocoInstaller]installChoco"
         }
 
 		if($env:COMPUTERNAME -eq $VSPrimary){
-			# 2F i. Create domain service account to run PI Web API + PI Web API Crawler
+			# 2G i. Create domain service account to run PI Web API + PI Web API Crawler
 			xADUser ServiceAccount_PIVS {
 				DomainName                    = $DomainNetBiosName
 				UserName                      = $PIVSSvcAccountUsername
@@ -250,7 +265,7 @@ Configuration PIVS
 				DependsOn                     = '[WindowsFeature]ADPS'
 			}
 
-			# 2G ii. Add domain service account to run PI Web API + PI Web API Crawler to AD Group that has correct permissions on PI DA
+			# 2H ii. Add domain service account to run PI Web API + PI Web API Crawler to AD Group that has correct permissions on PI DA
 			xADGroup AddSvcAcctToPIWebApps {
 				GroupName        = $PIWebAppsADGroup
 				GroupScope       = 'Global'
@@ -264,7 +279,7 @@ Configuration PIVS
 			}
 		}
 
-        # 2F ii. Configure HTTP SPN on service account instead and setup Kerberos delegation.
+        # 2G ii. Configure HTTP SPN on service account instead and setup Kerberos delegation.
         # We need to do this before modifications that will require this setup, specifically updating PI Web API Cralwer targets.
         xADServicePrincipalName 'SPN01'
         {
@@ -378,7 +393,7 @@ Configuration PIVS
             DependsOn = '[WindowsFeature]ADPS'
         }
 
-        # 2G. Trips any outstanding reboots due to installations.
+        # 2H. Trips any outstanding reboots due to installations.
         xPendingReboot 'Reboot1' {
             Name      = 'PostInstall'
             DependsOn = '[xPIVisionInstall]InstallPIVision','[cChocoPackageInstaller]sqlserver-cmdlineutils'
@@ -483,6 +498,20 @@ Configuration PIVS
             DependsOn    = "[xPIVisionInstall]InstallPIVision"
         }
 
+        # 3D iii.Post Install Configuration - Update App Pool service account for Service.
+        # Known issue with App Pool failing to start: https://github.com/PowerShell/xWebAdministration/issues/301
+        # (Suspect passwords with double quote characters break this resource with version 1.18.0.0.)
+        xWebAppPool PIVisionUtilityAppPool {
+            Name         = 'PIVisionUtilityAppPool'
+            autoStart    = $true
+            startMode    = 'AlwaysRunning'
+            identityType = 'SpecificUser'
+            Credential   = $domainSvcCredential
+            Ensure       = 'Present'
+            #State       = 'Started'
+            DependsOn    = "[xPIVisionInstall]InstallPIVision"
+        }
+
         # 3E i. Updates Service Account for PI Services
         Service UpdatePIWebAPIServiceAccount {
             Name        = 'piwebapi'
@@ -514,7 +543,7 @@ Configuration PIVS
 
         # 3F ii. xWebAppPool resource throws error when 'state = started' and account us updated. Need script resource to start it if it's stopped. Issuing IIS reset to start all services.
         # See: https://github.com/PowerShell/xWebAdministration/issues/230
-        [string[]]$appPools = @('PIVisionAdminAppPool', 'PIVisionServiceAppPool')
+        [string[]]$appPools = @('PIVisionAdminAppPool', 'PIVisionServiceAppPool', 'PIVisionUtilityAppPool')
         ForEach ($pool in $appPools) {
             Script "Start$pool" {
                 GetScript  = {
@@ -659,8 +688,8 @@ Configuration PIVS
 # SIG # Begin signature block
 # MIIbzAYJKoZIhvcNAQcCoIIbvTCCG7kCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAeCoDf7ks873I9
-# L6wM2xBpuNcpYrwXHLwoynjc55GqOaCCCo4wggUwMIIEGKADAgECAhAECRgbX9W7
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDZ7JtDEqmACIOs
+# /inmWuyuXKMPfVLDEi3/R+rtcH0wRqCCCo4wggUwMIIEGKADAgECAhAECRgbX9W7
 # ZnVTQ7VvlVAIMA0GCSqGSIb3DQEBCwUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0xMzEwMjIxMjAwMDBa
@@ -721,19 +750,19 @@ Configuration PIVS
 # BgNVBAsTEHd3dy5kaWdpY2VydC5jb20xMTAvBgNVBAMTKERpZ2lDZXJ0IFNIQTIg
 # QXNzdXJlZCBJRCBDb2RlIFNpZ25pbmcgQ0ECEAVNNVk3TJ+08xyzMPnTxD8wDQYJ
 # YIZIAWUDBAIBBQCggZ4wGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYB
-# BAGCNwIBCzEOMAwGCisGAQQBgjcCARUwLwYJKoZIhvcNAQkEMSIEIGwBdRnpLgDQ
-# 0gmQtmeDxa+ddA0HQpD5W+uU5hUkuZi3MDIGCisGAQQBgjcCAQwxJDAioSCAHmh0
-# dHA6Ly90ZWNoc3VwcG9ydC5vc2lzb2Z0LmNvbTANBgkqhkiG9w0BAQEFAASCAQAF
-# ZzrHEPpXalyKhnHliDqxoOx/tZD+pnHXDAxb5F2CPZfHFAI7mWkYXbb6c6hEuOcj
-# VdEvItFywGDrEwYquZT8BnUl4OGyh/AAMxRc00vH30cy7bH6ChQGebGuL6k5SuD+
-# owX9+orDotYo5Eg8JDHL5heSWKbRTZ80weLOe15EIQVhzDZC5I4gAmBSiuNbvi3f
-# ecyKFxmOf8rgZmLAr9+7BEQQiAesJyfsD9EZVvQ85Sdd91LoSwT7mY/PLO7v6HM7
-# ApijPShTyInubdR+t9t9kb+wlQzL331vw8Lq0bGr9pWPFGBZqysBxyJj1/kDnSuB
-# m/pWVZf4/eVL9sim8SP6oYIOPTCCDjkGCisGAQQBgjcDAwExgg4pMIIOJQYJKoZI
+# BAGCNwIBCzEOMAwGCisGAQQBgjcCARUwLwYJKoZIhvcNAQkEMSIEIH6g8r9E66n5
+# 7llCVc7D8HAr+k5Ap3d8kKuqmpPNdgq1MDIGCisGAQQBgjcCAQwxJDAioSCAHmh0
+# dHA6Ly90ZWNoc3VwcG9ydC5vc2lzb2Z0LmNvbTANBgkqhkiG9w0BAQEFAASCAQCo
+# 6L+KSFO4h4CO+L0ycOprGTC0d6XaHJnbiU7nn0Sv7h49RZRe5KjANJ13d7u0rb2t
+# Ywbj1B1/w9GzF+YxPsAQ2yI+v3ruGd6uA+k+kPhrCLiE3CrEhmoyCAyCNXLSEDif
+# j9OVfW9rfwSDoKXwlthr3EpXqgfmboSxoZfo2JPR0/ULap7FpvNZ1wwb2Tb2pYyn
+# lNeZRFQxE2qy8Xq31DK08rM3PVnhVKfpFlqpnUWm1XDeA5+6n2Q9Ik1iWa7C/kcn
+# U9gLc5q5sxY+CjPBydj77xk4K/BMZIYmFYPwjYqumb+psd5WbHtWOpJ8UWS8B0n1
+# FZ8m01Rqxf+KfjVd7nxuoYIOPTCCDjkGCisGAQQBgjcDAwExgg4pMIIOJQYJKoZI
 # hvcNAQcCoIIOFjCCDhICAQMxDTALBglghkgBZQMEAgEwggEPBgsqhkiG9w0BCRAB
-# BKCB/wSB/DCB+QIBAQYLYIZIAYb4RQEHFwMwMTANBglghkgBZQMEAgEFAAQgUz+R
-# m53y/uHt38x99gv2XK2Jaq3OpgMZyR55ZP+e7pkCFQCfgXJx6RB2aecFdtNvARMW
-# FYA+ThgPMjAyMDAxMDYxNTM5NTNaMAMCAR6ggYakgYMwgYAxCzAJBgNVBAYTAlVT
+# BKCB/wSB/DCB+QIBAQYLYIZIAYb4RQEHFwMwMTANBglghkgBZQMEAgEFAAQgxc5g
+# 09268GuWcqzEjYwpwYNeFz7RA3hj1ikNQ63J+qECFQDcbmSESCLS1K4HDpbwpwoE
+# TEmt2BgPMjAyMDA0MDMyMTMzMzRaMAMCAR6ggYakgYMwgYAxCzAJBgNVBAYTAlVT
 # MR0wGwYDVQQKExRTeW1hbnRlYyBDb3Jwb3JhdGlvbjEfMB0GA1UECxMWU3ltYW50
 # ZWMgVHJ1c3QgTmV0d29yazExMC8GA1UEAxMoU3ltYW50ZWMgU0hBMjU2IFRpbWVT
 # dGFtcGluZyBTaWduZXIgLSBHM6CCCoswggU4MIIEIKADAgECAhB7BbHUSWhRRPfJ
@@ -797,13 +826,13 @@ Configuration PIVS
 # MB0GA1UECxMWU3ltYW50ZWMgVHJ1c3QgTmV0d29yazEoMCYGA1UEAxMfU3ltYW50
 # ZWMgU0hBMjU2IFRpbWVTdGFtcGluZyBDQQIQe9Tlr7rMBz+hASMEIkFNEjALBglg
 # hkgBZQMEAgGggaQwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3
-# DQEJBTEPFw0yMDAxMDYxNTM5NTNaMC8GCSqGSIb3DQEJBDEiBCA1SBTM0dzHcG7G
-# tKKfQdTDm1v6N8MzxG9JletWGQEQjzA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDE
+# DQEJBTEPFw0yMDA0MDMyMTMzMzRaMC8GCSqGSIb3DQEJBDEiBCAHiVBBB1ja6mex
+# Qq8/OGpLkMUPX9NQYiGZf1sj5y9PfDA3BgsqhkiG9w0BCRACLzEoMCYwJDAiBCDE
 # dM52AH0COU4NpeTefBTGgPniggE8/vZT7123H99h+DALBgkqhkiG9w0BAQEEggEA
-# ko4LFN/tkdFyW6ArRdOA0ur0exCRpIabtX75d789t0DoQkQnOpM1r8G+ScYpB9ED
-# KlMj6gj3CUhVmTFPoU7QpUu5EyCzZ65Eo5WYjw1FQXY1FR8aj4sOaAYVxxhKDiWM
-# U3tIc1Nagt4vnvRvQjLlAYW88jZxBLixsxuiZWPlaP9mD+Gtgm+lw5+VI8CK3gWG
-# L9APynbToYtMcg4C5svJ4olcycKqTyRGcZ0jfSiI0Ok2O3vUVdNZSAm1/bp6LkKZ
-# fiWU4xNKcis4dZ0hzTNW4UoWTTMzWC9xXwj7rKUedgr4+LeT3RR2FZDqym/HZm7j
-# COiqC6oF56KEMdN6r1CFAA==
+# FFNF1cIOQXOJXbM55vjtg7T+8JhvJH1hamVPwmMSMUe6sFERp/J0rxQafT5XptxG
+# q5q6iaTGPzbvJtF/pXbBwct8gU1Sk93Q+V3g+92TdI0GZAIW7hHiSPvDzcPpEaMy
+# g5+De0FuOA3CyK0ptS5g4VOBYHAvA78NPRVPEecu0y6aQp1WX3W0guo16Lm2NR/O
+# t/YwCgaxaqPiXp6r9sjtk6+z/RQvOZtumx/Ca5NuekUbnVgbLC+HDMnfBJc4cNzH
+# xYnmF8LPg/iKfeaqxbwN2BAM9xcEB09qNgwUvYJ5aWG8DfinRZkqEF7aQLvIjUAE
+# /8vtDuFo2XeFv7JCVm1SDw==
 # SIG # End signature block

@@ -51,11 +51,6 @@ namespace OSIsoft.PISystemDeploymentTests
         #endregion
 
         /// <summary>
-        /// Required PI Identity for the user running the tests.
-        /// </summary>
-        public const string RequiredPIIdentity = "piadmins";
-
-        /// <summary>
         /// A small tolerance used to check the equality of two double values, especially when the values are equal or close to 0.
         /// </summary>
         public const double Epsilon = 1e-9;

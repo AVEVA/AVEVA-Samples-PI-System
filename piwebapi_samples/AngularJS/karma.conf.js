@@ -11,8 +11,8 @@ module.exports = function(config) {
 
     files: [
       '../test-config.js',
-      'lib/angular/angular.js',
-      'lib/angular-route/angular-route.js',
+      '../node_modules/angular/angular.js',
+      '../node_modules/angular-route/angular-route.js',
       '../node_modules/angular-mocks/angular-mocks.js',
       '*.js'
     ],
@@ -36,6 +36,8 @@ module.exports = function(config) {
       nameFormatter: undefined,
       classNameFormatter: undefined,
       properties: {}
-    }
+    },
+	
+    port: 9876
   });
 };

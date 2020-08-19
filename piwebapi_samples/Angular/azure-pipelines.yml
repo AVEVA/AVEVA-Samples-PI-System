@@ -1,0 +1,75 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/Angular'
+
+pr:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/piwebapi_samples/Angular'
+
+schedules:
+  - cron: '0 0 * * 0'
+    displayName: Weekly build
+    branches:
+      include:
+        - master
+    always: true
+
+variables:
+  - template: '/miscellaneous/build_templates/variables.yml'
+  - name: projPath
+    value: '/piwebapi_samples/Angular'
+  - name: CredFile
+    value: test-config.ts
+  - name: CredFileLibrary
+    value: product-readiness.piwebapi_angular.ts
+  - name: analysisProject
+    value: PIWebAPI_Angular
+
+jobs:
+  - job: Tests
+    pool:
+      name: 00-OSIManaged-Test
+      demands: COMPUTERNAME -equals $(buildAgent)
+    steps:
+      - template: '/miscellaneous/build_templates/config.yml'
+        parameters:
+          fileOriginal: $(CredFile)
+          fileLibrary: $(CredFileLibrary)
+          filePath: $(projPath)
+
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '10.x'
+        displayName: 'Specify Node version'
+
+      - script: |
+          echo Install Angular CLI
+          call npm install -g @angular/cli
+          echo NPM CI
+          call npm ci
+          echo Run tests
+          call ng test --watch=false
+          echo Complete
+        workingDirectory: $(Build.SourcesDirectory)$(projPath)
+        displayName: 'Run tests'
+
+      - task: PublishTestResults@2
+        condition: succeededOrFailed()
+        inputs:
+          testRunner: JUnit
+          testResultsFiles: '**/TESTS-*.xml'
+        displayName: 'Publish test results'
+
+  - template: '/miscellaneous/build_templates/analysis.yml'
+    parameters:
+      language: angular
+      web: true

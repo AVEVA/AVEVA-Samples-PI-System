@@ -670,6 +670,12 @@
                                     "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Join-Domain.ps1"
                                 },
                                 "authentication": "S3AccessCreds"
+                            },
+                            "c:\\cfn\\Modules\\xWindowsUpdate-2.8.zip": {
+                                "source" : {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xWindowsUpdate-2.8.zip"
+                                },
+                                "authentication": "S3AccessCreds"
                             }
                         },
                         "services": {
@@ -770,9 +776,9 @@
                                 },
                                 "authentication": "S3AccessCreds"
                             },
-                            "c:\\cfn\\modules\\SqlServer_21.0.17279.zip": {
+                            "c:\\cfn\\modules\\SqlServer_21.1.18218.zip": {
                                 "source": {
-                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.0.17279.zip"
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.1.18218.zip"
                                 },
                                 "authentication": "S3AccessCreds"
                             },
@@ -829,6 +835,9 @@
                                     "Fn::Sub": "https://${SetupKitsS3BucketName}.s3.${SetupKitsS3BucketRegion}.amazonaws.com/${SetupKitsS3KeyPrefix}/PIVision/${SetupKitsS3VisionFileName}"
                                 },
                                 "authentication": "S3AccessCreds"
+                            },
+                            "C:\\media\\NETFramework\\windows10.0-kb4486129.msu": {
+                                "source" : "http://download.windowsupdate.com/c/msdownload/update/software/ftpk/2019/08/windows10.0-kb4486129-x64_bb869dd2cfa4ddde433373e2c72d15e660c2fc8d.msu"
                             }
                         },
                         "commands": {
@@ -1188,6 +1197,12 @@
                                     "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/scripts/Join-Domain.ps1"
                                 },
                                 "authentication": "S3AccessCreds"
+                            },
+                            "C:\\cfn\\Modules\\xWindowsUpdate-2.8.zip": {
+                                "source" : {
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/xWindowsUpdate-2.8.zip"
+                                },
+                                "authentication": "S3AccessCreds"
                             }
                         },
                         "services": {
@@ -1324,9 +1339,9 @@
                                 },
                                 "authentication": "S3AccessCreds"
                             },
-                            "c:\\cfn\\modules\\SqlServer_21.0.17279.zip": {
+                            "c:\\cfn\\modules\\SqlServer_21.1.18218.zip": {
                                 "source": {
-                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.0.17279.zip"
+                                    "Fn::Sub": "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.1.18218.zip"
                                 },
                                 "authentication": "S3AccessCreds"
                             },
@@ -1383,6 +1398,9 @@
                                     "Fn::Sub": "https://${SetupKitsS3BucketName}.s3.${SetupKitsS3BucketRegion}.amazonaws.com/${SetupKitsS3KeyPrefix}/PIVision/${SetupKitsS3VisionFileName}"
                                 },
                                 "authentication": "S3AccessCreds"
+                            },
+                            "C:\\media\\NETFramework\\windows10.0-kb4486129.msu": {
+                                "source" : "http://download.windowsupdate.com/c/msdownload/update/software/ftpk/2019/08/windows10.0-kb4486129-x64_bb869dd2cfa4ddde433373e2c72d15e660c2fc8d.msu"
                             }
                         },
                         "commands": {

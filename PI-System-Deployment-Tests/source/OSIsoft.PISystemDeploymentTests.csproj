@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\xunit.runner.visualstudio.2.4.2\build\net452\xunit.runner.visualstudio.props" Condition="Exists('packages\xunit.runner.visualstudio.2.4.2\build\net452\xunit.runner.visualstudio.props')" />
   <Import Project="packages\Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.3\build\Microsoft.CodeAnalysis.FxCopAnalyzers.props" Condition="Exists('packages\Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.3\build\Microsoft.CodeAnalysis.FxCopAnalyzers.props')" />
   <Import Project="packages\Microsoft.NetFramework.Analyzers.2.9.3\build\Microsoft.NetFramework.Analyzers.props" Condition="Exists('packages\Microsoft.NetFramework.Analyzers.2.9.3\build\Microsoft.NetFramework.Analyzers.props')" />
   <Import Project="packages\Microsoft.NetCore.Analyzers.2.9.3\build\Microsoft.NetCore.Analyzers.props" Condition="Exists('packages\Microsoft.NetCore.Analyzers.2.9.3\build\Microsoft.NetCore.Analyzers.props')" />
   <Import Project="packages\Microsoft.CodeQuality.Analyzers.2.9.3\build\Microsoft.CodeQuality.Analyzers.props" Condition="Exists('packages\Microsoft.CodeQuality.Analyzers.2.9.3\build\Microsoft.CodeQuality.Analyzers.props')" />
   <Import Project="packages\Microsoft.CodeAnalysis.VersionCheckAnalyzer.2.9.3\build\Microsoft.CodeAnalysis.VersionCheckAnalyzer.props" Condition="Exists('packages\Microsoft.CodeAnalysis.VersionCheckAnalyzer.2.9.3\build\Microsoft.CodeAnalysis.VersionCheckAnalyzer.props')" />
-  <Import Project="packages\xunit.runner.visualstudio.2.4.1\build\net20\xunit.runner.visualstudio.props" Condition="Exists('packages\xunit.runner.visualstudio.2.4.1\build\net20\xunit.runner.visualstudio.props')" />
   <Import Project="packages\xunit.runner.console.2.4.1\build\xunit.runner.console.props" Condition="Exists('packages\xunit.runner.console.2.4.1\build\xunit.runner.console.props')" />
   <Import Project="packages\xunit.core.2.4.1\build\xunit.core.props" Condition="Exists('packages\xunit.core.2.4.1\build\xunit.core.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -28,9 +28,22 @@
     <AFSDKPackagePath Include="..\Packages\OSIsoft.AFSDK\**\net462\OSIsoft.AFSDK.dll">
       <Visible>False</Visible>
     </AFSDKPackagePath>
+    <NotificationsPackagePathClient Include="..\Packages\notifications-dlls-for-af\**\content\PSEPlugins\OSIsoft.PINotifications.Client.dll">
+      <Visible>False</Visible>
+    </NotificationsPackagePathClient>
+    <NotificationsPackagePathWCF Include="..\Packages\notifications-dlls-for-af\**\content\PSEPlugins\OSIsoft.PINotifications.WCF.dll">
+      <Visible>False</Visible>
+    </NotificationsPackagePathWCF>
   </ItemGroup>
-  <PropertyGroup>
+  <PropertyGroup Condition="$(DefineConstants.Contains('BuildMach'))">
     <AFSDKHintPath Condition="'$(AFSDKHintPath)'==''">@(AFSDKPackagePath->'%(FullPath)')</AFSDKHintPath>
+    <NotificationsClientHintPath Condition="'$(NotificationsClientHintPath)'==''">@(NotificationsPackagePathClient->'%(FullPath)')</NotificationsClientHintPath>
+    <NotificationsWCFHintPath Condition="'$(NotificationsWCFHintPath)'==''">@(NotificationsPackagePathWCF->'%(FullPath)')</NotificationsWCFHintPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="!$(DefineConstants.Contains('BuildMach'))">
+    <AFSDKHintPath Condition="'$(AFSDKHintPath)'==''">@(AFSDKPackagePath->'%(FullPath)')</AFSDKHintPath>
+    <NotificationsClientHintPath Condition="'$(NotificationsClientHintPath)'==''">$(PIHOME)\AF\OSIsoft.PINotifications.Client.dll</NotificationsClientHintPath>
+    <NotificationsWCFHintPath Condition="'$(NotificationsWCFHintPath)'==''">$(PIHOME)\AF\OSIsoft.PINotifications.WCF.dll</NotificationsWCFHintPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -82,6 +95,12 @@
     <Reference Include="OSIsoft.AFSDK, Version=4.0.0.0, Culture=neutral, PublicKeyToken=6238be57836698e6, processorArchitecture=MSIL">
       <HintPath>$(AFSDKHintPath)</HintPath>
     </Reference>
+    <Reference Include="OSIsoft.PINotifications.Client, Version=1.1.0.0, Culture=neutral, PublicKeyToken=c2fd352b8728a375, processorArchitecture=MSIL">
+      <HintPath>$(NotificationsClientHintPath)</HintPath>
+    </Reference>
+    <Reference Include="OSIsoft.PINotifications.WCF, Version=1.1.0.0, Culture=neutral, PublicKeyToken=c2fd352b8728a375, processorArchitecture=MSIL">
+      <HintPath>$(NotificationsWCFHintPath)</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -91,6 +110,7 @@
       <HintPath>C:\NugetPackages\Microsoft.PowerShell.5.ReferenceAssemblies.1.1.0\lib\net4\System.Management.Automation.dll</HintPath>
     </Reference>
     <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Security" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Web" />
@@ -120,7 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AF\AFDataTests.cs" />
-    <Compile Include="AF\AFFactAttribute.cs" />
+    <Compile Include="Common\GenericFactAttribute.cs" />
     <Compile Include="AF\AFTests.cs" />
     <Compile Include="AF\AFTestsConfiguration.cs" />
     <Compile Include="AF\EFTests.cs" />
@@ -136,6 +156,7 @@
     <Compile Include="Common\OptionalTheoryAttribute.cs" />
     <Compile Include="Common\OptionalFactAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="ManualLogger\ManualLoggerIsLocalFactAttribute.cs" />
     <Compile Include="ManualLogger\ManualLoggerFixture.cs" />
     <Compile Include="ManualLogger\ManualLoggerTests.cs" />
     <Compile Include="Common\Settings.cs" />
@@ -206,12 +227,12 @@
     <Error Condition="!Exists('packages\xunit.core.2.4.1\build\xunit.core.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\xunit.core.2.4.1\build\xunit.core.props'))" />
     <Error Condition="!Exists('packages\xunit.core.2.4.1\build\xunit.core.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\xunit.core.2.4.1\build\xunit.core.targets'))" />
     <Error Condition="!Exists('packages\xunit.runner.console.2.4.1\build\xunit.runner.console.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\xunit.runner.console.2.4.1\build\xunit.runner.console.props'))" />
-    <Error Condition="!Exists('packages\xunit.runner.visualstudio.2.4.1\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\xunit.runner.visualstudio.2.4.1\build\net20\xunit.runner.visualstudio.props'))" />
     <Error Condition="!Exists('packages\Microsoft.CodeAnalysis.VersionCheckAnalyzer.2.9.3\build\Microsoft.CodeAnalysis.VersionCheckAnalyzer.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeAnalysis.VersionCheckAnalyzer.2.9.3\build\Microsoft.CodeAnalysis.VersionCheckAnalyzer.props'))" />
     <Error Condition="!Exists('packages\Microsoft.CodeQuality.Analyzers.2.9.3\build\Microsoft.CodeQuality.Analyzers.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeQuality.Analyzers.2.9.3\build\Microsoft.CodeQuality.Analyzers.props'))" />
     <Error Condition="!Exists('packages\Microsoft.NetCore.Analyzers.2.9.3\build\Microsoft.NetCore.Analyzers.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.NetCore.Analyzers.2.9.3\build\Microsoft.NetCore.Analyzers.props'))" />
     <Error Condition="!Exists('packages\Microsoft.NetFramework.Analyzers.2.9.3\build\Microsoft.NetFramework.Analyzers.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.NetFramework.Analyzers.2.9.3\build\Microsoft.NetFramework.Analyzers.props'))" />
     <Error Condition="!Exists('packages\Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.3\build\Microsoft.CodeAnalysis.FxCopAnalyzers.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeAnalysis.FxCopAnalyzers.2.9.3\build\Microsoft.CodeAnalysis.FxCopAnalyzers.props'))" />
+    <Error Condition="!Exists('packages\xunit.runner.visualstudio.2.4.2\build\net452\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\xunit.runner.visualstudio.2.4.2\build\net452\xunit.runner.visualstudio.props'))" />
   </Target>
   <Import Project="packages\xunit.core.2.4.1\build\xunit.core.targets" Condition="Exists('packages\xunit.core.2.4.1\build\xunit.core.targets')" />
 </Project>

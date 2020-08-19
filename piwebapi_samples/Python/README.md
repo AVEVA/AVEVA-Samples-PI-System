@@ -1,8 +1,10 @@
 # PI Web API Python Sample
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=963&branchName=master)
+**Version:** 1.0.14
 
-The sample code in this folder demonstrates how to utilize the PI Web API using Python. You must have already [installed Python](https://www.python.org/downloads/release/python-373/) in order to run this sample application.
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=963&branchName=master)
+
+The sample code in this folder demonstrates how to utilize the PI Web API using Python. You must have already [installed Python](https://www.python.org/downloads/) in order to run this sample application.
 
 ## Getting Started
 
@@ -17,18 +19,19 @@ To run the sample code:
 
 To run the sample tests:
 
-- Open the test config file: `Python\test_config.py`
+- The sample test is configured using the file [test_config.placeholder.ini](test_config.placeholder.ini). Before editing, rename this file to `test_config.ini`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+- Open the test config file `test_config.ini`
 - Replace the values with your system configuration.
 
 For example:
 
-```python
-PIWEBAPI_URL = 'https://mydomain.com/piwebapi'
-AF_SERVER_NAME = 'AssetServerName'
-PI_SERVER_NAME = 'PIServerName'
-USER_NAME = 'MyUserName' # Or, 'domain\\userName'
-USER_PASSWORD = 'MyUserPassword'
-AUTH_TYPE = 'basic' # Basic or Kerberos
+```ini
+PIWEBAPI_URL = https://mydomain.com/piwebapi
+AF_SERVER_NAME = AssetServerName
+PI_SERVER_NAME = PIServerName
+USER_NAME = MyUserName # Or, 'domain\\userName'
+USER_PASSWORD = MyUserPassword
+AUTH_TYPE = basic # Basic or Kerberos
 ```
 
 - Each test file (prefixed as "test\_..."), can be run independently or all the tests can be run in a single instance via the `run_all_tests.py` file.
@@ -57,7 +60,7 @@ In addition, PI Web API must be configured to allow CORS as follows:
 | CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location | String  |
 | CorsHeaders             | \*                                                  | String  |
 | CorsMethods             | \*                                                  | String  |
-| CorsOrigins             | \*                                                  | String  |
+| CorsOrigins             | [https://localhost:9876](https://localhost:9876)    | String  |
 | CorsSupportsCredentials | True                                                | Boolean |
 | DisableWrites           | False                                               | Boolean |
 
@@ -85,7 +88,6 @@ The functionality included with this sample includes(recommended order of execut
 - Delete the element
 - Delete the element template
 - Delete the sample database
-
 
 Complete dependencies listed in [DEPENDENCIES.md](DEPENDENCIES.md)
 

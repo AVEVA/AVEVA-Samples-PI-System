@@ -1,0 +1,123 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/PI-System-Deployment-Samples/OnPrem'
+
+pr:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - '/PI-System-Deployment-Samples/OnPrem'
+
+schedules:
+  - cron: '0 0 * * 0'
+    displayName: Weekly build
+    branches:
+      include:
+        - master
+    always: true
+
+variables:
+  - template: '/miscellaneous/build_templates/variables.yml'
+  - name: projPath
+    value: '/PI-System-Deployment-Samples/OnPrem'
+  - name: analysisProject
+    value: Deployment_OnPrem
+
+jobs:
+  - job: Tests
+    strategy:
+      matrix:
+        server2016:
+          vmName: PRGPSDSRV16
+        windows10:
+          vmName: PRGPSDWIN10
+    pool:
+      name: 00-OSIManaged-Test
+      demands: COMPUTERNAME -equals $(buildAgent)
+    steps:
+      - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
+        inputs:
+          ConnectedServiceName: 'product-readiness.SCVMM'
+          VMList: $(vmName)
+          CheckPointName: Initial
+          ScopeFilter: CloudFiltering
+          CloudFilter: OAK
+          CreateBoundaryVM: false
+          NoDetailedLogs: false
+        displayName: 'SCVMM: Restore VM Checkpoint'
+
+      - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
+        inputs:
+          ConnectedServiceName: 'product-readiness.SCVMM'
+          VMList: $(vmName)
+          Action: StartVM
+          ScopeFilter: CloudFiltering
+          CloudFilter: OAK
+          CreateBoundaryVM: false
+          NoDetailedLogs: false
+        displayName: 'SCVMM: Start VM'
+
+      - task: CopyFiles@2
+        inputs:
+          sourceFolder: $(Build.SourcesDirectory)$(projPath)
+          contents: '*.ps1'
+          targetFolder: '\\$(vmName)\C$\Test'
+        displayName: 'Copy PowerShell script'
+
+      - task: PowerShellOnTargetMachines@3
+        inputs:
+          machines: $(vmName)
+          communicationProtocol: http
+          scriptType: filePath
+          scriptPath: 'C:\Test\Install-PIServer.ps1'
+          scriptArguments: '-sql .\SQL\SETUP.EXE -piserver .\PIServer.exe -pilicdir C:\Test -afdatabase TestDatabase -pibundle .\PIProcessBook.exe -remote'
+          workingDirectory: 'C:\Test'
+        displayName: 'Run PowerShell script'
+
+      - task: PowerShellOnTargetMachines@3
+        inputs:
+          machines: $(vmName)
+          communicationProtocol: http
+          scriptType: filePath
+          scriptPath: 'C:\Test\Verify-PIServer.ps1'
+        displayName: 'Run tests'
+
+      - task: ms-vscs-rm.scvmmapp.scvmmresourcedeployment-task.SCVMM@1
+        inputs:
+          ConnectedServiceName: 'product-readiness.SCVMM'
+          VMList: $(vmName)
+          Action: StopVM
+          ScopeFilter: CloudFiltering
+          CloudFilter: OAK
+          CreateBoundaryVM: false
+          NoDetailedLogs: false
+        displayName: 'SCVMM: Stop VM'
+        condition: always()
+
+  - job: BlackDuck
+    pool:
+      name: 00-OSIManaged-Test
+      demands: COMPUTERNAME -equals $(buildAgent)
+    steps:
+      - task: synopsys-detect.synopsys-detect.synopsys-detect-task.SynopsysDetectTask@2
+        inputs:
+          Products: BD
+          BlackDuckService: 'product-readiness.BlackDuck'
+          DetectArguments: |
+            --detect.project.name="product-readiness.$(analysisProject)"
+            --detect.project.version.name="$(Build.SourceBranchName)"
+            --detect.binary.scan.file.path="C:\Program Files\7-Zip\7-Zip.zip"
+            --detect.bom.aggregate.name="bom_$(analysisProject)_$(Build.SourceBranchName)_7-Zip"
+        displayName: 'Synopsys: Detect (7-Zip)'
+
+  - template: '/miscellaneous/build_templates/analysis.yml'
+    parameters:
+      language: powershell
+      skipPolaris: true

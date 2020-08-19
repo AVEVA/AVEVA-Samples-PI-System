@@ -1,6 +1,8 @@
 # PI Web API R Sample
 
-[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_R?branchName=master)](https://dev.azure.com/osieng/engineering/_build/latest?definitionId=965&branchName=master)
+**Version:** 1.0.10
+
+[![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_R?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=965&branchName=master)
 
 The sample code in this folder demonstrates how to utilize the PI Web API in R. The sample code is dependent on:
 
@@ -24,7 +26,8 @@ To run the sample code:
 To run the sample tests:
 
 - Install [testthat](https://cran.r-project.org/web/packages/testthat/index.html) if not already installed. From the Console inside RStudio `install.packages("testthat")`
-- Open the file: `test_config.R`
+- The sample test is configured using the file [test_config.placeholder.R](test_config.placeholder.R). Before editing, rename this file to `test_config.R`. This repository's `.gitignore` rules should prevent the file from ever being checked in to any fork or branch, to ensure credentials are not compromised.
+- Open the file `test_config.R`
 - Replace the values with your system configuration.
 
 For example:
@@ -66,7 +69,7 @@ In addition, PI Web API must be configured to allow CORS as follows:
 | CorsExposedHeaders      | Allow,Content-Encoding,Content-Length,Date,Location | String  |
 | CorsHeaders             | \*                                                  | String  |
 | CorsMethods             | \*                                                  | String  |
-| CorsOrigins             | \*                                                  | String  |
+| CorsOrigins             | [https://localhost:9876](https://localhost:9876)    | String  |
 | CorsSupportsCredentials | True                                                | Boolean |
 | DisableWrites           | False                                               | Boolean |
 

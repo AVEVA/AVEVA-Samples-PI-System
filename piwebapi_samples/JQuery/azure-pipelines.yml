@@ -33,9 +33,7 @@ variables:
     value: test-config.js
   - name: CredFileLibrary
     value: product-readiness.piwebapi_jquery.js
-  - name: covStream
-    value: PIWebAPIJQuery
-  - name: bdProject
+  - name: analysisProject
     value: PIWebAPI_JQuery
 
 jobs:

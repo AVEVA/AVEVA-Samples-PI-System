@@ -31,9 +31,7 @@ variables:
     value: test-config.js
   - name: CredFileLibrary
     value: product-readiness.piwebapi_angularjs.js
-  - name: covStream
-    value: PIWebAPIAngularJS
-  - name: bdProject
+  - name: analysisProject
     value: PIWebAPI_AngularJS
 
 jobs:

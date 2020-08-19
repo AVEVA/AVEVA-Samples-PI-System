@@ -1453,9 +1453,9 @@
                                 },
                                 "authentication" : "S3AccessCreds"
                             },
-                            "c:\\cfn\\modules\\SqlServer_21.0.17279.zip": {
+                            "c:\\cfn\\modules\\SqlServer_21.1.18218.zip": {
                                 "source" : {
-                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.0.17279.zip"
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.1.18218.zip"
                                 },
                                 "authentication" : "S3AccessCreds"
                             },
@@ -2296,9 +2296,9 @@
                                 },
                                 "authentication" : "S3AccessCreds"
                             },
-                            "c:\\cfn\\modules\\SqlServer_21.0.17279.zip": {
+                            "c:\\cfn\\modules\\SqlServer_21.1.18218.zip": {
                                 "source" : {
-                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.0.17279.zip"
+                                    "Fn::Sub" : "https://${DSS3BucketName}.s3.${DSS3BucketRegion}.amazonaws.com/${DSS3KeyPrefix}/modules/SqlServer_21.1.18218.zip"
                                 },
                                 "authentication" : "S3AccessCreds"
                             },

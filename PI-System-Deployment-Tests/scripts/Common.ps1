@@ -34,7 +34,7 @@ $MaxLogFileCount = 50
 $TestResultFile = Join-Path $TestResults "$FormatedLastTraceTime.html"
 $PreCheckTestResultFile = Join-Path $TestResults ($FormatedLastTraceTime + "_PreCheck.html")
 $RequiredSettings = @("PIDataArchive", "AFServer", "AFDatabase", "PIAnalysisService")
-$HiddenSettingsRegex = "user|password"
+$HiddenSettingsRegex = "user|password|encrypt"
 # A hashtable mapping the appSettings to the test classes of optional products with a string key setting.
 $TestClassesForOptionalProductWithKeySetting = @{ 
     PINotificationsService = "NotificationTests";
@@ -247,6 +247,8 @@ function Install-NuGet {
         New-FolderIfNotExists($NuGetFolder)
 
         Add-InfoLog -Message "Downloading nuget.exe."
+
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
         Invoke-WebRequest $NuGetExeUri -OutFile $NuGetExe
 
@@ -482,6 +484,47 @@ function Build-ExcludedTestClassesString {
     $noClassString.Trim()
 }
 
+function Build-Tests {
+    [CmdletBinding()]
+    param ()
+    # In order to build xUnit test solution, we need .NET Framework Developer Pack, NuGet.exe, and MSBuild
+    Add-InfoLog -Message "Install .NET Framework Developer Pack if missing."
+    Install-DotNETDevPack
+
+    Add-InfoLog -Message "Install NuGet.exe if missing."
+    Install-NuGet
+
+    Add-InfoLog -Message "Install MSBuild if missing."
+    Install-BuildTools
+
+    Add-InfoLog -Message "Restore the NuGet packages of the test solution."
+    Restore-SolutionPackages
+
+    Add-InfoLog -Message "Build the test solution."
+    Build-TestSolution
+}
+
+function Start-PrelimTesting {
+    [CmdletBinding()]
+    param ()
+    Add-InfoLog -Message "Run Preliminary Checks."
+    try {
+        & $xUnitConsole $TestDll -class "OSIsoft.PISystemDeploymentTests.PreliminaryChecks" -html ""$PreCheckTestResultFile"" -verbose | 
+        Tee-Object -Variable "preliminaryCheckResults"
+        $preliminaryCheckResults | Write-ExecutionLog
+        $errorTestCount = [int]($preliminaryCheckResults[-1] -replace ".*Errors: (\d+),.*", '$1')
+        $failedTestCount = [int]($preliminaryCheckResults[-1] -replace ".*Failed: (\d+),.*", '$1')
+    }
+    catch {
+        Add-ErrorLog -Message "Failed to run the PreliminaryChecks"
+        Add-ErrorLog -Message ($_ | Out-String) -Fatal
+	}
+
+    if (($errorTestCount + $failedTestCount) -gt 0) {
+        Add-ErrorLog -Message "Preliminary Checks failed, please troubleshoot the errors and try again." -Fatal
+    }
+}
+
 function Start-Testing {
     [CmdletBinding()]
     param
@@ -504,16 +547,6 @@ function Start-Testing {
         $fullCommand = "& $xUnitConsole $TestDll -class OSIsoft.PISystemDeploymentTests.$TestClassName -verbose -parallel none"
     }
     else {
-        Add-InfoLog -Message "Run Preliminary Checks."
-        & $xUnitConsole $TestDll -class "OSIsoft.PISystemDeploymentTests.PreliminaryChecks" -html ""$PreCheckTestResultFile"" -verbose | 
-        Tee-Object -Variable "preliminaryCheckResults"
-        $preliminaryCheckResults | Write-ExecutionLog
-        $errorTestCount = [int]($preliminaryCheckResults[-1] -replace ".*Errors: (\d+),.*", '$1')
-        $failedTestCount = [int]($preliminaryCheckResults[-1] -replace ".*Failed: (\d+),.*", '$1')
-        if (($errorTestCount + $failedTestCount) -gt 0) {
-            Add-ErrorLog -Message "Preliminary Checks failed, please troubleshoot the errors and try again." -Fatal
-        }
-
         $excludedTestClassesString = '-noclass "OSIsoft.PISystemDeploymentTests.PreliminaryChecks" ' + 
         (Build-ExcludedTestClassesString)
         Add-InfoLog -Message "Run product tests."
@@ -522,10 +555,17 @@ function Start-Testing {
     }
 
     Add-InfoLog -Message $fullCommand
-    Invoke-Expression $fullCommand | Tee-Object -Variable "productTestResults"
-    $productTestResults | Write-ExecutionLog
-    $errorTestCount = [int]($productTestResults[-1] -replace ".*Errors: (\d+),.*", '$1')
-    $failedTestCount = [int]($productTestResults[-1] -replace ".*Failed: (\d+),.*", '$1')
+    try {
+        Invoke-Expression $fullCommand | Tee-Object -Variable "productTestResults"
+        $productTestResults | Write-ExecutionLog
+        $errorTestCount = [int]($productTestResults[-1] -replace ".*Errors: (\d+),.*", '$1')
+        $failedTestCount = [int]($productTestResults[-1] -replace ".*Failed: (\d+),.*", '$1')
+    }
+    catch {
+        Add-ErrorLog -Message "Failed to execute the full xUnit test run"
+        Add-ErrorLog -Message ($_ | Out-String) -Fatal
+	}
+
     if (($errorTestCount + $failedTestCount) -gt 0 -and $TestName -eq '' -and $TestClassName -eq '') {
         Add-ErrorLog -Message "xUnit test run finished with some failures, please troubleshoot the errors in $TestResultFile."
     }
@@ -541,6 +581,7 @@ function Read-PISystemConfig {
         # Switch to skip confirmation
         [switch]$Force
     ) 
+    Encrypt-PIWebAPICredentials
     $ConfigureSettings = Read-AppSettings
     Add-InfoLog ($ConfigureSettings | Out-String).TrimEnd()
 
@@ -558,7 +599,7 @@ function Read-PISystemConfig {
     }
 
     # Convert the setting array into properties, save the copy in a hashtable
-    $ConfigureObject = New-Object psobject
+    $ConfigureObject = New-Object PSObject
     $Script:ConfigureHashTable = @{ }
     $ConfigureSettings | ForEach-Object { 
         $AddMemberParams = @{
@@ -582,11 +623,69 @@ function Read-PISystemConfig {
     $ConfigureObject
 }
 
+function Encrypt-PIWebAPICredentials {
+    [CmdletBinding()]
+    param ()
+    $Script:ConfigureData = @{ }
+    ([xml](Get-Content $AppConfigFile)).Configuration.AppSettings.Add | 
+    ForEach-Object { 
+        $Script:ConfigureData.Add($_.key, $_.value)
+    }
+
+    $CredentialEncryptValue = $Script:ConfigureData["PIWebAPIEncryptionID"]
+    if ((![string]::IsNullOrWhitespace($Script:ConfigureData["PIWebAPIUser"]) -and ![string]::IsNullOrWhitespace($Script:ConfigureData["PIWebAPIPassword"])) -and 
+        [string]::IsNullOrWhitespace($CredentialEncryptValue)) {
+            Add-Type -AssemblyName "System.Security"
+
+            Write-Host
+            Write-Host "Encrypting and writing to App.config..."
+
+            $Entropy = New-Object byte[] 16
+            $RNG = New-Object System.Security.Cryptography.RNGCryptoServiceProvider
+            $RNG.GetBytes($Entropy)
+
+            $AppConfigXML = New-Object XML
+            $AppConfigXML.Load($AppConfigFile)
+            $ProtectionScope = [System.Security.Cryptography.DataProtectionScope]
+            foreach ($Setting in $AppConfigXML.Configuration.AppSettings.Add) {
+                if ($Setting.key -eq "PIWebAPIUser") {
+                    $ToEncryptUser = [System.Text.Encoding]::ASCII.GetBytes($Setting.value)
+                    $EncryptedUser = Encrypt-CredentialData $ToEncryptUser $Entropy $ProtectionScope::CurrentUser
+                    $Setting.value = [System.BitConverter]::ToString($EncryptedUser)
+				}
+
+                if ($Setting.key -eq "PIWebAPIPassword") {
+                    $ToEncryptPass = [System.Text.Encoding]::ASCII.GetBytes($Setting.value)
+                    $EncryptedPass = Encrypt-CredentialData $ToEncryptPass $Entropy $ProtectionScope::CurrentUser
+                    $Setting.value = [System.BitConverter]::ToString($EncryptedPass)
+				}
+
+                if ($Setting.key -eq "PIWebAPIEncryptionID") {
+                    $Setting.value = [System.BitConverter]::ToString($Entropy)
+				}
+            }
+
+            $AppConfigXML.Save($AppConfigFile)
+    }
+}
+
+function Encrypt-CredentialData {
+    [CmdletBinding()]
+    param (
+        [byte[]]$Buffer,
+        [byte[]]$Entropy,
+        [System.Security.Cryptography.DataProtectionScope]$Scope
+    )
+
+    # Encrypt the data and store the result in a new byte array. The original data remains unchanged.
+    $EncryptedData = [System.Security.Cryptography.ProtectedData]::Protect($Buffer, $Entropy, $Scope);
+    return $EncryptedData
+}
 
 function Read-AppSettings {
     [CmdletBinding()]
     param ()
-    ([xml](Get-Content $AppConfigFile)).configuration.appsettings.add | 
+    ([xml](Get-Content $AppConfigFile)).Configuration.AppSettings.Add | 
     Select-Object -property @{
         Name = 'Setting'; Expression = { $_.key } 
     }, 
@@ -672,13 +771,12 @@ function Set-TargetDatabase {
     if ($buildDatabase) {
         try {
             Add-InfoLog -Message "Start building the target PI AF database."
-            Add-AFDatabase $Database -AFServer $PISystem -ErrorAction Stop > $null
-            $db = $PISystem.Databases[$Database]
-            $elementSearch = New-Object OSIsoft.AF.Search.AFElementSearch $db, "AllElements", ""
             
             Add-InfoLog -Message "Start xml importing."
-            $PISystem.ImportXml($db, 1041, $WindFarmxml) > $null
+            $PISystem.ImportXml($null, 1041, $WindFarmxml) > $null
 
+			$db = $PISystem.Databases[$Database]
+            $elementSearch = New-Object OSIsoft.AF.Search.AFElementSearch $db, "AllElements", ""
             # Pause for the xml importing to finish, otherwise CreateConfig may throw errors.
             $attempt = 0
             $elementCount = $elementSearch.GetTotalCount()
@@ -839,7 +937,6 @@ function Set-TargetDatabase {
         $recalcNotDone = $false
         $pointList = Get-PIPoint -Connection $PIDA -WhereClause pointsource:=$TestsPIPointSource |
         Where-Object { $_.Point.Name -match $CoveredByRecalcPIPointRegex }
-        $isLocalAccount = [Security.Principal.WindowsIdentity]::GetCurrent().Name.ToUpper().Contains([Environment]::MachineName.ToUpper())
         do {
             Start-Sleep -Seconds $WaitIntervalInSeconds
 
@@ -857,11 +954,6 @@ function Set-TargetDatabase {
             }
             
             if ((++$attempt % $RetryCountBeforeReporting) -eq 0) {
-                if ($isLocalAccount -and $attempt -gt 1) {
-                    Add-ErrorLog -Message ("A local account is detected as the running user. Due to a known issue, an explicit mapping " +
-                        "from the local account to the PI AF Administrators identity need to be created in AF security despite the default " +
-                        "BUILTIN\Administrators to PI AF Administrators mapping.") -Fatal
-                }
                 Add-InfoLog -Message "Waiting on analyses recalculation to finish..."
             }
         } while (($attempt -lt $MaxRetry) -and $recalcNotDone)
@@ -996,10 +1088,10 @@ function Remove-TargetDatabase {
     }
 }
 # SIG # Begin signature block
-# MIIcLQYJKoZIhvcNAQcCoIIcHjCCHBoCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIIcuAYJKoZIhvcNAQcCoIIcqTCCHKUCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBEi7sMoAzaIntb
-# YeMjoPl/hNwiiCRyagS+aghl/reHvKCCCo4wggUwMIIEGKADAgECAhAECRgbX9W7
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAyJpao8Vr0ip64
+# Ot1vvNH5sPzFmNWVKWz/aGhFom5Gf6CCCo0wggUwMIIEGKADAgECAhAECRgbX9W7
 # ZnVTQ7VvlVAIMA0GCSqGSIb3DQEBCwUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0xMzEwMjIxMjAwMDBa
@@ -1027,124 +1119,127 @@ function Remove-TargetDatabase {
 # r7VRwo0kriTGxycqoSkoGjpxKAI8LpGjwCUR4pwUR6F6aGivm6dcIFzZcbEMj7uo
 # +MUSaJ/PQMtARKUT8OZkDCUIQjKyNookAv4vcn4c10lFluhZHen6dGRrsutmQ9qz
 # sIzV6Q3d9gEgzpkxYz0IGhizgZtPxpMQBvwHgfqL2vmCSfdibqFT+hKUGIUukpHq
-# aGxEMrJmoecYpJpkUe8wggVWMIIEPqADAgECAhAFTTVZN0yftPMcszD508Q/MA0G
+# aGxEMrJmoecYpJpkUe8wggVVMIIEPaADAgECAhAGVvq6kseGimsYGJGsdvpbMA0G
 # CSqGSIb3DQEBCwUAMHIxCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJ
 # bmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xMTAvBgNVBAMTKERpZ2lDZXJ0
-# IFNIQTIgQXNzdXJlZCBJRCBDb2RlIFNpZ25pbmcgQ0EwHhcNMTkwNjE3MDAwMDAw
-# WhcNMjAwNzAxMTIwMDAwWjCBkjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRQw
+# IFNIQTIgQXNzdXJlZCBJRCBDb2RlIFNpZ25pbmcgQ0EwHhcNMjAwNjE2MDAwMDAw
+# WhcNMjIwNzIyMTIwMDAwWjCBkTELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRQw
 # EgYDVQQHEwtTYW4gTGVhbmRybzEVMBMGA1UEChMMT1NJc29mdCwgTExDMQwwCgYD
-# VQQLEwNEZXYxFTATBgNVBAMTDE9TSXNvZnQsIExMQzEkMCIGCSqGSIb3DQEJARYV
-# c21hbmFnZXJzQG9zaXNvZnQuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
-# CgKCAQEAqbP+VTz8qtsq4SWhF7LsXqeDGyUwtDpf0vlSg+aQh2fOqJhW2uiPa1GO
-# M5+xbr+RhTTWzJX2vEwqSIzN43ktTdgcVT9Bf5W2md+RCYE1D17jGlj5sCFTS4eX
-# Htm+lFoQF0donavbA+7+ggd577FdgOnjuYxEpZe2lbUyWcKOHrLQr6Mk/bKjcYSY
-# B/ipNK4hvXKTLEsN7k5kyzRkq77PaqbVAQRgnQiv/Lav5xWXuOn7M94TNX4+1Mk8
-# 74nuny62KLcMRtjPCc2aWBpHmhD3wPcUVvTW+lGwEaT0DrCwcZDuG/Igkhqj/8Rf
-# HYfnZQtWMnBFAHcuA4jJgmZ7xYMPoQIDAQABo4IBxTCCAcEwHwYDVR0jBBgwFoAU
-# WsS5eyoKo6XqcQPAYPkt9mV1DlgwHQYDVR0OBBYEFNcTKM3o/Fjj9J3iOakcmKx6
-# CPetMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDAzB3BgNVHR8E
-# cDBuMDWgM6Axhi9odHRwOi8vY3JsMy5kaWdpY2VydC5jb20vc2hhMi1hc3N1cmVk
-# LWNzLWcxLmNybDA1oDOgMYYvaHR0cDovL2NybDQuZGlnaWNlcnQuY29tL3NoYTIt
-# YXNzdXJlZC1jcy1nMS5jcmwwTAYDVR0gBEUwQzA3BglghkgBhv1sAwEwKjAoBggr
-# BgEFBQcCARYcaHR0cHM6Ly93d3cuZGlnaWNlcnQuY29tL0NQUzAIBgZngQwBBAEw
-# gYQGCCsGAQUFBwEBBHgwdjAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZGlnaWNl
-# cnQuY29tME4GCCsGAQUFBzAChkJodHRwOi8vY2FjZXJ0cy5kaWdpY2VydC5jb20v
-# RGlnaUNlcnRTSEEyQXNzdXJlZElEQ29kZVNpZ25pbmdDQS5jcnQwDAYDVR0TAQH/
-# BAIwADANBgkqhkiG9w0BAQsFAAOCAQEAigLIcsGUWzXlZuVQY8s1UOxYgch5qO1Y
-# YEDFF8abzJQ4RiB8rcdoRWjsfpWxtGOS0wkA2CfyuWhjO/XqgmYJ8AUHIKKCy6QE
-# 31/I6izI6iDCg8X5lSR6nKsB2BCZCOnGJOEi3r+WDS18PMuW24kaBo1ezx6KQOx4
-# N0qSrMJqJRXfPHpl3WpcLs3VA1Gew9ATOQ9IXbt8QCvyMICRJxq4heHXPLE3EpK8
-# 2wlBKwX3P4phapmEUOWxB45QOcRJqgahe9qIALbLS+i5lxV+eX/87YuEiyDtGfH+
-# dAbq5BqlYz1Fr8UrWeR3KIONPNtkm2IFHNMdpsgmKwC/Xh3nC3b27DGCEPUwghDx
-# AgEBMIGGMHIxCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAX
-# BgNVBAsTEHd3dy5kaWdpY2VydC5jb20xMTAvBgNVBAMTKERpZ2lDZXJ0IFNIQTIg
-# QXNzdXJlZCBJRCBDb2RlIFNpZ25pbmcgQ0ECEAVNNVk3TJ+08xyzMPnTxD8wDQYJ
-# YIZIAWUDBAIBBQCggf8wGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYB
-# BAGCNwIBCzEOMAwGCisGAQQBgjcCARUwLwYJKoZIhvcNAQkEMSIEIJE+8h1U8d0R
-# 0iLkp/qzdRecrxjQbB7Q5dTg076itiGsMIGSBgorBgEEAYI3AgEMMYGDMIGAoFyA
-# WgBQAEkAIABTAHkAcwB0AGUAbQAgAEQAZQBwAGwAbwB5AG0AZQBuAHQAIABUAGUA
-# cwB0AHMAIABQAG8AdwBlAHIAUwBoAGUAbABsACAAUwBjAHIAaQBwAHQAc6EggB5o
-# dHRwOi8vdGVjaHN1cHBvcnQub3Npc29mdC5jb20wDQYJKoZIhvcNAQEBBQAEggEA
-# itciiu8LHFnSM2RhhlB5QVP/sAFtzxy7cBwIK1+7HbCE7zOG/SpJFv07MrRyNuPT
-# tUwE9Imor6ve0994j0GzOJfXBPqbrielbYa61Jy/lZg31+WTqLHfy1xAOmdhG7zi
-# fppaa7+wv616lTiXZTsVI386x8sV31+BmtkOmMfsrWZmbr+m5b41aW303kYyMBF+
-# F73BaJDx93R/SwG6JFtKud+j/DUnw8VDGynC+e0liwu+mHhZ+0w/W4lfrmS1hI6c
-# tasuIRI1EEz6WVPIPbuf+Sr20rqmQwH3axgIhZi9S+0ISuNh1GDfaTmR29+oMITn
-# qqek3YnczS1+MMm5sBi+SKGCDj0wgg45BgorBgEEAYI3AwMBMYIOKTCCDiUGCSqG
-# SIb3DQEHAqCCDhYwgg4SAgEDMQ0wCwYJYIZIAWUDBAIBMIIBDwYLKoZIhvcNAQkQ
-# AQSggf8EgfwwgfkCAQEGC2CGSAGG+EUBBxcDMDEwDQYJYIZIAWUDBAIBBQAEIPte
-# e5QyNoybwOFZ7NsCDC2iBOwuksQ/mJLYRs9pCftjAhUArWzIqyxCskCKBL+tbYam
-# yl1B1DsYDzIwMTkxMTIwMTUzODQ0WjADAgEeoIGGpIGDMIGAMQswCQYDVQQGEwJV
-# UzEdMBsGA1UEChMUU3ltYW50ZWMgQ29ycG9yYXRpb24xHzAdBgNVBAsTFlN5bWFu
-# dGVjIFRydXN0IE5ldHdvcmsxMTAvBgNVBAMTKFN5bWFudGVjIFNIQTI1NiBUaW1l
-# U3RhbXBpbmcgU2lnbmVyIC0gRzOgggqLMIIFODCCBCCgAwIBAgIQewWx1EloUUT3
-# yYnSnBmdEjANBgkqhkiG9w0BAQsFADCBvTELMAkGA1UEBhMCVVMxFzAVBgNVBAoT
-# DlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZWZXJpU2lnbiBUcnVzdCBOZXR3b3Jr
-# MTowOAYDVQQLEzEoYykgMjAwOCBWZXJpU2lnbiwgSW5jLiAtIEZvciBhdXRob3Jp
-# emVkIHVzZSBvbmx5MTgwNgYDVQQDEy9WZXJpU2lnbiBVbml2ZXJzYWwgUm9vdCBD
-# ZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTAeFw0xNjAxMTIwMDAwMDBaFw0zMTAxMTEy
-# MzU5NTlaMHcxCzAJBgNVBAYTAlVTMR0wGwYDVQQKExRTeW1hbnRlYyBDb3Jwb3Jh
-# dGlvbjEfMB0GA1UECxMWU3ltYW50ZWMgVHJ1c3QgTmV0d29yazEoMCYGA1UEAxMf
-# U3ltYW50ZWMgU0hBMjU2IFRpbWVTdGFtcGluZyBDQTCCASIwDQYJKoZIhvcNAQEB
-# BQADggEPADCCAQoCggEBALtZnVlVT52Mcl0agaLrVfOwAa08cawyjwVrhponADKX
-# ak3JZBRLKbvC2Sm5Luxjs+HPPwtWkPhiG37rpgfi3n9ebUA41JEG50F8eRzLy60b
-# v9iVkfPw7mz4rZY5Ln/BJ7h4OcWEpe3tr4eOzo3HberSmLU6Hx45ncP0mqj0hOHE
-# 0XxxxgYptD/kgw0mw3sIPk35CrczSf/KO9T1sptL4YiZGvXA6TMU1t/HgNuR7v68
-# kldyd/TNqMz+CfWTN76ViGrF3PSxS9TO6AmRX7WEeTWKeKwZMo8jwTJBG1kOqT6x
-# zPnWK++32OTVHW0ROpL2k8mc40juu1MO1DaXhnjFoTcCAwEAAaOCAXcwggFzMA4G
-# A1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAGAQH/AgEAMGYGA1UdIARfMF0wWwYL
-# YIZIAYb4RQEHFwMwTDAjBggrBgEFBQcCARYXaHR0cHM6Ly9kLnN5bWNiLmNvbS9j
-# cHMwJQYIKwYBBQUHAgIwGRoXaHR0cHM6Ly9kLnN5bWNiLmNvbS9ycGEwLgYIKwYB
-# BQUHAQEEIjAgMB4GCCsGAQUFBzABhhJodHRwOi8vcy5zeW1jZC5jb20wNgYDVR0f
-# BC8wLTAroCmgJ4YlaHR0cDovL3Muc3ltY2IuY29tL3VuaXZlcnNhbC1yb290LmNy
-# bDATBgNVHSUEDDAKBggrBgEFBQcDCDAoBgNVHREEITAfpB0wGzEZMBcGA1UEAxMQ
-# VGltZVN0YW1wLTIwNDgtMzAdBgNVHQ4EFgQUr2PWyqNOhXLgp7xB8ymiOH+AdWIw
-# HwYDVR0jBBgwFoAUtnf6aUhHn1MS1cLqBzJ2B9GXBxkwDQYJKoZIhvcNAQELBQAD
-# ggEBAHXqsC3VNBlcMkX+DuHUT6Z4wW/X6t3cT/OhyIGI96ePFeZAKa3mXfSi2VZk
-# hHEwKt0eYRdmIFYGmBmNXXHy+Je8Cf0ckUfJ4uiNA/vMkC/WCmxOM+zWtJPITJBj
-# SDlAIcTd1m6JmDy1mJfoqQa3CcmPU1dBkC/hHk1O3MoQeGxCbvC2xfhhXFL1TvZr
-# jfdKer7zzf0D19n2A6gP41P3CnXsxnUuqmaFBJm3+AZX4cYO9uiv2uybGB+queM6
-# AL/OipTLAduexzi7D1Kr0eOUA2AKTaD+J20UMvw/l0Dhv5mJ2+Q5FL3a5NPD6ita
-# s5VYVQR9x5rsIwONhSrS/66pYYEwggVLMIIEM6ADAgECAhB71OWvuswHP6EBIwQi
-# QU0SMA0GCSqGSIb3DQEBCwUAMHcxCzAJBgNVBAYTAlVTMR0wGwYDVQQKExRTeW1h
-# bnRlYyBDb3Jwb3JhdGlvbjEfMB0GA1UECxMWU3ltYW50ZWMgVHJ1c3QgTmV0d29y
-# azEoMCYGA1UEAxMfU3ltYW50ZWMgU0hBMjU2IFRpbWVTdGFtcGluZyBDQTAeFw0x
-# NzEyMjMwMDAwMDBaFw0yOTAzMjIyMzU5NTlaMIGAMQswCQYDVQQGEwJVUzEdMBsG
-# A1UEChMUU3ltYW50ZWMgQ29ycG9yYXRpb24xHzAdBgNVBAsTFlN5bWFudGVjIFRy
-# dXN0IE5ldHdvcmsxMTAvBgNVBAMTKFN5bWFudGVjIFNIQTI1NiBUaW1lU3RhbXBp
-# bmcgU2lnbmVyIC0gRzMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCv
-# Doqq+Ny/aXtUF3FHCb2NPIH4dBV3Z5Cc/d5OAp5LdvblNj5l1SQgbTD53R2D6T8n
-# SjNObRaK5I1AjSKqvqcLG9IHtjy1GiQo+BtyUT3ICYgmCDr5+kMjdUdwDLNfW48I
-# HXJIV2VNrwI8QPf03TI4kz/lLKbzWSPLgN4TTfkQyaoKGGxVYVfR8QIsxLWr8mwj
-# 0p8NDxlsrYViaf1OhcGKUjGrW9jJdFLjV2wiv1V/b8oGqz9KtyJ2ZezsNvKWlYEm
-# LP27mKoBONOvJUCbCVPwKVeFWF7qhUhBIYfl3rTTJrJ7QFNYeY5SMQZNlANFxM48
-# A+y3API6IsW0b+XvsIqbAgMBAAGjggHHMIIBwzAMBgNVHRMBAf8EAjAAMGYGA1Ud
-# IARfMF0wWwYLYIZIAYb4RQEHFwMwTDAjBggrBgEFBQcCARYXaHR0cHM6Ly9kLnN5
-# bWNiLmNvbS9jcHMwJQYIKwYBBQUHAgIwGRoXaHR0cHM6Ly9kLnN5bWNiLmNvbS9y
-# cGEwQAYDVR0fBDkwNzA1oDOgMYYvaHR0cDovL3RzLWNybC53cy5zeW1hbnRlYy5j
-# b20vc2hhMjU2LXRzcy1jYS5jcmwwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwgwDgYD
-# VR0PAQH/BAQDAgeAMHcGCCsGAQUFBwEBBGswaTAqBggrBgEFBQcwAYYeaHR0cDov
-# L3RzLW9jc3Aud3Muc3ltYW50ZWMuY29tMDsGCCsGAQUFBzAChi9odHRwOi8vdHMt
-# YWlhLndzLnN5bWFudGVjLmNvbS9zaGEyNTYtdHNzLWNhLmNlcjAoBgNVHREEITAf
-# pB0wGzEZMBcGA1UEAxMQVGltZVN0YW1wLTIwNDgtNjAdBgNVHQ4EFgQUpRMBqZ+F
-# zBtuFh5fOzGqeTYAex0wHwYDVR0jBBgwFoAUr2PWyqNOhXLgp7xB8ymiOH+AdWIw
-# DQYJKoZIhvcNAQELBQADggEBAEaer/C4ol+imUjPqCdLIc2yuaZycGMv41UpezlG
-# Tud+ZQZYi7xXipINCNgQujYk+gp7+zvTYr9KlBXmgtuKVG3/KP5nz3E/5jMJ2aJZ
-# EPQeSv5lzN7Ua+NSKXUASiulzMub6KlN97QXWZJBw7c/hub2wH9EPEZcF1rjpDvV
-# aSbVIX3hgGd+Yqy3Ti4VmuWcI69bEepxqUH5DXk4qaENz7Sx2j6aescixXTN30cJ
-# hsT8kSWyG5bphQjo3ep0YG5gpVZ6DchEWNzm+UgUnuW/3gC9d7GYFHIUJN/HESwf
-# AD/DSxTGZxzMHgajkF9cVIs+4zNbgg/Ft4YCTnGf6WZFP3YxggJaMIICVgIBATCB
-# izB3MQswCQYDVQQGEwJVUzEdMBsGA1UEChMUU3ltYW50ZWMgQ29ycG9yYXRpb24x
-# HzAdBgNVBAsTFlN5bWFudGVjIFRydXN0IE5ldHdvcmsxKDAmBgNVBAMTH1N5bWFu
-# dGVjIFNIQTI1NiBUaW1lU3RhbXBpbmcgQ0ECEHvU5a+6zAc/oQEjBCJBTRIwCwYJ
-# YIZIAWUDBAIBoIGkMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG
-# 9w0BCQUxDxcNMTkxMTIwMTUzODQ0WjAvBgkqhkiG9w0BCQQxIgQggHqiHahV9MAI
-# Fm1gM1RIHn/8QTRkt648/5BQ/NMGvv8wNwYLKoZIhvcNAQkQAi8xKDAmMCQwIgQg
-# xHTOdgB9AjlODaXk3nwUxoD54oIBPP72U+9dtx/fYfgwCwYJKoZIhvcNAQEBBIIB
-# AE8cvTFabKD0VznqtS+te8NM5BF3sJYywTd2oNp3AkEBfG6ct6WyPCkiFTHfb11H
-# 5lYF88/weG9C5f/nTogVKE5P0x4scgFs/SCVUsl+pBF3w3B39E6w3J7T9RcDgTR8
-# s4tNl3Tvw8JuYdRJP8FaOTSQ7EXwr1NgeQut3Gmcrogj21ehipc9KZPOUpY0HdYV
-# LmDi+T5jQxpifInevhXlCWugIS2KsxJQSiKvRshgpLUcrsmvrbGDasBTber8XPwr
-# lcnRxdfnt4Jur155z0jJFEu/T3NeMUGS8bhoWDTfYD3UXC4pG+88xPdtByIIHwET
-# EgF0+w2a4DIq9VZcRM5uQY4=
+# VQQLEwNEZXYxFTATBgNVBAMTDE9TSXNvZnQsIExMQzEjMCEGCSqGSIb3DQEJARYU
+# cGRlcmVnaWxAb3Npc29mdC5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+# AoIBAQDPSOGDHDmQTrdWSTB6jfvZ3+ngv2HwU/64ZUGKq+PbyQKcqeRI5MT2Fokj
+# K9yp6JoVnipZaBZdjLRj//FuqDR/pNy3VZo1xmufKICqrSS6x2AxKb9l/6mcO/MF
+# E2FgG0tND/xftCQlChB91GokCyiVNkwbLleB9uM6yn73ZZkiA0Chmjguipfal+hS
+# 27vds5xYGLtcnqWcKcZR5pr838vDT+8zzrxoWQ8se3H9LHYLyCiwk+84mA1M//BW
+# xaA7ERt1eJ3vLzYu3+ryH+GFiYEhJHu3FZjktEg5oZ25Vj7iwgTG+/CIMZsEDe5G
+# SFvePn3jpMmEaPbOPfx8FVwh8XItAgMBAAGjggHFMIIBwTAfBgNVHSMEGDAWgBRa
+# xLl7KgqjpepxA8Bg+S32ZXUOWDAdBgNVHQ4EFgQUmzSViihexjjLsHHW6j+r7Fxw
+# U/gwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMDMHcGA1UdHwRw
+# MG4wNaAzoDGGL2h0dHA6Ly9jcmwzLmRpZ2ljZXJ0LmNvbS9zaGEyLWFzc3VyZWQt
+# Y3MtZzEuY3JsMDWgM6Axhi9odHRwOi8vY3JsNC5kaWdpY2VydC5jb20vc2hhMi1h
+# c3N1cmVkLWNzLWcxLmNybDBMBgNVHSAERTBDMDcGCWCGSAGG/WwDATAqMCgGCCsG
+# AQUFBwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BTMAgGBmeBDAEEATCB
+# hAYIKwYBBQUHAQEEeDB2MCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2Vy
+# dC5jb20wTgYIKwYBBQUHMAKGQmh0dHA6Ly9jYWNlcnRzLmRpZ2ljZXJ0LmNvbS9E
+# aWdpQ2VydFNIQTJBc3N1cmVkSURDb2RlU2lnbmluZ0NBLmNydDAMBgNVHRMBAf8E
+# AjAAMA0GCSqGSIb3DQEBCwUAA4IBAQAR/2LHTPvx/fBATBS0jBBhPEhlrpNgkWZ9
+# NCo0wJC5H2V2CpokuZxA4HoK0YCsz2x68BpCnBOX3pdSWC+kQOvLyJayTQew+c/R
+# sebGEVp9NNtsnpcFhjM3e7hqsQAm6rCIJWk0Q1sSyYnhnqHA/iS1DxNqZ/qZHx1k
+# ise1+9bOefqB1YN+vtmPBlLkboKCklbrJmHSEn4cZNBHjq1yVYOPacuws+8kAEMh
+# lDjG2NkfyqF72Jo90SFK7xgjE6euLbvmjGYRSF9h4V+aR6MaEcDkUe2aoCgCmnDX
+# Q+9sIKX0AojqBVLFUNQpzelOdjGWNzdcMMSu8p0pNw4xeAbuCEHfMYIRgTCCEX0C
+# AQEwgYYwcjELMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcG
+# A1UECxMQd3d3LmRpZ2ljZXJ0LmNvbTExMC8GA1UEAxMoRGlnaUNlcnQgU0hBMiBB
+# c3N1cmVkIElEIENvZGUgU2lnbmluZyBDQQIQBlb6upLHhoprGBiRrHb6WzANBglg
+# hkgBZQMEAgEFAKCB/zAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEE
+# AYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQxIgQgaUVtstoAJA4y
+# Po7mdFRAue/H+DKG7O5u56WApvYxRWowgZIGCisGAQQBgjcCAQwxgYMwgYCgXIBa
+# AFAASQAgAFMAeQBzAHQAZQBtACAARABlAHAAbABvAHkAbQBlAG4AdAAgAFQAZQBz
+# AHQAcwAgAFAAbwB3AGUAcgBTAGgAZQBsAGwAIABTAGMAcgBpAHAAdABzoSCAHmh0
+# dHA6Ly90ZWNoc3VwcG9ydC5vc2lzb2Z0LmNvbTANBgkqhkiG9w0BAQEFAASCAQAv
+# 7cUyZfrFNiTyIFb5l0GLM0DSdoAioVfhvzl21UQwtaCiU0hCpQ9DuoWV5bFcIS9n
+# W5QeHJx9hosoUXN/IG6qWB2D214ZlglFUukKIz8kj7AERX5WiBzT4Be69WUuyPSU
+# poi4St5eLdYxRHZvhc0pavxkGZB6qfOT0ZGNlCcHFc94VtwdQMiuCeg5mcO7bBzv
+# 6iiQsEk2MP5qS/fb4sfYPbd0dKqtbjvS4Dj3rYmgh5Yuc4JirdKP/hMZA27xwL/C
+# rtMXGiLwhezd9SONO7lkjc22UViJRNcWWwZ33j931+awl5UkOTht6fqigtLySveo
+# sSg/r23sOLqfb6CMChAQoYIOyTCCDsUGCisGAQQBgjcDAwExgg61MIIOsQYJKoZI
+# hvcNAQcCoIIOojCCDp4CAQMxDzANBglghkgBZQMEAgEFADB4BgsqhkiG9w0BCRAB
+# BKBpBGcwZQIBAQYJYIZIAYb9bAcBMDEwDQYJYIZIAWUDBAIBBQAEINHKIKSTp47D
+# ReauyhuHCZduU7kFCMwh2L1/tVs1qmsqAhEAnlPkPOzoXAydyNYBg20E4BgPMjAy
+# MDA3MTcyMDA3MTNaoIILuzCCBoIwggVqoAMCAQICEATNP4VornbGG7D+cWDMp20w
+# DQYJKoZIhvcNAQELBQAwcjELMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0
+# IEluYzEZMBcGA1UECxMQd3d3LmRpZ2ljZXJ0LmNvbTExMC8GA1UEAxMoRGlnaUNl
+# cnQgU0hBMiBBc3N1cmVkIElEIFRpbWVzdGFtcGluZyBDQTAeFw0xOTEwMDEwMDAw
+# MDBaFw0zMDEwMTcwMDAwMDBaMEwxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdp
+# Q2VydCwgSW5jLjEkMCIGA1UEAxMbVElNRVNUQU1QLVNIQTI1Ni0yMDE5LTEwLTE1
+# MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6WQ1nPqpmGVkG+QX3Lgp
+# NsxnCViFTTDgyf/lOzwRKFCvBzHiXQkYwvaJjGkIBCPgdy2dFeW46KFqjv/UrtJ6
+# Fu/4QbUdOXXBzy+nrEV+lG2sAwGZPGI+fnr9RZcxtPq32UI+p1Wb31pPWAKoMmki
+# E76Lgi3GmKtrm7TJ8mURDHQNsvAIlnTE6LJIoqEUpfj64YlwRDuN7/uk9MO5vRQs
+# 6wwoJyWAqxBLFhJgC2kijE7NxtWyZVkh4HwsEo1wDo+KyuDT17M5d1DQQiwues6c
+# Z3o4d1RA/0+VBCDU68jOhxQI/h2A3dDnK3jqvx9wxu5CFlM2RZtTGUlinXoCm5UU
+# owIDAQABo4IDODCCAzQwDgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwFgYD
+# VR0lAQH/BAwwCgYIKwYBBQUHAwgwggG/BgNVHSAEggG2MIIBsjCCAaEGCWCGSAGG
+# /WwHATCCAZIwKAYIKwYBBQUHAgEWHGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9D
+# UFMwggFkBggrBgEFBQcCAjCCAVYeggFSAEEAbgB5ACAAdQBzAGUAIABvAGYAIAB0
+# AGgAaQBzACAAQwBlAHIAdABpAGYAaQBjAGEAdABlACAAYwBvAG4AcwB0AGkAdAB1
+# AHQAZQBzACAAYQBjAGMAZQBwAHQAYQBuAGMAZQAgAG8AZgAgAHQAaABlACAARABp
+# AGcAaQBDAGUAcgB0ACAAQwBQAC8AQwBQAFMAIABhAG4AZAAgAHQAaABlACAAUgBl
+# AGwAeQBpAG4AZwAgAFAAYQByAHQAeQAgAEEAZwByAGUAZQBtAGUAbgB0ACAAdwBo
+# AGkAYwBoACAAbABpAG0AaQB0ACAAbABpAGEAYgBpAGwAaQB0AHkAIABhAG4AZAAg
+# AGEAcgBlACAAaQBuAGMAbwByAHAAbwByAGEAdABlAGQAIABoAGUAcgBlAGkAbgAg
+# AGIAeQAgAHIAZQBmAGUAcgBlAG4AYwBlAC4wCwYJYIZIAYb9bAMVMB8GA1UdIwQY
+# MBaAFPS24SAd/imu0uRhpbKiJbLIFzVuMB0GA1UdDgQWBBRWUw/BxgenTdfYbldy
+# gFBM5OyewTBxBgNVHR8EajBoMDKgMKAuhixodHRwOi8vY3JsMy5kaWdpY2VydC5j
+# b20vc2hhMi1hc3N1cmVkLXRzLmNybDAyoDCgLoYsaHR0cDovL2NybDQuZGlnaWNl
+# cnQuY29tL3NoYTItYXNzdXJlZC10cy5jcmwwgYUGCCsGAQUFBwEBBHkwdzAkBggr
+# BgEFBQcwAYYYaHR0cDovL29jc3AuZGlnaWNlcnQuY29tME8GCCsGAQUFBzAChkNo
+# dHRwOi8vY2FjZXJ0cy5kaWdpY2VydC5jb20vRGlnaUNlcnRTSEEyQXNzdXJlZElE
+# VGltZXN0YW1waW5nQ0EuY3J0MA0GCSqGSIb3DQEBCwUAA4IBAQAug6FEBUoE47ky
+# UvrZgfAau/gJjSO5PdiSoeZGHEovbno8Y243F6Mav1gjskOclINOOQmwLOjH4eLM
+# 7ct5a87eIwFH7ZVUgeCAexKxrwKGqTpzav74n8GN0SGM5CmCw4oLYAACnR9HxJ+0
+# CmhTf1oQpvgi5vhTkjFf2IKDLW0TQq6DwRBOpCT0R5zeDyJyd1x/T+k5mCtXkkTX
+# 726T2UPHBDNjUTdWnkcEEcOjWFQh2OKOVtdJP1f8Cp8jXnv0lI3dnRq733oqptJF
+# plUMj/ZMivKWz4lG3DGykZCjXzMwYFX1/GswrKHt5EdOM55naii1TcLtW5eC+Mup
+# CGxTCbT3MIIFMTCCBBmgAwIBAgIQCqEl1tYyG35B5AXaNpfCFTANBgkqhkiG9w0B
+# AQsFADBlMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYD
+# VQQLExB3d3cuZGlnaWNlcnQuY29tMSQwIgYDVQQDExtEaWdpQ2VydCBBc3N1cmVk
+# IElEIFJvb3QgQ0EwHhcNMTYwMTA3MTIwMDAwWhcNMzEwMTA3MTIwMDAwWjByMQsw
+# CQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cu
+# ZGlnaWNlcnQuY29tMTEwLwYDVQQDEyhEaWdpQ2VydCBTSEEyIEFzc3VyZWQgSUQg
+# VGltZXN0YW1waW5nIENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
+# vdAy7kvNj3/dqbqCmcU5VChXtiNKxA4HRTNREH3Q+X1NaH7ntqD0jbOI5Je/YyGQ
+# mL8TvFfTw+F+CNZqFAA49y4eO+7MpvYyWf5fZT/gm+vjRkcGGlV+Cyd+wKL1oODe
+# Ij8O/36V+/OjuiI+GKwR5PCZA207hXwJ0+5dyJoLVOOoCXFr4M8iEA91z3FyTgqt
+# 30A6XLdR4aF5FMZNJCMwXbzsPGBqrC8HzP3w6kfZiFBe/WZuVmEnKYmEUeaC50ZQ
+# /ZQqLKfkdT66mA+Ef58xFNat1fJky3seBdCEGXIX8RcG7z3N1k3vBkL9olMqT4Ud
+# xB08r8/arBD13ays6Vb/kwIDAQABo4IBzjCCAcowHQYDVR0OBBYEFPS24SAd/imu
+# 0uRhpbKiJbLIFzVuMB8GA1UdIwQYMBaAFEXroq/0ksuCMS1Ri6enIZ3zbcgPMBIG
+# A1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgGGMBMGA1UdJQQMMAoGCCsG
+# AQUFBwMIMHkGCCsGAQUFBwEBBG0wazAkBggrBgEFBQcwAYYYaHR0cDovL29jc3Au
+# ZGlnaWNlcnQuY29tMEMGCCsGAQUFBzAChjdodHRwOi8vY2FjZXJ0cy5kaWdpY2Vy
+# dC5jb20vRGlnaUNlcnRBc3N1cmVkSURSb290Q0EuY3J0MIGBBgNVHR8EejB4MDqg
+# OKA2hjRodHRwOi8vY3JsNC5kaWdpY2VydC5jb20vRGlnaUNlcnRBc3N1cmVkSURS
+# b290Q0EuY3JsMDqgOKA2hjRodHRwOi8vY3JsMy5kaWdpY2VydC5jb20vRGlnaUNl
+# cnRBc3N1cmVkSURSb290Q0EuY3JsMFAGA1UdIARJMEcwOAYKYIZIAYb9bAACBDAq
+# MCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BTMAsGCWCG
+# SAGG/WwHATANBgkqhkiG9w0BAQsFAAOCAQEAcZUS6VGHVmnN793afKpjerN4zwY3
+# QITvS4S/ys8DAv3Fp8MOIEIsr3fzKx8MIVoqtwU0HWqumfgnoma/Capg33akOpMP
+# +LLR2HwZYuhegiUexLoceywh4tZbLBQ1QwRostt1AuByx5jWPGTlH0gQGF+JOGFN
+# YkYkh2OMkVIsrymJ5Xgf1gsUpYDXEkdws3XVk4WTfraSZ/tTYYmo9WuWwPRYaQ18
+# yAGxuSh1t5ljhSKMYcp5lH5Z/IwP42+1ASa2bKXuh1Eh5Fhgm7oMLSttosR+u8Ql
+# K0cCCHxJrhO24XxCQijGGFbPQTS2Zl22dHv1VjMiLyI2skuiSpXY9aaOUjGCAk0w
+# ggJJAgEBMIGGMHIxCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMx
+# GTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xMTAvBgNVBAMTKERpZ2lDZXJ0IFNI
+# QTIgQXNzdXJlZCBJRCBUaW1lc3RhbXBpbmcgQ0ECEATNP4VornbGG7D+cWDMp20w
+# DQYJYIZIAWUDBAIBBQCggZgwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwG
+# CSqGSIb3DQEJBTEPFw0yMDA3MTcyMDA3MTNaMCsGCyqGSIb3DQEJEAIMMRwwGjAY
+# MBYEFAMlvVBe2pYwLcIvT6AeTCi+KDTFMC8GCSqGSIb3DQEJBDEiBCCR0e6k0QLS
+# Ph5deRuVsyZtoD+Zk4poyn257ewuF+SHRDANBgkqhkiG9w0BAQEFAASCAQAxVVdp
+# WJ7NAb5u0+MaiPgSmUYPDpBr0tkQaFF5GH2MwiuZjYsFeKIGH92w8qvlXC2DTGgF
+# tbD2fu4YN9xAB/e4e6COi4P2sqC2E4nOoWQWb7iNgrqP+lZrrVfmhy/rciR4cdJ0
+# aIJ/mFjr/nz6jyR/v+BdpAfiWUGy49NAHdc+PujZdMhxIu1aDbod76KVQjzgeTRC
+# pDa6nUPl7ocE95cqih6nvsKHGyeHbnPgS1k2au5WL9ZPWcTH1pjJCod7BB8Ui1gr
+# i4KGM4aI2IaUBJw3AXOS2AC83extBX/h1T7yHJEthQHf/yd7N9KSeztGqeeGZqqK
+# 3qPVsX3WKFITB3Mp
 # SIG # End signature block
