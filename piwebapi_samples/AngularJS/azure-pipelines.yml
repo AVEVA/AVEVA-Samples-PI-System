@@ -46,26 +46,9 @@ jobs:
           fileLibrary: $(CredFileLibrary)
           filePath: $(projPath)
 
-      - task: NodeTool@0
-        inputs:
-          versionSpec: '10.x'
-        displayName: 'Specify Node version'
-
-      - script: |
-          echo NPM CI
-          call npm ci
-          echo Run tests
-          call npm run test-single-run
-          echo Complete
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)
-        displayName: 'Install dependencies'
-
-      - task: PublishTestResults@2
-        inputs:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '**\\TEST*.xml'
-          searchFolder: $(Build.SourcesDirectory)$(projPath)
-        displayName: 'Publish test results'
+      - template: '/piwebapi_samples/AngularJS/run-tests.yml'
+        parameters:
+          projectPath: $(Build.SourcesDirectory)$(projPath)
 
   - template: '/miscellaneous/build_templates/analysis.yml'
     parameters:
