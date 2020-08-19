@@ -7,7 +7,6 @@ steps:
       versionSpec: '10.x'
     displayName: 'Specify Node version'
   
-  # This should really be split up into multiple steps
   - script: |
       echo Install Angular CLI
       call npm install -g @angular/cli
