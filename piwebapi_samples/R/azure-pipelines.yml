@@ -46,19 +46,9 @@ jobs:
           fileLibrary: $(CredFileLibrary)
           filePath: $(projPath)
 
-      - script: Rscript.exe run_tests.R
-        workingDirectory: $(Build.SourcesDirectory)$(projpath)
-        continueOnError: 'true'
-        displayName: 'Run tests'
-
-      - task: PublishTestResults@2
-        condition: succeededOrFailed()
-        inputs:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '**\output.xml'
-          searchFolder: $(Build.SourcesDirectory)$(projpath)
-          testRunTitle: 'Publish R test results'
-        displayName: 'Publish test results'
+      - template: '/piwebapi_samples/R/run-tests.yml'
+        parameters:
+          projectPath: $(Build.SourcesDirectory)$(projPath)
 
   - template: '/miscellaneous/build_templates/analysis.yml'
     parameters:
