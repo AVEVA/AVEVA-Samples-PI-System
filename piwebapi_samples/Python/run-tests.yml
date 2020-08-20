@@ -3,18 +3,18 @@ parameters:
 
 steps:
   - script: |
-    echo Install pip
-    call python -m pip install --upgrade pip
-    echo Install tools
-    call pip install unittest
-    call pip install unittest-xml-reporting
-    echo Install requirements
-    call pip install -r requirements.txt
-    echo Run tests
-    call python run_all_tests.py 2>&1
-    echo Complete
-  workingDirectory: ${{ parameters.projectPath }}
-  displayName: 'Run tests'
+      echo Install pip
+      call python -m pip install --upgrade pip
+      echo Install tools
+      call pip install unittest
+      call pip install unittest-xml-reporting
+      echo Install requirements
+      call pip install -r requirements.txt
+      echo Run tests
+      call python run_all_tests.py 2>&1
+      echo Complete
+    workingDirectory: ${{ parameters.projectPath }}
+    displayName: 'Run tests'
 
   - task: PublishTestResults@2
     condition: succeededOrFailed()
