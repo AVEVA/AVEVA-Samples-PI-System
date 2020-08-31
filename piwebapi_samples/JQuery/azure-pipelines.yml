@@ -50,7 +50,7 @@ jobs:
 
       - template: '/piwebapi_samples/JQuery/run-tests.yml'
         parameters:
-          projectPath: $(Build.SourcesDirectory)$(projPath)
+          projectPath: $(Build.SourcesDirectory)$(testPath)
 
   - template: '/miscellaneous/build_templates/analysis.yml'
     parameters:
