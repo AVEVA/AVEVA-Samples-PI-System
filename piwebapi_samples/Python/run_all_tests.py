@@ -71,7 +71,7 @@ class TestSequenceFunctions(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    with open('output.xml', 'w') as output:
+    with open('output.xml', 'wb') as output:
         unittest.main(
             testRunner=xmlrunner.XMLTestRunner(output=output),
             failfast=False, buffer=False, catchbreak=False)

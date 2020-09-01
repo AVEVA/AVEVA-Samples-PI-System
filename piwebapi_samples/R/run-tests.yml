@@ -1,0 +1,17 @@
+parameters:
+  projectPath: ''
+
+steps:
+  - script: Rscript.exe run_tests.R
+    workingDirectory: ${{ parameters.projectPath }}
+    continueOnError: 'true'
+    displayName: 'Run tests'
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**\output.xml'
+      searchFolder: ${{ parameters.projectPath }}
+      testRunTitle: 'Publish R test results'
+    displayName: 'Publish test results'

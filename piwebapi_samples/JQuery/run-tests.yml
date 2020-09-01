@@ -1,0 +1,27 @@
+parameters:
+  projectPath: ''
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '10.x'
+    displayName: 'Specify Node version'
+
+  - script: |
+      echo NPM CI
+      call npm ci
+      echo Install Karma CLI
+      call npm install -g karma-cli
+      echo Run tests
+      call karma start
+      echo Complete
+    workingDirectory: ${{ parameters.projectPath }}
+    displayName: 'Run tests'
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**\TEST*.xml'
+      searchFolder: ${{ parameters.projectPath }}
+    displayName: 'Publish test results'

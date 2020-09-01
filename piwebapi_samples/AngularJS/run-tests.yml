@@ -1,0 +1,25 @@
+parameters:
+  projectPath: ''
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '10.x'
+    displayName: 'Specify Node version'
+
+  - script: |
+      echo NPM CI
+      call npm ci
+      echo Run tests
+      call npm run test-single-run
+      echo Complete
+    workingDirectory: ${{ parameters.projectPath }}
+    displayName: 'Install dependencies'
+
+  - task: PublishTestResults@2
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**\\TEST*.xml'
+      searchFolder: ${{ parameters.projectPath }}
+    displayName: 'Publish test results'

@@ -46,27 +46,9 @@ jobs:
           fileLibrary: $(CredFileLibrary)
           filePath: $(projPath)
 
-      - script: |
-          echo Install pip
-          call python -m pip install --upgrade pip
-          echo Install tools
-          call pip install unittest
-          call pip install unittest-xml-reporting
-          echo Install requirements
-          call pip install -r requirements.txt
-          echo Run tests
-          call python run_all_tests.py 2>&1
-          echo Complete
-        workingDirectory: $(Build.SourcesDirectory)$(projPath)
-        displayName: 'Run tests'
-
-      - task: PublishTestResults@2
-        condition: succeededOrFailed()
-        inputs:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '**\output.xml'
-          searchFolder: $(Build.SourcesDirectory)$(projPath)
-          testRunTitle: 'Publish test results'
+      - template: '/piwebapi_samples/Python/run-tests.yml'
+        parameters:
+          projectPath: $(Build.SourcesDirectory)$(projPath)
 
   - template: '/miscellaneous/build_templates/analysis.yml'
     parameters:
