@@ -4,13 +4,13 @@ The sample code in the folders below demonstrate how to utilize the PI Web API i
 
 The samples exercise the PI Web API in exactly the same way across multiple languages/frameworks: Angular, AngularJS, jQuery, Python and R. Each in their own folder. The samples show basic functionality of the PI Web API, not every feature. These samples are meant to show a basic sample application that uses the PI Web API to read and write data to a PI Data Archive and AF. Tests are also included to verify that the code is functioning as expected.
 
-| Languages                                | Test Status                                                                                                                                                                                                                                |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Angular](Angular) | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Angular?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=953&branchName=master)   |
-| [AngularJS](AngularJS/)                  | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_AngularJS?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=958&branchName=master) |
-| [JQuery](JQuery/)                        | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_JQuery?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=962&branchName=master)    |
-| [Python](Python/)                        | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=963&branchName=master)    |
-| [R](R/)                                  | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_R?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=965&branchName=master)         |
+| Languages               | Test Status                                                                                                                                                                                                                         |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Angular](Angular)      | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Angular?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=953&branchName=master)   |
+| [AngularJS](AngularJS/) | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_AngularJS?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=958&branchName=master) |
+| [JQuery](JQuery/)       | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_JQuery?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=962&branchName=master)    |
+| [Python](Python/)       | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=963&branchName=master)    |
+| [R](R/)                 | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_R?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=965&branchName=master)         |
 
 ## System Configuration
 
@@ -69,5 +69,8 @@ If your support question or issue is related to something with an OSIsoft produc
 
 If your support question or issue is related to a non-modified sample (or test) or documentation for the sample; please email Samples@osisoft.com.
 
+For the main PI Web API page [ReadMe](../)
+
 For the main PI System Samples landing page on master [ReadMe](https://github.com/osisoft/OSI-Samples-PI-System)
+
 For the main samples landing page on master [ReadMe](https://github.com/osisoft/OSI-Samples)
