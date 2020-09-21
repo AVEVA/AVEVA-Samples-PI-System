@@ -1,63 +1,11 @@
 # PI Web API Samples
 
-The sample code in the folders below demonstrate how to utilize the PI Web API in several languages/frameworks.
+The sample code in the folders below demonstrate how to utilize the PI Web API to do several tasks in several languages/frameworks.
 
-The samples exercise the PI Web API in exactly the same way across multiple languages/frameworks: Angular, AngularJS, jQuery, Python and R. Each in their own folder. The samples show basic functionality of the PI Web API, not every feature. These samples are meant to show a basic sample application that uses the PI Web API to read and write data to a PI Data Archive and AF. Tests are also included to verify that the code is functioning as expected.
-
-| Languages                                | Test Status                                                                                                                                                                                                                                |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Angular](Angular) | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Angular?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=953&branchName=master)   |
-| [AngularJS](AngularJS/)                  | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_AngularJS?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=958&branchName=master) |
-| [JQuery](JQuery/)                        | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_JQuery?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=962&branchName=master)    |
-| [Python](Python/)                        | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=963&branchName=master)    |
-| [R](R/)                                  | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_R?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=965&branchName=master)         |
-
-## System Configuration
-
-In order to run these samples, you must configure PI Web API with the proper security to:
-
-- Create an AF database
-- Create AF categories
-- Create AF templates
-- Create AF elements with attributes
-- Create PI Points associated with element attributes
-- Write and read element attributes
-- Delete all the above AF/PI Data Archive objects
-
-On your client machine running this code, it is assumed that you have configured the system to trust the certficate used by PI Web API.
-
-## Common Actions
-
-The functionality included with the samples include (recommended order of execution):
-
-- Create an AF database
-- Create a category
-- Create an element template
-- Create an element and associate the element's attributes with PI tags where appropriate
-- Write a single value to an attribute
-- Write 100 values to an attribute
-- Perform a Batch (6 steps in 1 call) operation which includes:
-  - Get the sample tag
-  - Read the sample tag's snapshot value
-  - Read the sample tag's last 10 recorded values
-  - Write a value to the sample tag
-  - Write 3 values to the sample tag
-  - Read the last 10 recorded values from the sample tag only returning the value and timestamp
-- Return all the values over the last 2 days
-- Return timestamp and values over the last 2 days
-- Delete the element
-- Delete the element template
-- Delete the sample database
-
-## Test Configurations
-
-Automated tests are also available to test the above mentioned functionality. Note that the tests must be updated with the appropriate:
-
-- Username
-- Password
-- PI Web API host
-- AF Server
-- PI Data Archive
+| Task                             | Descrription                                                                                    | Languages                                                                                                                                                                            | Test Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Common Actions](CommonActions/) | A language specific tour of the API that shows some of the common actions done with PI Web API. | [Angular](CommonActions/Angular) </br> [AngularJS](CommonActions/AngularJS/) </br> [JQuery](CommonActions/JQuery/) </br> [Python](CommonActions/Python/) </br> [R](CommonActions/R/) | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Angular?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=953&branchName=master) </br> [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_AngularJS?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=958&branchName=master) </br> [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_JQuery?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=962&branchName=master) </br> [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=963&branchName=master) </br> [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_R?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=965&branchName=master) |
+| [Data Analysis](Data_Analysis/)  | A sample of how to do some data anlaysis using PI Web API Data                                  | [Python(Jupyter)](Data_Analysis/)                                                                                                                                                    | [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Data_Analysis?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=1644&branchName=master)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 ## Feedback
 
