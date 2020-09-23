@@ -5,7 +5,7 @@ trigger:
       - master
   paths:
     include:
-      - '/piwebapi_samples/Python'
+      - '/piwebapi_samples/CommonAPIActions/Python'
 
 pr:
   branches:
@@ -13,7 +13,7 @@ pr:
       - master
   paths:
     include:
-      - '/piwebapi_samples/Python'
+      - '/piwebapi_samples/CommonAPIActions/Python'
 
 schedules:
   - cron: '0 0 * * 0'
@@ -26,7 +26,7 @@ schedules:
 variables:
   - template: '/miscellaneous/build_templates/variables.yml'
   - name: projPath
-    value: '/piwebapi_samples/Python'
+    value: '/piwebapi_samples/CommonAPIActions/Python'
   - name: CredFile
     value: test_config.ini
   - name: CredFileLibrary
@@ -46,7 +46,7 @@ jobs:
           fileLibrary: $(CredFileLibrary)
           filePath: $(projPath)
 
-      - template: '/piwebapi_samples/Python/run-tests.yml'
+      - template: '/piwebapi_samples/CommonAPIActions/Python/run-tests.yml'
         parameters:
           projectPath: $(Build.SourcesDirectory)$(projPath)
 

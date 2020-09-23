@@ -1,5 +1,9 @@
 # Version History
 
+## 1.0.16 / 2020-09-23
+
+- Fix azure pipelines
+
 ## 1.0.15 / 2020-08-06
 
 - Resolve Polaris detected issues
