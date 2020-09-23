@@ -1,5 +1,9 @@
 # Version History
 
+## 1.0.22 / 2020-09-23
+
+- Updated dependencies
+
 ## 1.0.21 / 2020-08-06
 
 - Resolve Polaris detected issues
