@@ -1,6 +1,6 @@
 # PI Web API Angular Sample
 
-**Version:** 1.0.20
+**Version:** 1.0.21
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Angular?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=953&branchName=master)
 
