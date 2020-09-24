@@ -1,5 +1,9 @@
 # Version History
 
+## 1.0.11 / 2020-09-23
+
+- Fix azure pipelines
+
 ## 1.0.10 / 2020-07-31
 
 - Add sample credentials file to gitignore and replace with placeholder
