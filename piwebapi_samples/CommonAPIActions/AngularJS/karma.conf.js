@@ -1,20 +1,21 @@
 //jshint strict: false
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     client: {
       jasmine: {
-        random: false
-      }
+        random: false,
+      },
     },
 
-    basePath: './app',
+    basePath: '',
 
     files: [
-      '../test-config.js',
-      '../node_modules/angular/angular.js',
-      '../node_modules/angular-route/angular-route.js',
-      '../node_modules/angular-mocks/angular-mocks.js',
-      '*.js'
+      'test-config.js',
+      'node_modules/angular/angular.js',
+      'node_modules/angular-route/angular-route.js',
+      'node_modules/angular-mocks/angular-mocks.js',
+      'app.js',
+      'app.spec.js',
     ],
 
     autoWatch: true,
@@ -35,9 +36,9 @@ module.exports = function(config) {
       useBrowserName: true,
       nameFormatter: undefined,
       classNameFormatter: undefined,
-      properties: {}
+      properties: {},
     },
-	
-    port: 9876
+
+    port: 9876,
   });
 };
