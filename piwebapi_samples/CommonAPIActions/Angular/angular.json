@@ -52,6 +52,7 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
+            "port": 9876,
             "browserTarget": "AngularPIWebAPISample:build"
           },
           "configurations": {
@@ -114,5 +115,8 @@
       }
     }
   },
-  "defaultProject": "AngularPIWebAPISample"
+  "defaultProject": "AngularPIWebAPISample",
+  "cli": {
+    "analytics": "fa410254-3134-4e2c-9ad5-302a6b4d4619"
+  }
 }
