@@ -7,14 +7,13 @@ steps:
       versionSpec: '10.x'
     displayName: 'Specify Node version'
 
-  - script: |
-      echo NPM CI
-      call npm ci
-      echo Run tests
-      call npm run test-single-run
-      echo Complete
+  - script: call npm ci
     workingDirectory: ${{ parameters.projectPath }}
     displayName: 'Install dependencies'
+
+  - script: call npm run test-single-run
+    workingDirectory: ${{ parameters.projectPath }}
+    displayName: 'Run tests'
 
   - task: PublishTestResults@2
     condition: succeededOrFailed()

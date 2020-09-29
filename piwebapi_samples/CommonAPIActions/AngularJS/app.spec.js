@@ -8,7 +8,7 @@ if (testConfig.DEFAULT_TIMEOUT_INTERVAL) {
   jasmine.DEFAULT_TIMEOUT_INTERVAL = testConfig.DEFAULT_TIMEOUT_INTERVAL;
 }
 
-describe('AppComponent', function() {
+describe('AppComponent', () => {
   beforeEach(module('myApp'));
 
   let http;
@@ -17,16 +17,16 @@ describe('AppComponent', function() {
   /**
    * Configure the container for the http service.
    */
-  beforeEach(function() {
+  beforeEach(() => {
     const i = angular.injector(['ng']);
     const rs = i.get('$rootScope');
     http = i.get('$http');
 
-    flush = function() {
+    flush = function () {
       rs.$apply();
     };
 
-    module('myApp', function($provide) {
+    module('myApp', ($provide) => {
       $provide.value('$http', http);
       $provide.value('$rootScope', rs);
     });
@@ -35,7 +35,7 @@ describe('AppComponent', function() {
   /**
    * Configure the rootScope container.
    */
-  beforeEach(inject(function($controller, $rootScope) {
+  beforeEach(inject(($controller, $rootScope) => {
     rootScope = $rootScope;
     scope = $rootScope.$new();
     controller = $controller('AppController', { $scope: scope });
@@ -44,8 +44,10 @@ describe('AppComponent', function() {
   /**
    * Test the createDatabase method.
    */
-  it('createDatabase should return a status code of 201 when creating a new database', done => {
+  it('createDatabase should return a status code of 201 when creating a new database', (done) => {
     let returnCode = 0;
+    console.log('e');
+    console.log(testConfig.piWebApiUrl);
     returnCode = scope.createDatabase(
       testConfig.piWebApiUrl,
       testConfig.assetServer,
@@ -53,7 +55,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(201);
       done();
     });
@@ -63,7 +65,7 @@ describe('AppComponent', function() {
   /**
    * Test the createCategory method.
    */
-  it('createCategory should return a status code of 201 when creating a new category', done => {
+  it('createCategory should return a status code of 201 when creating a new category', (done) => {
     let returnCode = 0;
     returnCode = scope.createCategory(
       testConfig.piWebApiUrl,
@@ -72,7 +74,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(201);
       done();
     });
@@ -82,7 +84,7 @@ describe('AppComponent', function() {
   /**
    * Test the createTemplate method.
    */
-  it('createTemplate should return a status code of 201 when creating a new template', done => {
+  it('createTemplate should return a status code of 201 when creating a new template', (done) => {
     let returnCode = 0;
     returnCode = scope.createTemplate(
       testConfig.piWebApiUrl,
@@ -92,7 +94,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(201);
       done();
     });
@@ -102,7 +104,7 @@ describe('AppComponent', function() {
   /**
    * Test the createElement method.
    */
-  it('createElement should return a status code of 200 when creating a new element', done => {
+  it('createElement should return a status code of 200 when creating a new element', (done) => {
     let returnCode = 0;
     returnCode = scope.createElement(
       testConfig.piWebApiUrl,
@@ -111,7 +113,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(200);
       done();
     });
@@ -121,7 +123,7 @@ describe('AppComponent', function() {
   /**
    * Test the writeSingleValue method.
    */
-  it('writeSingleValue should return a status code of 202 when writing a single value', function(done) {
+  it('writeSingleValue should return a status code of 202 when writing a single value', function (done) {
     let returnCode = 0;
     returnCode = scope.writeSingleValue(
       testConfig.piWebApiUrl,
@@ -130,7 +132,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(202);
       done();
     });
@@ -140,7 +142,7 @@ describe('AppComponent', function() {
   /**
    * Test the writeSetOfValues method.
    */
-  it('writeSetOfValues should return a status code of 202 when writing a set of values', function(done) {
+  it('writeSetOfValues should return a status code of 202 when writing a set of values', function (done) {
     let returnCode = 0;
     returnCode = scope.writeSetOfValues(
       testConfig.piWebApiUrl,
@@ -149,7 +151,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(202);
       done();
     });
@@ -159,7 +161,7 @@ describe('AppComponent', function() {
   /**
    * Test the updateAttributeValue method.
    */
-  it('updateAttributeValue should return a status code of 204 when updating an attribute value', function(done) {
+  it('updateAttributeValue should return a status code of 204 when updating an attribute value', function (done) {
     let returnCode = 0;
     returnCode = scope.updateAttributeValue(
       testConfig.piWebApiUrl,
@@ -168,7 +170,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(204);
       done();
     });
@@ -178,7 +180,7 @@ describe('AppComponent', function() {
   /**
    * Test the readSingleValue method.
    */
-  it('readSingleValue should return a status code of 200 when reading a single value', function(done) {
+  it('readSingleValue should return a status code of 200 when reading a single value', function (done) {
     let returnCode = 0;
     returnCode = scope.readSingleValue(
       testConfig.piWebApiUrl,
@@ -187,7 +189,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(200);
       done();
     });
@@ -197,7 +199,7 @@ describe('AppComponent', function() {
   /**
    * Test the readSetofValues method.
    */
-  it('readSetOfValues should return a status code of 200 when reading a set of values', function(done) {
+  it('readSetOfValues should return a status code of 200 when reading a set of values', function (done) {
     let returnCode = 0;
     returnCode = scope.readSetOfValues(
       testConfig.piWebApiUrl,
@@ -206,7 +208,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(200);
       done();
     });
@@ -216,7 +218,7 @@ describe('AppComponent', function() {
   /**
    * Test the reducePayloadWithSelectedFields method.
    */
-  it('reducePayloadWithSelectedFields should return a status code of 200 when reducing payload with selected fields', function(done) {
+  it('reducePayloadWithSelectedFields should return a status code of 200 when reducing payload with selected fields', function (done) {
     let returnCode = 0;
     returnCode = scope.reducePayloadWithSelectedFields(
       testConfig.piWebApiUrl,
@@ -225,7 +227,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(200);
       done();
     });
@@ -235,7 +237,7 @@ describe('AppComponent', function() {
   /**
    * Test the doBatchCall method.
    */
-  it('doBatchCall should return a status code of 207 when performing a batch call', function(done) {
+  it('doBatchCall should return a status code of 207 when performing a batch call', function (done) {
     let returnCode = 0;
     returnCode = scope.doBatchCall(
       testConfig.piWebApiUrl,
@@ -244,7 +246,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(207);
       done();
     });
@@ -254,7 +256,7 @@ describe('AppComponent', function() {
   /**
    * Test the deleteElement method.
    */
-  it('deleteElement should return a status code of 204 when deleteing the element', function(done) {
+  it('deleteElement should return a status code of 204 when deleteing the element', function (done) {
     let returnCode = 0;
     returnCode = scope.deleteElement(
       testConfig.piWebApiUrl,
@@ -263,7 +265,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(204);
       done();
     });
@@ -273,7 +275,7 @@ describe('AppComponent', function() {
   /**
    * Test the deleteTemplate method.
    */
-  it('deleteTemplate should return a status code of 204 when deleteing the template', function(done) {
+  it('deleteTemplate should return a status code of 204 when deleteing the template', function (done) {
     let returnCode = 0;
     returnCode = scope.deleteTemplate(
       testConfig.piWebApiUrl,
@@ -282,7 +284,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(204);
       done();
     });
@@ -292,7 +294,7 @@ describe('AppComponent', function() {
   /**
    * Test the deleteCategory method.
    */
-  it('deleteCategory should return a status code of 204 when deleteing the category', function(done) {
+  it('deleteCategory should return a status code of 204 when deleteing the category', function (done) {
     let returnCode = 0;
     returnCode = scope.deleteCategory(
       testConfig.piWebApiUrl,
@@ -301,7 +303,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(204);
       done();
     });
@@ -311,7 +313,7 @@ describe('AppComponent', function() {
   /**
    * Test the deleteDatabase method.
    */
-  it('deleteDatabase should return a status code of 204 when deleteing the database', function(done) {
+  it('deleteDatabase should return a status code of 204 when deleteing the database', function (done) {
     let returnCode = 0;
     returnCode = scope.deleteDatabase(
       testConfig.piWebApiUrl,
@@ -320,7 +322,7 @@ describe('AppComponent', function() {
       testConfig.userPassword,
       testConfig.authType
     );
-    returnCode.then(function(result) {
+    returnCode.then(function (result) {
       expect(result).toEqual(204);
       done();
     });
