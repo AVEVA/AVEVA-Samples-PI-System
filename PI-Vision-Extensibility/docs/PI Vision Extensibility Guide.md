@@ -5,12 +5,12 @@
 Contents
 ========
 * [Guidelines for Usage](#guidelines-for-usage)
+* [Content Security Policy](#content-security-policy)
 * [Symbol extension](#symbol-extension)
     * [Layers of a PI Vision symbol](#layers-of-a-pi-vision-symbol)
         * [File layout](#file-layout)
         * [File naming convention](#file-naming-convention)
         * [Before you begin](#before-you-begin)
-        * [Content Security Policy](#content-security-policy)
     * [Implementation layer](#implementation-layer)
         * [Definition and registration](#definition-and-registration)
         * [Initialization](#initialization)
@@ -46,6 +46,15 @@ The guidelines below cover the supported functionality of the PI Vision extensib
 
 The PI Vision extensibility framework is supported within the current application framework and is subject to change as the framework evolves.
 
+
+[Back to top](#top)
+
+Content Security Policy
+================
+
+Starting in PI Vision 2020, [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) headers are used by PI Vision to enhance protections against cross site scripting and other attacks. These CSP protections might interfere with custom symbols or tool panes built using the PI Vision extensibility framework, because they block scripts and frames that are loaded from remote sources (outside the PI Vision website). OSIsoft recommends keeping these CSP protections enabled if possible, and configuring them to add any additional trusted sources your custom symbols require. If absolutely required, the CSP protections can be disabled entirely.
+
+To add additional trusted sources to the script-src or frame-src directives used by PI Vision, see the PI Vision Installation and Administration Guide section titled [Change content security policy](https://livelibrary.osisoft.com/LiveLibrary/content/en/vision-v4/GUID-9BF912F4-382D-4814-ACE0-85D30B2BDE77).
 
 [Back to top](#top)
 
@@ -113,13 +122,6 @@ to
 Debug mode disables the PI Vision bundling and minification system; this makes debugging your custom symbol easier.
 
 Note that in debug mode, PI Vision does not process minified JavaScript files.
-
-[Back to top](#top)
-
-### Content Security Policy
-Starting in PI Vision 2020, [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) headers are used by PI Vision to enhance protections against cross site scripting and other attacks. These CSP protections might interfere with custom symbols built using the PI Vision extensibility framework, because they block scripts and frames that are loaded from remote sources (outside the PI Vision website). OSIsoft recommends keeping these CSP protections enabled if possible, but they can be modified to include additional trusted sources. They can also be disabled if needed.
-
-To add additional trusted sources to the script-src or frame-src directives used by PI Vision, see the PI Vision Installation and Administration Guide section titled [Change content security policy](https://livelibrary.osisoft.com/LiveLibrary/content/en/vision-v4/GUID-9BF912F4-382D-4814-ACE0-85D30B2BDE77).
 
 [Back to top](#top)
 
