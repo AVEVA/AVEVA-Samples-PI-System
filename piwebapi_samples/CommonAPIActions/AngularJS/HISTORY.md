@@ -1,5 +1,9 @@
 # Version History
 
+## 1.0.23 / 2020-10-30
+
+- Updated dependencies
+
 ## 1.0.22 / 2020-09-23
 
 - Updated dependencies
