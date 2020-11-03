@@ -17,7 +17,7 @@ describe('Service: PIWebAPIService', () => {
       imports: [HttpClientModule],
       providers: [PIWebAPIService],
     });
-    testService = TestBed.get(PIWebAPIService);
+    testService = TestBed.inject(PIWebAPIService);
   });
 
   it('PIWebAPIService should be created', () => {
