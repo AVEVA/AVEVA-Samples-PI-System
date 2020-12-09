@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using OSIsoft.AF;
 using OSIsoft.AF.Asset;
 using OSIsoft.AF.Data;
+using OSIsoft.AF.Diagnostics;
 using OSIsoft.AF.EventFrame;
 using OSIsoft.AF.Modeling;
 using OSIsoft.AF.Search;
@@ -37,7 +39,7 @@ namespace OSIsoft.PISystemDeploymentTests
         private AFFixture Fixture { get; }
 
         private ITestOutputHelper Output { get; }
- 
+
         /// <summary>
         /// Runs element search queries from Inline query strings.
         /// </summary>
@@ -786,6 +788,83 @@ namespace OSIsoft.PISystemDeploymentTests
         {
             var factAttr = new GenericFactAttribute(TestCondition.AFCLIENTCURRENTPATCH, true);
             Assert.NotNull(factAttr);
+        }
+
+        /// <summary>
+        /// Tests to see if the GetCheckOutInfo RPC is called after a PI System or Database CheckIn or UndoCheckOut
+        /// </summary>
+        /// <remarks>
+        /// Test Steps:
+        /// <para>Create an Event Frame and CheckIn</para>
+        /// <para>CheckOut the Event Frame by editing it</para>
+        /// <para>Perform the CheckIn or UndoCheckOut operation</para>
+        /// <para>Ensure the GetCheckOutInfo RPC was not called</para>
+        /// </remarks>
+        /// <param name="database">Indicates performing a database or system operation</param>
+        /// <param name="undoCheckOut">Indicates performing a CheckIn or UndoCheckOut</param>
+        [GenericFact(TestCondition.AFPATCH2109, false)]
+        public void GetCheckoutInfoTest()
+        {
+            Output.WriteLine("Running GetCheckoutInfo Test with Database: true and UndoCheckOut: false");
+            GetCheckoutInfoTestHelper(true, false);
+            Output.WriteLine("Running GetCheckoutInfo Test with Database: true and UndoCheckOut: true");
+            GetCheckoutInfoTestHelper(true, true);
+            Output.WriteLine("Running GetCheckoutInfo Test with Database: false and UndoCheckOut: false");
+            GetCheckoutInfoTestHelper(false, false);
+            Output.WriteLine("Running GetCheckoutInfo Test with Database: false and UndoCheckOut: true");
+            GetCheckoutInfoTestHelper(false, true);
+        }
+
+        private void GetCheckoutInfoTestHelper(bool database, bool undoCheckOut)
+        {
+            AFDatabase db = Fixture.AFDatabase;
+            AFEventFrame ef = null;
+            string errMsg = string.Empty;
+
+            try
+            {
+                ef = new AFEventFrame(Fixture.AFDatabase, "OSIsoftTests_Patch2109Applied_EF1");
+                ef.CheckIn();
+                ef.SetEndTime("*");
+                AFRpcMetric[] rpcBefore = db.PISystem.GetClientRpcMetrics();
+
+                if (database && !undoCheckOut)
+                {
+                    db.CheckIn();
+                    errMsg = "Database CheckIn";
+                }
+                else if (database)
+                {
+                    db.UndoCheckOut(true);
+                    errMsg = "Database UndoCheckOut";
+                }
+                else if (!database && !undoCheckOut)
+                {
+                    db.PISystem.CheckIn();
+                    errMsg = "PI System CheckIn";
+                }
+                else if (!database)
+                {
+                    db.PISystem.UndoCheckOut(true);
+                    errMsg = "PI System UndoCheckOut";
+                }
+
+                AFRpcMetric[] rpcAfter = db.PISystem.GetClientRpcMetrics();
+                IList<AFRpcMetric> rpcDiff = AFRpcMetric.SubtractList(rpcAfter, rpcBefore);
+                foreach (AFRpcMetric rpcMetric in rpcDiff)
+                {
+                    Assert.False(rpcMetric.Name.Equals("getcheckoutinfo", StringComparison.InvariantCultureIgnoreCase),
+                        $"Error: GetCheckOutInfo RPC was still called after {errMsg} with 2018 SP3 Patch 3!");
+                }
+            }
+            finally
+            {
+                if (ef != null)
+                {
+                    ef.Delete();
+                    db.PISystem.CheckIn();
+                }
+            }
         }
 
         /// <summary>
