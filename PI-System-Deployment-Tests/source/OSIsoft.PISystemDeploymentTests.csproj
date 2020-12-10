@@ -152,9 +152,11 @@
     <Compile Include="Analysis\Helpers\AnalysisHelper.cs" />
     <Compile Include="Common\AFFixture.cs" />
     <Compile Include="Common\AssertEventually.cs" />
+    <Compile Include="Common\GenericTheoryAttribute.cs" />
     <Compile Include="Common\PIFixture.cs" />
     <Compile Include="Common\OptionalTheoryAttribute.cs" />
     <Compile Include="Common\OptionalFactAttribute.cs" />
+    <Compile Include="Common\GenericAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="ManualLogger\ManualLoggerIsLocalFactAttribute.cs" />
     <Compile Include="ManualLogger\ManualLoggerFixture.cs" />
