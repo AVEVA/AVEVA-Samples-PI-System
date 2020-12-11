@@ -18,4 +18,9 @@ $param = @{
 }
 
 #  Call the Master BootStrapper script and start the deployment using the parameters above
-& (Join-Path $PSScriptRoot 'MasterBootstrapperScript.ps1') @param 
+if (Get-Module -ListAvailable -Name "AzureRM.Automation") {
+	& (Join-Path $PSScriptRoot 'MasterBootstrapperScript.ps1') @param 
+}
+else {
+	& (Join-Path $PSScriptRoot 'MasterBootstrapperScript_az.ps1') @param 
+}

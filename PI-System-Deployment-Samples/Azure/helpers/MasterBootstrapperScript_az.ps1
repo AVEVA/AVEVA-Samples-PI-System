@@ -128,7 +128,7 @@ function Copy-LocalDirectoryToBlobStorage
         $targetPath = $sourceRoot.Name + "/" + ($x.fullname.Substring($sourceRoot.FullName.Length + 1)).Replace("\\", "/")
         Write-Verbose "targetPath: $targetPath"
         Write-Verbose "Uploading $("\" + $x.fullname.Substring($sourceRoot.FullName.Length + 1)) to $($StorageContainer.CloudBlobContainer.Uri.AbsoluteUri + "/" + $targetPath)"
-        Set-AzureStorageBlobContent -File $x.fullname -Container $StorageContainer.Name -Blob $targetPath -Context $StorageContext -Force:$Force | Out-Null
+        Set-AzStorageBlobContent -File $x.fullname -Container $StorageContainer.Name -Blob $targetPath -Context $StorageContext -Force
     }
 }
 
@@ -141,15 +141,28 @@ function Copy-LocalDirectoryToFileShare
     $sourceRoot = Get-Item $SourceFileRoot
     Get-ChildItem -Path $SourceFileRoot -Recurse | Where-Object { $_.GetType().Name -eq "FileInfo"} | ForEach-Object {
         $path=$_.FullName.Substring($sourceRoot.FullName.Length+1).Replace("\","/")
-        Set-AzureStorageFileContent -Share $StorageShare -Source $_.FullName -Path $path -Force
+        Set-AzStorageFileContent -ShareName $ArtifactStorageAccountFileShareName -Context $storageContext -Source $_.FullName -Path $path -Force
     }
+}
+
+function Get-RandomCharacters($length, $characters) { 
+    $random = 1..$length | ForEach-Object { Get-Random -Maximum $characters.length } 
+    $private:ofs="" 
+    return [String]$characters[$random]
+}
+
+function Scramble-String([string]$inputString){     
+    $characterArray = $inputString.ToCharArray()   
+    $scrambledStringArray = $characterArray | Get-Random -Count $characterArray.Length     
+    $outputString = -join $scrambledStringArray
+    return $outputString 
 }
 
 if (-not $SkipConnect)
 {
     # Make connection to Azure
-    $azureAccount = Connect-AzureRmAccount
-    Select-AzureRmSubscription -SubscriptionName $SubscriptionName
+    $azureAccount = Connect-AzAccount
+    Select-AzSubscription -Subscription $SubscriptionName
 }
 
 # Set default ArtifactStorageAccountName using the Get-UniqueString function
@@ -172,28 +185,28 @@ if ($null -ne $DSCName) {
 # Check if specified Artifact Resource Group exists, if not, create it
 try
 {
-    $artifactResourceGroup = Get-AzureRmResourceGroup -Name $ArtifactResourceGroupName -ErrorAction Stop
+    $artifactResourceGroup = Get-AzResourceGroup -Name $ArtifactResourceGroupName -ErrorAction Stop
 }
 catch
 {
-    $artifactResourceGroup = New-AzureRmResourceGroup -Name $ArtifactResourceGroupName -Location $Location
+    $artifactResourceGroup = New-AzResourceGroup -Name $ArtifactResourceGroupName -Location $Location
 }
 
 # Check if specified Artifact Storage Account exists, if not, create it and assign some permissions
 try
 {
-    $artifactStorageAccount = Get-AzureRmStorageAccount -ResourceGroupName $ArtifactResourceGroupName -Name $ArtifactStorageAccountName -ErrorAction Stop
+    $artifactStorageAccount = Get-AzStorageAccount -ResourceGroupName $ArtifactResourceGroupName -Name $ArtifactStorageAccountName -ErrorAction Stop
 }
 catch
 {
-    $artifactStorageAccount = New-AzureRmStorageAccount -ResourceGroupName $ArtifactResourceGroupName -Name $ArtifactStorageAccountName -SkuName $ArtifactStorageAccountSku -Location $Location -Kind $ArtifactStorageAccountKind
+    $artifactStorageAccount = New-AzStorageAccount -ResourceGroupName $ArtifactResourceGroupName -Name $ArtifactStorageAccountName -SkuName $ArtifactStorageAccountSku -Location $Location -Kind $ArtifactStorageAccountKind
 }
 
 # Get Context for the created storage account so we can upload files to it
 try
 {
-    $storageAccountKey = (Get-AzureRmStorageAccountKey -ResourceGroupName $ArtifactResourceGroupName -Name $ArtifactStorageAccountName).Value[0]
-    $storageContext = New-AzureStorageContext -StorageAccountName $ArtifactStorageAccountName -StorageAccountKey $storageAccountKey -ErrorAction Stop
+    $storageAccountKey = (Get-AzStorageAccountKey -ResourceGroupName $ArtifactResourceGroupName -Name $ArtifactStorageAccountName).Value[0]
+    $storageContext = New-AzStorageContext -StorageAccountName $ArtifactStorageAccountName -StorageAccountKey $storageAccountKey -ErrorAction Stop
 }
 catch
 {
@@ -204,11 +217,11 @@ catch
 # Check if specified Artifact Storage Container exists, otherwise create it
 try
 {
-    $artifactStorageContainer = Get-AzureRmStorageContainer -Name $ArtifactStorageAccountContainerName -ResourceGroupName $ArtifactResourceGroupName -StorageAccountName $ArtifactStorageAccountName -ErrorAction Stop
+    $artifactStorageContainer = Get-AzRmStorageContainer -Name $ArtifactStorageAccountContainerName -ResourceGroupName $ArtifactResourceGroupName -StorageAccountName $ArtifactStorageAccountName -ErrorAction Stop
 }
 catch
 {
-    $artifactStorageContainer = New-AzureRmStorageContainer -Name $ArtifactStorageAccountContainerName -ResourceGroupName $ArtifactResourceGroupName -StorageAccountName $ArtifactStorageAccountName -ErrorAction Stop
+    $artifactStorageContainer = New-AzRmStorageContainer -Name $ArtifactStorageAccountContainerName -ResourceGroupName $ArtifactResourceGroupName -StorageAccountName $ArtifactStorageAccountName -ErrorAction Stop
 }
 
 # Upload the necessary files to blob storage (ARM Templates, DSC Artifacts, Deployment Scripts)
@@ -225,11 +238,11 @@ if ($artifactStorageContainer)
 
 try
 {
-    $artifactStorageAccountFileShare = Get-AzureStorageShare -Name $ArtifactStorageAccountFileShareName -Context $storageContext -ErrorAction Stop
+    $artifactStorageAccountFileShare = Get-AzStorageShare -Name $ArtifactStorageAccountFileShareName -Context $storageContext -ErrorAction Stop
 }
 catch
 {
-    $artifactStorageAccountFileShare = New-AzureStorageShare -Name $ArtifactStorageAccountFileShareName -Context $storageContext
+    $artifactStorageAccountFileShare = New-AzStorageShare -Name $ArtifactStorageAccountFileShareName -Context $storageContext
 }
 
 if ($artifactStorageAccountFileShare -and -not $skipLocalPIArtifact)
@@ -240,25 +253,27 @@ if ($artifactStorageAccountFileShare -and -not $skipLocalPIArtifact)
 # Check if specified resource group to deploy exists, if not, create it
 try
 {
-    $resourceGroup = Get-AzureRmResourceGroup -Name $ResourceGroupName -ErrorAction Stop
+    $resourceGroup = Get-AzResourceGroup -Name $ResourceGroupName -ErrorAction Stop
 }
 catch
 {
-    $resourceGroup = New-AzureRmResourceGroup -Name $ResourceGroupName -Location $Location
+    $resourceGroup = New-AzResourceGroup -Name $ResourceGroupName -Location $Location
 }
 
 # Get SAS Token to pass to deployment so deployment process has access to file in blob storage
 $sasTokenDurationHours = 6
 $artifactRoot = "https://$ArtifactStorageAccountName.blob.core.windows.net/$ArtifactStorageAccountContainerName"
-$sasToken = New-AzureStorageContainerSASToken -Name $ArtifactStorageAccountContainerName -Context $storageContext -Permission 'r' -ExpiryTime (Get-Date).AddHours($sasTokenDurationHours) | ConvertTo-SecureString -AsPlainText -Force
+$sasToken = New-AzStorageContainerSASToken -Name $ArtifactStorageAccountContainerName -Context $storageContext -Permission 'r' -ExpiryTime (Get-Date).AddHours($sasTokenDurationHours) | ConvertTo-SecureString -AsPlainText -Force
 
 # Create the Azure key vault to store all deployment creds
 try {
     if($ManualCreds) {
-        New-AzureRmKeyVault -Name $KeyVault -ResourceGroupName $ResourceGroupName -Location $Location -ErrorAction Stop
+        Write-Output -Message "ManualCreds: Create key value"
+        New-AzKeyVault -VaultName $KeyVault -ResourceGroupName $ResourceGroupName -Location $Location -SoftDeleteRetentionInDays 7 -ErrorAction Stop
     }
     else {
-        New-AzureRmKeyVault -Name $vaultName -ResourceGroupName $ResourceGroupName -Location $Location -ErrorAction Stop
+      Write-Output -Message "Create key value"
+      New-AzKeyVault -VaultName $vaultName -ResourceGroupName $ResourceGroupName -Location $Location -SoftDeleteRetentionInDays 7  -ErrorAction Stop
     }
 }
 catch
@@ -272,51 +287,51 @@ if ($ManualCreds) {
         if ($null -eq $AdminCredential) {
             $AdminCredential = (Get-Credential -Message "Enter domain admin credentials (exclude domain)")
             try {
-                $secretValue = Get-AzureKeyVaultSecret -VaultName $vaultName -Name $AdminCredential.UserName -ErrorAction SilentlyContinue
+                $secretValue = Get-AzKeyVaultSecret -VaultName $vaultName -Name $AdminCredential.UserName -ErrorAction SilentlyContinue
                 if (!$secretValue) {-ErrorAction Stop}
             }
             catch {
-                Set-AzureKeyVaultSecret -VaultName $vaultName -Name $AdminCredential.UserName -SecretValue ($AdminCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
+                Set-AzKeyVaultSecret -VaultName $vaultName -Name $AdminCredential.UserName -SecretValue ($AdminCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
             }
         }
         if ($null -eq $AfCredential) {
             $AfCredential = (Get-Credential -Message "Enter PI Asset Framework service account credentials (exclude domain)")
             try {
-                $secretValue = Get-AzureKeyVaultSecret -VaultName $vaultName -Name $AfCredential.UserName -ErrorAction SilentlyContinue
+                $secretValue = Get-AzKeyVaultSecret -VaultName $vaultName -Name $AfCredential.UserName -ErrorAction SilentlyContinue
                 if (!$secretValue) {-ErrorAction Stop}
             }
             catch {
-                Set-AzureKeyVaultSecret -VaultName $vaultName -Name $AfCredential.UserName -SecretValue ($AfCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
+                Set-AzKeyVaultSecret -VaultName $vaultName -Name $AfCredential.UserName -SecretValue ($AfCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
             }
         }
         if ($null -eq $AnCredential) {
             $AnCredential = (Get-Credential -Message "Enter PI Analysis service account credentials (exclude domain)")
             try {
-                $secretValue = Get-AzureKeyVaultSecret -VaultName $vaultName -Name $AnCredential.UserName -ErrorAction SilentlyContinue
+                $secretValue = Get-AzKeyVaultSecret -VaultName $vaultName -Name $AnCredential.UserName -ErrorAction SilentlyContinue
                 if (!$secretValue) {-ErrorAction Stop}
             }
             catch {
-                Set-AzureKeyVaultSecret -VaultName $vaultName -Name $AnCredential.UserName -SecretValue ($AnCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
+                Set-AzKeyVaultSecret -VaultName $vaultName -Name $AnCredential.UserName -SecretValue ($AnCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
             }
         }
         if ($null -eq $VsCredential) {
             $VsCredential = (Get-Credential -Message "Enter PI Web API service account credentials (used for PI Vision; exclude domain)")
             try {
-                $secretValue = Get-AzureKeyVaultSecret -VaultName $vaultName -Name $VsCredential.UserName -ErrorAction SilentlyContinue
+                $secretValue = Get-AzKeyVaultSecret -VaultName $vaultName -Name $VsCredential.UserName -ErrorAction SilentlyContinue
                 if (!$secretValue) {-ErrorAction Stop}
             }
             catch {
-                Set-AzureKeyVaultSecret -VaultName $vaultName -Name $VsCredential.UserName -SecretValue ($VsCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
+                Set-AzKeyVaultSecret -VaultName $vaultName -Name $VsCredential.UserName -SecretValue ($VsCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
             }
         }
         if ($null -eq $SqlCredential) {
             $SqlCredential = (Get-Credential -Message "Enter SQL Sever service account credentials (exclude domain)")
             try {
-                $secretValue = Get-AzureKeyVaultSecret -VaultName $vaultName -Name $SqlCredential.UserName -ErrorAction SilentlyContinue
+                $secretValue = Get-AzKeyVaultSecret -VaultName $vaultName -Name $SqlCredential.UserName -ErrorAction SilentlyContinue
                 if (!$secretValue) {-ErrorAction Stop}
             }
             catch {
-                Set-AzureKeyVaultSecret -VaultName $vaultName -Name $SqlCredential.UserName -SecretValue ($SqlCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
+                Set-AzKeyVaultSecret -VaultName $vaultName -Name $SqlCredential.UserName -SecretValue ($SqlCredential.GetNetworkCredential().Password | ConvertTo-SecureString -AsPlainText -Force)
             }
         }
     }
@@ -327,99 +342,33 @@ if ($ManualCreds) {
 
             try
             {
-                $secretValue = Get-AzureKeyVaultSecret -VaultName $vaultName -Name $vaultCredential
+                $secretValue = Get-AzKeyVaultSecret -VaultName $vaultName -Name $vaultCredential
                 if (!$secretValue) {-ErrorAction Stop}
                 Write-Output "$vaultCredential already exists in $vaultName"
 
             }
             catch
             {
-
-                $passwordLength = 30
-                $nonAlphCh = 10
-                Do {
-                        #Generate password using .net
-                        $password = [System.Web.Security.Membership]::GeneratePassword($PasswordLength, $NonAlphCh)
-                    }
-                    While ($null -ne (Select-String -InputObject $Password -Pattern "\[+\S*\]+"))
+                $password = Get-RandomCharacters -length 15 -characters 'abcdefghiklmnoprstuvwxyz'
+                $password += Get-RandomCharacters -length 5 -characters 'ABCDEFGHKLMNOPRSTUVWXYZ'
+                $password += Get-RandomCharacters -length 5 -characters '1234567890'
+                $password += Get-RandomCharacters -length 5 -characters '!$#%'
+                $password = Scramble-String $password 
+                
                 $secretValue = ConvertTo-SecureString -String $password -AsPlainText -Force
-                Set-AzureKeyVaultSecret -VaultName $vaultName -Name $vaultCredential -SecretValue $secretValue
+                Set-AzKeyVaultSecret -VaultName $vaultName -Name $vaultCredential -SecretValue $secretValue
             }
         }
 
-        $AdminCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $adminUser, (Get-AzureKeyVaultSecret -VaultName $vaultName -Name $adminUser).SecretValue
-        $AfCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $afServiceAccountName, (Get-AzureKeyVaultSecret -VaultName $vaultName -Name $afServiceAccountName).SecretValue
-        $AnCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $anServiceAccountName, (Get-AzureKeyVaultSecret -VaultName $vaultName -Name $anServiceAccountName).SecretValue
-        $VsCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $vsServiceAccountName, (Get-AzureKeyVaultSecret -VaultName $vaultName -Name $vsServiceAccountName).SecretValue
-        $SqlCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $sqlServiceAccountName, (Get-AzureKeyVaultSecret -VaultName $vaultName -Name $sqlServiceAccountName).SecretValue
+        $AdminCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $adminUser, (Get-AzKeyVaultSecret -VaultName $vaultName -Name $adminUser).SecretValue
+        $AfCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $afServiceAccountName, (Get-AzKeyVaultSecret -VaultName $vaultName -Name $afServiceAccountName).SecretValue
+        $AnCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $anServiceAccountName, (Get-AzKeyVaultSecret -VaultName $vaultName -Name $anServiceAccountName).SecretValue
+        $VsCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $vsServiceAccountName, (Get-AzKeyVaultSecret -VaultName $vaultName -Name $vsServiceAccountName).SecretValue
+        $SqlCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $sqlServiceAccountName, (Get-AzKeyVaultSecret -VaultName $vaultName -Name $sqlServiceAccountName).SecretValue
 
     }
 
-
-<#
-# Call DEPLOY.master.template.json
-$DeploymentParams = @{
-    ResourceGroupName = $ResourceGroupName
-    TemplateFile = (Join-Path $PSScriptRoot '..\nested\core\DEPLOY.core.template.json')
-    namePrefix = $VMNamePrefix
-    adminUsername = $AdminCredential.UserName
-    adminPassword = $AdminCredential.Password
-    deploymentStorageAccountKey = ($storageAccountKey | ConvertTo-SecureString -AsPlainText -Force)
-    deploymentStorageAccountName = ($ArtifactStorageAccountName | ConvertTo-SecureString -AsPlainText -Force)
-    deploymentStorageAccountFileShareName = ($ArtifactStorageAccountFileShareName | ConvertTo-SecureString -AsPlainText -Force)
-    _artifactRoot = $artifactRoot
-    _artifactSasToken = $sasToken
-
-}
-
-Write-Output -Message "Deploying the core using DEPLOY.core.template.json"
-New-AzureRmResourceGroupDeployment @DeploymentParams
-
-
-# Call Backend Deployment
-$backendDeploymentParams = @{
-    ResourceGroupName = $ResourceGroupName
-    TemplateFile = (Join-Path $PSScriptRoot '..\nested\backend\DEPLOY.backend.template.json')
-    namePrefix = $VMNamePrefix
-    adminUsername = $AdminCredential.UserName
-    adminPassword = $AdminCredential.Password
-    afServiceAccountUsername = $AfCredential.UserName
-    afServiceAccountPassword = $AfCredential.Password
-    anServiceAccountUsername = $AnCredential.UserName
-    anServiceAccountPassword = $AnCredential.Password
-    deploymentStorageAccountKey = ($storageAccountKey | ConvertTo-SecureString -AsPlainText -Force)
-    deploymentStorageAccountName = ($ArtifactStorageAccountName | ConvertTo-SecureString -AsPlainText -Force)
-    deploymentStorageAccountFileShareName = ($ArtifactStorageAccountFileShareName | ConvertTo-SecureString -AsPlainText -Force)
-    _artifactRoot = $artifactRoot
-    _artifactSasToken = $sasToken
-}
-
-Write-Output -Message "Deploying the backend using DEPLOY.backend.template.json"
-New-AzureRmResourceGroupDeployment @backendDeploymentParams
-
 # Call Frontend Deployment
-$backendDeploymentParams = @{
-    ResourceGroupName = $ResourceGroupName
-    TemplateFile = (Join-Path $PSScriptRoot '..\nested\frontend\DEPLOY.frontend.template.json')
-    namePrefix = $VMNamePrefix
-    adminUsername = $AdminCredential.UserName
-    adminPassword = $AdminCredential.Password
-    vsServiceAccountUsername = $VsCredential.UserName
-    vsServiceAccountPassword = $VsCredential.Password
-    deploymentStorageAccountKey = ($storageAccountKey | ConvertTo-SecureString -AsPlainText -Force)
-    deploymentStorageAccountName = ($ArtifactStorageAccountName | ConvertTo-SecureString -AsPlainText -Force)
-    deploymentStorageAccountFileShareName = ($ArtifactStorageAccountFileShareName | ConvertTo-SecureString -AsPlainText -Force)
-    _artifactRoot = $artifactRoot
-    _artifactSasToken = $sasToken
-}
-
-Write-Output -Message "Deploying the backend using DEPLOY.backend.template.json"
-New-AzureRmResourceGroupDeployment @backendDeploymentParams
-
-#>
-
-# Call Frontend Deployment
-
 $masterDeploymentParams = @{
     ResourceGroupName = $ResourceGroupName
     TemplateFile = (Join-Path $PSScriptRoot '..\nested\base\DEPLOY.master.template.json')
@@ -452,26 +401,13 @@ Write-Output -Message "Deploying the full environment using DEPLOY.master.templa
 Write-Output -Message $PIVisionPath
 Write-Output -Message $PIPath
 Write-Output -Message $PIProductID
-New-AzureRmResourceGroupDeployment @masterDeploymentParams -Verbose
-
-<#
-$loadbalancerDeploymentParams = @{
-    ResourceGroupName = $ResourceGroupName
-    TemplateFile = (Join-Path $PSScriptRoot '..\nested\base\base.loadbalancer.template.json')
-    namePrefix = $VMNamePrefix
-    lbType = 'rds'
-    lbName = 'testrdslb'
-    subnetReference = '/subscriptions/3426c00d-8af9-49c0-b965-8690115f3526/resourceGroups/alex-master-test2/providers/Microsoft.Network/virtualNetworks/ds-vnet0/subnets/Public'
-}
-Write-Output -Message "Deploying test lb"
-New-AzureRmResourceGroupDeployment @loadbalancerDeploymentParams -Verbose
-#>
+New-AzResourceGroupDeployment @masterDeploymentParams -Verbose
 
 # SIG # Begin signature block
-# MIIcVgYJKoZIhvcNAQcCoIIcRzCCHEMCAQExDzANBglghkgBZQMEAgEFADB5Bgor
+# MIIcVwYJKoZIhvcNAQcCoIIcSDCCHEQCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDHaOCk5CqOV6xP
-# VnkWJziJwYqhe/0w0BhzspFDLwjopqCCCo0wggUwMIIEGKADAgECAhAECRgbX9W7
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBSQkp/WDhAPb0O
+# vJ9yOOf8tu1aTquV7kGkzQqp+7KlZ6CCCo0wggUwMIIEGKADAgECAhAECRgbX9W7
 # ZnVTQ7VvlVAIMA0GCSqGSIb3DQEBCwUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQK
 # EwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNV
 # BAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9vdCBDQTAeFw0xMzEwMjIxMjAwMDBa
@@ -527,97 +463,97 @@ New-AzureRmResourceGroupDeployment @loadbalancerDeploymentParams -Verbose
 # sebGEVp9NNtsnpcFhjM3e7hqsQAm6rCIJWk0Q1sSyYnhnqHA/iS1DxNqZ/qZHx1k
 # ise1+9bOefqB1YN+vtmPBlLkboKCklbrJmHSEn4cZNBHjq1yVYOPacuws+8kAEMh
 # lDjG2NkfyqF72Jo90SFK7xgjE6euLbvmjGYRSF9h4V+aR6MaEcDkUe2aoCgCmnDX
-# Q+9sIKX0AojqBVLFUNQpzelOdjGWNzdcMMSu8p0pNw4xeAbuCEHfMYIRHzCCERsC
+# Q+9sIKX0AojqBVLFUNQpzelOdjGWNzdcMMSu8p0pNw4xeAbuCEHfMYIRIDCCERwC
 # AQEwgYYwcjELMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcG
 # A1UECxMQd3d3LmRpZ2ljZXJ0LmNvbTExMC8GA1UEAxMoRGlnaUNlcnQgU0hBMiBB
 # c3N1cmVkIElEIENvZGUgU2lnbmluZyBDQQIQBlb6upLHhoprGBiRrHb6WzANBglg
 # hkgBZQMEAgEFAKCBnjAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIBBDAcBgorBgEE
-# AYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQxIgQgVtc8ryX2ZD1p
-# I18eqO6VeumOi2kBXWZ81lnVZTYy57AwMgYKKwYBBAGCNwIBDDEkMCKhIIAeaHR0
-# cDovL3RlY2hzdXBwb3J0Lm9zaXNvZnQuY29tMA0GCSqGSIb3DQEBAQUABIIBAFnY
-# gfF4UTfSpQpWn+0Ik4o3yptQWlBRzr9fu80EHubOBIQnfF1pomlGKdVueonp1Vnu
-# HQWFze9INxuhA83YDG9A++XeDQw0+SGI+FzML4TNdl0N4WLzPRckugtF/rQv7Ext
-# zmk7AXWx7IqqhwL4wlfskeUHoPQgmFnyBXzdQ1uhARRmmngRRpXt6MSxPeu1Ww7r
-# q3Uzs/yivNG0h8GkceKZRYWgdoorXII8ks1tieJ+vq+ESncZ3CPtIKhQ2KZtnU4/
-# tVCaoJG24oqBQkWr2XkWS5cmf87dotDD4yqM6NAnLQidgawXiBB92UoPc8ZhqTGv
-# WKGwnDuMrrUJNdY5ZK+hgg7IMIIOxAYKKwYBBAGCNwMDATGCDrQwgg6wBgkqhkiG
-# 9w0BBwKggg6hMIIOnQIBAzEPMA0GCWCGSAFlAwQCAQUAMHcGCyqGSIb3DQEJEAEE
-# oGgEZjBkAgEBBglghkgBhv1sBwEwMTANBglghkgBZQMEAgEFAAQg4HMwbOLRi9zD
-# 4XJT3xHD0GaptdbNTFYl41lEkzU6knYCEGATBa1Y0WfzAiZKySvPipwYDzIwMjAx
-# MTI0MjE0OTQ2WqCCC7swggaCMIIFaqADAgECAhAEzT+FaK52xhuw/nFgzKdtMA0G
-# CSqGSIb3DQEBCwUAMHIxCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJ
-# bmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xMTAvBgNVBAMTKERpZ2lDZXJ0
-# IFNIQTIgQXNzdXJlZCBJRCBUaW1lc3RhbXBpbmcgQ0EwHhcNMTkxMDAxMDAwMDAw
-# WhcNMzAxMDE3MDAwMDAwWjBMMQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNl
-# cnQsIEluYy4xJDAiBgNVBAMTG1RJTUVTVEFNUC1TSEEyNTYtMjAxOS0xMC0xNTCC
-# ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAOlkNZz6qZhlZBvkF9y4KTbM
-# ZwlYhU0w4Mn/5Ts8EShQrwcx4l0JGML2iYxpCAQj4HctnRXluOihao7/1K7Sehbv
-# +EG1HTl1wc8vp6xFfpRtrAMBmTxiPn56/UWXMbT6t9lCPqdVm99aT1gCqDJpIhO+
-# i4Itxpira5u0yfJlEQx0DbLwCJZ0xOiySKKhFKX4+uGJcEQ7je/7pPTDub0ULOsM
-# KCclgKsQSxYSYAtpIoxOzcbVsmVZIeB8LBKNcA6Pisrg09ezOXdQ0EIsLnrOnGd6
-# OHdUQP9PlQQg1OvIzocUCP4dgN3Q5yt46r8fcMbuQhZTNkWbUxlJYp16ApuVFKMC
-# AwEAAaOCAzgwggM0MA4GA1UdDwEB/wQEAwIHgDAMBgNVHRMBAf8EAjAAMBYGA1Ud
-# JQEB/wQMMAoGCCsGAQUFBwMIMIIBvwYDVR0gBIIBtjCCAbIwggGhBglghkgBhv1s
-# BwEwggGSMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BT
-# MIIBZAYIKwYBBQUHAgIwggFWHoIBUgBBAG4AeQAgAHUAcwBlACAAbwBmACAAdABo
-# AGkAcwAgAEMAZQByAHQAaQBmAGkAYwBhAHQAZQAgAGMAbwBuAHMAdABpAHQAdQB0
-# AGUAcwAgAGEAYwBjAGUAcAB0AGEAbgBjAGUAIABvAGYAIAB0AGgAZQAgAEQAaQBn
-# AGkAQwBlAHIAdAAgAEMAUAAvAEMAUABTACAAYQBuAGQAIAB0AGgAZQAgAFIAZQBs
-# AHkAaQBuAGcAIABQAGEAcgB0AHkAIABBAGcAcgBlAGUAbQBlAG4AdAAgAHcAaABp
-# AGMAaAAgAGwAaQBtAGkAdAAgAGwAaQBhAGIAaQBsAGkAdAB5ACAAYQBuAGQAIABh
-# AHIAZQAgAGkAbgBjAG8AcgBwAG8AcgBhAHQAZQBkACAAaABlAHIAZQBpAG4AIABi
-# AHkAIAByAGUAZgBlAHIAZQBuAGMAZQAuMAsGCWCGSAGG/WwDFTAfBgNVHSMEGDAW
-# gBT0tuEgHf4prtLkYaWyoiWyyBc1bjAdBgNVHQ4EFgQUVlMPwcYHp03X2G5XcoBQ
-# TOTsnsEwcQYDVR0fBGowaDAyoDCgLoYsaHR0cDovL2NybDMuZGlnaWNlcnQuY29t
-# L3NoYTItYXNzdXJlZC10cy5jcmwwMqAwoC6GLGh0dHA6Ly9jcmw0LmRpZ2ljZXJ0
-# LmNvbS9zaGEyLWFzc3VyZWQtdHMuY3JsMIGFBggrBgEFBQcBAQR5MHcwJAYIKwYB
-# BQUHMAGGGGh0dHA6Ly9vY3NwLmRpZ2ljZXJ0LmNvbTBPBggrBgEFBQcwAoZDaHR0
-# cDovL2NhY2VydHMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0U0hBMkFzc3VyZWRJRFRp
-# bWVzdGFtcGluZ0NBLmNydDANBgkqhkiG9w0BAQsFAAOCAQEALoOhRAVKBOO5MlL6
-# 2YHwGrv4CY0juT3YkqHmRhxKL256PGNuNxejGr9YI7JDnJSDTjkJsCzox+HizO3L
-# eWvO3iMBR+2VVIHggHsSsa8Chqk6c2r++J/BjdEhjOQpgsOKC2AAAp0fR8SftApo
-# U39aEKb4Iub4U5IxX9iCgy1tE0Kug8EQTqQk9Eec3g8icndcf0/pOZgrV5JE1+9u
-# k9lDxwQzY1E3Vp5HBBHDo1hUIdjijlbXST9X/AqfI1579JSN3Z0au996KqbSRaZV
-# DI/2TIryls+JRtwxspGQo18zMGBV9fxrMKyh7eRHTjOeZ2ootU3C7VuXgvjLqQhs
-# Uwm09zCCBTEwggQZoAMCAQICEAqhJdbWMht+QeQF2jaXwhUwDQYJKoZIhvcNAQEL
-# BQAwZTELMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcGA1UE
-# CxMQd3d3LmRpZ2ljZXJ0LmNvbTEkMCIGA1UEAxMbRGlnaUNlcnQgQXNzdXJlZCBJ
-# RCBSb290IENBMB4XDTE2MDEwNzEyMDAwMFoXDTMxMDEwNzEyMDAwMFowcjELMAkG
-# A1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcGA1UECxMQd3d3LmRp
-# Z2ljZXJ0LmNvbTExMC8GA1UEAxMoRGlnaUNlcnQgU0hBMiBBc3N1cmVkIElEIFRp
-# bWVzdGFtcGluZyBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL3Q
-# Mu5LzY9/3am6gpnFOVQoV7YjSsQOB0UzURB90Pl9TWh+57ag9I2ziOSXv2MhkJi/
-# E7xX08PhfgjWahQAOPcuHjvuzKb2Mln+X2U/4Jvr40ZHBhpVfgsnfsCi9aDg3iI/
-# Dv9+lfvzo7oiPhisEeTwmQNtO4V8CdPuXciaC1TjqAlxa+DPIhAPdc9xck4Krd9A
-# Oly3UeGheRTGTSQjMF287DxgaqwvB8z98OpH2YhQXv1mblZhJymJhFHmgudGUP2U
-# Kiyn5HU+upgPhH+fMRTWrdXyZMt7HgXQhBlyF/EXBu89zdZN7wZC/aJTKk+FHcQd
-# PK/P2qwQ9d2srOlW/5MCAwEAAaOCAc4wggHKMB0GA1UdDgQWBBT0tuEgHf4prtLk
-# YaWyoiWyyBc1bjAfBgNVHSMEGDAWgBRF66Kv9JLLgjEtUYunpyGd823IDzASBgNV
-# HRMBAf8ECDAGAQH/AgEAMA4GA1UdDwEB/wQEAwIBhjATBgNVHSUEDDAKBggrBgEF
-# BQcDCDB5BggrBgEFBQcBAQRtMGswJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRp
-# Z2ljZXJ0LmNvbTBDBggrBgEFBQcwAoY3aHR0cDovL2NhY2VydHMuZGlnaWNlcnQu
-# Y29tL0RpZ2lDZXJ0QXNzdXJlZElEUm9vdENBLmNydDCBgQYDVR0fBHoweDA6oDig
-# NoY0aHR0cDovL2NybDQuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0QXNzdXJlZElEUm9v
-# dENBLmNybDA6oDigNoY0aHR0cDovL2NybDMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0
-# QXNzdXJlZElEUm9vdENBLmNybDBQBgNVHSAESTBHMDgGCmCGSAGG/WwAAgQwKjAo
-# BggrBgEFBQcCARYcaHR0cHM6Ly93d3cuZGlnaWNlcnQuY29tL0NQUzALBglghkgB
-# hv1sBwEwDQYJKoZIhvcNAQELBQADggEBAHGVEulRh1Zpze/d2nyqY3qzeM8GN0CE
-# 70uEv8rPAwL9xafDDiBCLK938ysfDCFaKrcFNB1qrpn4J6JmvwmqYN92pDqTD/iy
-# 0dh8GWLoXoIlHsS6HHssIeLWWywUNUMEaLLbdQLgcseY1jxk5R9IEBhfiThhTWJG
-# JIdjjJFSLK8pieV4H9YLFKWA1xJHcLN11ZOFk362kmf7U2GJqPVrlsD0WGkNfMgB
-# sbkodbeZY4UijGHKeZR+WfyMD+NvtQEmtmyl7odRIeRYYJu6DC0rbaLEfrvEJStH
-# Agh8Sa4TtuF8QkIoxhhWz0E0tmZdtnR79VYzIi8iNrJLokqV2PWmjlIxggJNMIIC
-# SQIBATCBhjByMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkw
-# FwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMTEwLwYDVQQDEyhEaWdpQ2VydCBTSEEy
-# IEFzc3VyZWQgSUQgVGltZXN0YW1waW5nIENBAhAEzT+FaK52xhuw/nFgzKdtMA0G
-# CWCGSAFlAwQCAQUAoIGYMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkq
-# hkiG9w0BCQUxDxcNMjAxMTI0MjE0OTQ2WjArBgsqhkiG9w0BCRACDDEcMBowGDAW
-# BBQDJb1QXtqWMC3CL0+gHkwovig0xTAvBgkqhkiG9w0BCQQxIgQgx+9GaGciS0DG
-# TWSQAscyg+1eKJ+2N87dVpAuMBjkbTswDQYJKoZIhvcNAQEBBQAEggEAZ94gzjCL
-# M6qftK4VPEZyxh94g/uAOYT7o1P3KHBSl3C5zFeJEZMHT8GtoRhN9tq4YhqcdCay
-# H2dtxU/Qii7Sb2va/SYq8X6XnOi9FVnBI0uLOfuFK9rZIsUpZPRXTrTAQ/YVqP/E
-# m2C2fvklThemX+/gx+Zssrh7WaaoDGjxcJMchQwkakeSHykGqLzUMIxELZ/CsDJM
-# qCW9hVDm7BBg2JiE22rFzCXg3iy7xO0ydgcOmP2+j85ZnL/rqVyLPFPoq9tKsB87
-# rXU4HupVMUaCz6i9h/PXPxRTUUhBbPC9DaIJqR3v95Mbj9897iYkMudQZwMRM6ar
-# CXEHvc+mLyQL1A==
+# AYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAvBgkqhkiG9w0BCQQxIgQgPJI27cRUpVll
+# KTpfKT9TBLfmBEu8ty2z3/o8E58aDBMwMgYKKwYBBAGCNwIBDDEkMCKhIIAeaHR0
+# cDovL3RlY2hzdXBwb3J0Lm9zaXNvZnQuY29tMA0GCSqGSIb3DQEBAQUABIIBACir
+# GJDCbV/6vvGzpus3irUTpKkcDhPkqLdyejX3sHrmmzAUqBvArFO3O6T/qIXDn0+B
+# jhejiDnzj8uFgkV+Czt6SHwrIjGqcjri8Z1ePEs7Dzf2KrGMnmfLsymLuCpvXwnY
+# k++7O6FLXVzfnP1uANzBEXxlDG944COCHiRMMevl+sy6PWZ3ZZnZJqduP9rz8QWg
+# WKgIHNiEA0onf5+tMN4YV4Q2FIWb6wsocwln8oFuOw7ZnmmSxDkD61S9vG/+tXG4
+# IliEdnclQ65JWWA47GOabp9cErYz61D/MnaI09FGeD/t6GaA9FqqvaiBB66QWAmi
+# KwZnqU3UxiCoITFgUlahgg7JMIIOxQYKKwYBBAGCNwMDATGCDrUwgg6xBgkqhkiG
+# 9w0BBwKggg6iMIIOngIBAzEPMA0GCWCGSAFlAwQCAQUAMHgGCyqGSIb3DQEJEAEE
+# oGkEZzBlAgEBBglghkgBhv1sBwEwMTANBglghkgBZQMEAgEFAAQgUCQStJ3cNo2s
+# Q8PTpFe01qi6y2dQvRPVWhCunMuMK5gCEQCVoAWK2Ux5cLOduLWOTyI/GA8yMDIw
+# MTEyNDIxNDk0N1qgggu7MIIGgjCCBWqgAwIBAgIQBM0/hWiudsYbsP5xYMynbTAN
+# BgkqhkiG9w0BAQsFADByMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQg
+# SW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMTEwLwYDVQQDEyhEaWdpQ2Vy
+# dCBTSEEyIEFzc3VyZWQgSUQgVGltZXN0YW1waW5nIENBMB4XDTE5MTAwMTAwMDAw
+# MFoXDTMwMTAxNzAwMDAwMFowTDELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRpZ2lD
+# ZXJ0LCBJbmMuMSQwIgYDVQQDExtUSU1FU1RBTVAtU0hBMjU2LTIwMTktMTAtMTUw
+# ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDpZDWc+qmYZWQb5BfcuCk2
+# zGcJWIVNMODJ/+U7PBEoUK8HMeJdCRjC9omMaQgEI+B3LZ0V5bjooWqO/9Su0noW
+# 7/hBtR05dcHPL6esRX6UbawDAZk8Yj5+ev1FlzG0+rfZQj6nVZvfWk9YAqgyaSIT
+# vouCLcaYq2ubtMnyZREMdA2y8AiWdMToskiioRSl+PrhiXBEO43v+6T0w7m9FCzr
+# DCgnJYCrEEsWEmALaSKMTs3G1bJlWSHgfCwSjXAOj4rK4NPXszl3UNBCLC56zpxn
+# ejh3VED/T5UEINTryM6HFAj+HYDd0OcreOq/H3DG7kIWUzZFm1MZSWKdegKblRSj
+# AgMBAAGjggM4MIIDNDAOBgNVHQ8BAf8EBAMCB4AwDAYDVR0TAQH/BAIwADAWBgNV
+# HSUBAf8EDDAKBggrBgEFBQcDCDCCAb8GA1UdIASCAbYwggGyMIIBoQYJYIZIAYb9
+# bAcBMIIBkjAoBggrBgEFBQcCARYcaHR0cHM6Ly93d3cuZGlnaWNlcnQuY29tL0NQ
+# UzCCAWQGCCsGAQUFBwICMIIBVh6CAVIAQQBuAHkAIAB1AHMAZQAgAG8AZgAgAHQA
+# aABpAHMAIABDAGUAcgB0AGkAZgBpAGMAYQB0AGUAIABjAG8AbgBzAHQAaQB0AHUA
+# dABlAHMAIABhAGMAYwBlAHAAdABhAG4AYwBlACAAbwBmACAAdABoAGUAIABEAGkA
+# ZwBpAEMAZQByAHQAIABDAFAALwBDAFAAUwAgAGEAbgBkACAAdABoAGUAIABSAGUA
+# bAB5AGkAbgBnACAAUABhAHIAdAB5ACAAQQBnAHIAZQBlAG0AZQBuAHQAIAB3AGgA
+# aQBjAGgAIABsAGkAbQBpAHQAIABsAGkAYQBiAGkAbABpAHQAeQAgAGEAbgBkACAA
+# YQByAGUAIABpAG4AYwBvAHIAcABvAHIAYQB0AGUAZAAgAGgAZQByAGUAaQBuACAA
+# YgB5ACAAcgBlAGYAZQByAGUAbgBjAGUALjALBglghkgBhv1sAxUwHwYDVR0jBBgw
+# FoAU9LbhIB3+Ka7S5GGlsqIlssgXNW4wHQYDVR0OBBYEFFZTD8HGB6dN19huV3KA
+# UEzk7J7BMHEGA1UdHwRqMGgwMqAwoC6GLGh0dHA6Ly9jcmwzLmRpZ2ljZXJ0LmNv
+# bS9zaGEyLWFzc3VyZWQtdHMuY3JsMDKgMKAuhixodHRwOi8vY3JsNC5kaWdpY2Vy
+# dC5jb20vc2hhMi1hc3N1cmVkLXRzLmNybDCBhQYIKwYBBQUHAQEEeTB3MCQGCCsG
+# AQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2VydC5jb20wTwYIKwYBBQUHMAKGQ2h0
+# dHA6Ly9jYWNlcnRzLmRpZ2ljZXJ0LmNvbS9EaWdpQ2VydFNIQTJBc3N1cmVkSURU
+# aW1lc3RhbXBpbmdDQS5jcnQwDQYJKoZIhvcNAQELBQADggEBAC6DoUQFSgTjuTJS
+# +tmB8Bq7+AmNI7k92JKh5kYcSi9uejxjbjcXoxq/WCOyQ5yUg045CbAs6Mfh4szt
+# y3lrzt4jAUftlVSB4IB7ErGvAoapOnNq/vifwY3RIYzkKYLDigtgAAKdH0fEn7QK
+# aFN/WhCm+CLm+FOSMV/YgoMtbRNCroPBEE6kJPRHnN4PInJ3XH9P6TmYK1eSRNfv
+# bpPZQ8cEM2NRN1aeRwQRw6NYVCHY4o5W10k/V/wKnyNee/SUjd2dGrvfeiqm0kWm
+# VQyP9kyK8pbPiUbcMbKRkKNfMzBgVfX8azCsoe3kR04znmdqKLVNwu1bl4L4y6kI
+# bFMJtPcwggUxMIIEGaADAgECAhAKoSXW1jIbfkHkBdo2l8IVMA0GCSqGSIb3DQEB
+# CwUAMGUxCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNV
+# BAsTEHd3dy5kaWdpY2VydC5jb20xJDAiBgNVBAMTG0RpZ2lDZXJ0IEFzc3VyZWQg
+# SUQgUm9vdCBDQTAeFw0xNjAxMDcxMjAwMDBaFw0zMTAxMDcxMjAwMDBaMHIxCzAJ
+# BgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5k
+# aWdpY2VydC5jb20xMTAvBgNVBAMTKERpZ2lDZXJ0IFNIQTIgQXNzdXJlZCBJRCBU
+# aW1lc3RhbXBpbmcgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC9
+# 0DLuS82Pf92puoKZxTlUKFe2I0rEDgdFM1EQfdD5fU1ofue2oPSNs4jkl79jIZCY
+# vxO8V9PD4X4I1moUADj3Lh477sym9jJZ/l9lP+Cb6+NGRwYaVX4LJ37AovWg4N4i
+# Pw7/fpX786O6Ij4YrBHk8JkDbTuFfAnT7l3ImgtU46gJcWvgzyIQD3XPcXJOCq3f
+# QDpct1HhoXkUxk0kIzBdvOw8YGqsLwfM/fDqR9mIUF79Zm5WYScpiYRR5oLnRlD9
+# lCosp+R1PrqYD4R/nzEU1q3V8mTLex4F0IQZchfxFwbvPc3WTe8GQv2iUypPhR3E
+# HTyvz9qsEPXdrKzpVv+TAgMBAAGjggHOMIIByjAdBgNVHQ4EFgQU9LbhIB3+Ka7S
+# 5GGlsqIlssgXNW4wHwYDVR0jBBgwFoAUReuir/SSy4IxLVGLp6chnfNtyA8wEgYD
+# VR0TAQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwEwYDVR0lBAwwCgYIKwYB
+# BQUHAwgweQYIKwYBBQUHAQEEbTBrMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5k
+# aWdpY2VydC5jb20wQwYIKwYBBQUHMAKGN2h0dHA6Ly9jYWNlcnRzLmRpZ2ljZXJ0
+# LmNvbS9EaWdpQ2VydEFzc3VyZWRJRFJvb3RDQS5jcnQwgYEGA1UdHwR6MHgwOqA4
+# oDaGNGh0dHA6Ly9jcmw0LmRpZ2ljZXJ0LmNvbS9EaWdpQ2VydEFzc3VyZWRJRFJv
+# b3RDQS5jcmwwOqA4oDaGNGh0dHA6Ly9jcmwzLmRpZ2ljZXJ0LmNvbS9EaWdpQ2Vy
+# dEFzc3VyZWRJRFJvb3RDQS5jcmwwUAYDVR0gBEkwRzA4BgpghkgBhv1sAAIEMCow
+# KAYIKwYBBQUHAgEWHGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwCwYJYIZI
+# AYb9bAcBMA0GCSqGSIb3DQEBCwUAA4IBAQBxlRLpUYdWac3v3dp8qmN6s3jPBjdA
+# hO9LhL/KzwMC/cWnww4gQiyvd/MrHwwhWiq3BTQdaq6Z+CeiZr8JqmDfdqQ6kw/4
+# stHYfBli6F6CJR7Euhx7LCHi1lssFDVDBGiy23UC4HLHmNY8ZOUfSBAYX4k4YU1i
+# RiSHY4yRUiyvKYnleB/WCxSlgNcSR3CzddWThZN+tpJn+1Nhiaj1a5bA9FhpDXzI
+# AbG5KHW3mWOFIoxhynmUfln8jA/jb7UBJrZspe6HUSHkWGCbugwtK22ixH67xCUr
+# RwIIfEmuE7bhfEJCKMYYVs9BNLZmXbZ0e/VWMyIvIjayS6JKldj1po5SMYICTTCC
+# AkkCAQEwgYYwcjELMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZ
+# MBcGA1UECxMQd3d3LmRpZ2ljZXJ0LmNvbTExMC8GA1UEAxMoRGlnaUNlcnQgU0hB
+# MiBBc3N1cmVkIElEIFRpbWVzdGFtcGluZyBDQQIQBM0/hWiudsYbsP5xYMynbTAN
+# BglghkgBZQMEAgEFAKCBmDAaBgkqhkiG9w0BCQMxDQYLKoZIhvcNAQkQAQQwHAYJ
+# KoZIhvcNAQkFMQ8XDTIwMTEyNDIxNDk0N1owKwYLKoZIhvcNAQkQAgwxHDAaMBgw
+# FgQUAyW9UF7aljAtwi9PoB5MKL4oNMUwLwYJKoZIhvcNAQkEMSIEID6pmOaWid4r
+# PrLHvojJrnhtawlHjIle2OnrQr73GkTxMA0GCSqGSIb3DQEBAQUABIIBAKDbhuGi
+# 9Z2osov6qCfhyIG1fCcj54h1WODOXYWV9LPqC6eOe1Pn3eEwZcIe0cFrShRmKoRV
+# boPX0MxF4aFcIlRSXpRxGxWGbU3pf4YBvPcTbhj6oIr5/3TLsevbYY8h1z/LbzRD
+# iqyU36maBbDryjCa12vXGAg/AFLufz4n6QJoPZJh4xIdXCH/9wY1s3VpcazrKz3A
+# Y8yvVQqkZmpSrt5Zt162tUn6CZqH1uf8wgM5ZFTvGanfSjavcUwwPMHkODP9vNYo
+# CwJV4VHmPEhsoztEyfmW5Sq9Xqm2FEskur6qfkS1jA8z0s2/nTZAYay/F1xCWnQw
+# R8fY8FxHhl/4Ekw=
 # SIG # End signature block

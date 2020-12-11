@@ -1,5 +1,5 @@
  ![OSIlogo.png](./images/OSIlogo.png)
- 
+
  # OSIsoft PI System on Azure
 The PI System Deployment Sample for Azure are automated deployments that deploy the PI System on Microsoft Azure through Azure Resource Manager (ARM) templates and PowerShell Desired State Configuration (DSC) scripts. 
 
@@ -17,16 +17,15 @@ The PI System Deployment Sample for Azure installs core PI System components suc
 * [PI AF server](https://techsupport.osisoft.com/Products/PI-Server/PI-AF/Overview) (HA)
 * PI Analysis Service
 * [PI Vision](https://techsupport.osisoft.com/Products/Visualization/PI-Vision/Overview) (HA)
-* PI Web API
 
 The deployment sample scripts create a virtual network divided into private and public subnets, the access to which is governed by associated Network Security Groups (NSGs). The deployment samples deploy all of the resources that comprise the PI System instance into these two subgroups, as shown in the following figures.
 
-| ![AzurenonHADiagram.png](./images/AzurenonHADiagram.png)  | 
-|:--:| 
+| ![AzurenonHADiagram.png](./images/AzurenonHADiagram.png)  |
+|:--:|
 | *A Non-HA PI System Deployment on Azure* |
 
-| ![AzureHADiagram.png](./images/AzureHADiagram.png)  | 
-|:--:| 
+| ![AzureHADiagram.png](./images/AzureHADiagram.png)  |
+|:--:|
 | *An HA PI System Deployment on Azure* |
 
 ### Costs and Licenses
@@ -67,7 +66,7 @@ Download and extract the deployment sample files:
 4. After extracting the repository to a local folder, navigate to <extraction folder>\OSI-Samples-PI-System-master\PI-System-Deployment-Samples\Azure.
 
 #### Download NuGet.exe
-Download the `NuGet.exe` file in order to deploy a PI System instance on Azure. Browse to the [NuGet download page](https://www.nuget.org/downloads) and copy `nuget.exe` to the root folder where you extracted the downloaded GitHub repository on your local machine.
+Download the `NuGet.exe` file in order to deploy a PI System instance on Azure. Browse to the [NuGet download page](https://www.nuget.org/downloads) and copy `nuget.exe` to the root of the Azure folder located in your extracted directory.
 
 #### Download the PI System Files
 Download the following PI System files to the **LocalArtifacts** folder on your local machine:
@@ -78,12 +77,12 @@ Download the following PI System files to the **LocalArtifacts** folder on your 
 
 >**Note:** The deployment sample will use the temporary PI license to deploy. After the deployment of the PI Data Archive(s), you will be able to generate a full PI license file through the OSIsoft Customer Portal using the Machine Signature File created from your deployed PI Data Archive(s).
 
->**Note:** Ensure you download and use the exact version of the PI Server (**PI Server 2018 SP3 Patch 1**) and PI Vision (**PI Vision 2019 Patch 1**) install kits described in this guide!
+>**Note:** Ensure you download and use the exact version of the PI Server (**PI Server 2018 SP3 Patch 3**) and PI Vision (**PI Vision 2020**) install kits described in this guide!
 
 ##### Download and Stage the PI Server Install Kit and Temporary License File
 1. From the **Products** page on the [OSIsoft Customer Portal](https://my.osisoft.com), click on the product row for **PI Server**.
-2. Click the **ALL VERSIONS** tab to display the **PI Server 2018 SP3 Patch 1** version of PI Server.
-3. On the row corresponding to the **PI Server 2018 SP3 Patch 1** version of the install kit, click **Download** to display the **License and Service Agreements** page.
+2. Click the **ALL VERSIONS** tab to display the **PI Server 2018 SP3 Patch 3** version of PI Server.
+3. On the row corresponding to the **PI Server 2018 SP3 Patch 3** version of the install kit, click **Download** to display the **License and Service Agreements** page.
 4. Agree to the **OSIsoft, LLC. (“OSIsoft”) Software License and Services Agreement** and click **Download**.
 5. When prompted to run or save the executable setup file, click **Save** and click **OK**.
 6. Locate your temporary PI license file and rename the file to **pilicense.dat**. If you do not have a temporary PI license, please contact OSIsoft Tech Support to obtain a 14-day temporary license for the deployment. OSIsoft Tech Support can be reached at the [ Customer Portal](https://my.osisoft.com).
@@ -91,8 +90,8 @@ Download the following PI System files to the **LocalArtifacts** folder on your 
 
 ##### Download and Stage the PI Vision Install Kit
 1. From the **Products** page on the OSIsoft [Customer Portal](https://my.osisoft.com), click on the product row for **PI Vision**.
-2. Select the **ALL VERSIONS** tab to display the **PI Vision 2019 Patch 1** version of PI Vision.
-3. On the row corresponding to the **PI Vision 2019 Patch 1** version of the install kit, click **Download** to display the **License and Service Agreements** page.
+2. Select the **ALL VERSIONS** tab to display the **PI Vision 2020** version of PI Vision.
+3. On the row corresponding to the **PI Vision 2020** version of the install kit, click **Download** to display the **License and Service Agreements** page.
 4. Agree to the **OSIsoft, LLC. (“OSIsoft”) Software License and Services Agreement** and click **Download**.
 5. When prompted to run or save the executable setup file, click **Save** and click **OK**.
 6. Upload your PI Vision installer into the **LocalArtifacts** folder on your local machine.
@@ -101,7 +100,7 @@ Download the following PI System files to the **LocalArtifacts** folder on your 
 1. Go to the [OSIsoft GitHub repository for PI System Deployment Samples](https://github.com/osisoft/OSI-Samples-PI-System).
 2. Click **Clone or Download** and then **Download Zip** to download the contents of this GitHub repository onto your local machine as a zip file. The deployment samples will configure and run the deployment tests for your environment.
 3. Extract the **PI-System-Deployment-Tests** folder to your local machine.
-4. Create a new zip file from the PI-System-Deployment-Tests folder.  The filename should be PI-System-Deployment-Tests.zip.
+4. Locate the folder called "PI-System-Deployment-Tests", right click on it and select "Send to > Compressed (zipped) folder". The filename should be PI-System-Deployment-Tests.zip.
 5. Save this zip file onto your local machine in the **LocalArtifacts** folder. 
 
 #### Verify You Have All of the Necessary Files
@@ -111,14 +110,14 @@ Verify that you have the necessary files and folders on your local machine. It s
 Unzipped folder (AzureDeployment)
 |--> helpers 
 |--> LocalArtifacts 
-    |--> PI Server_2018 SP3 Patch 1_.exe 
-    |--> PI Vision_2019 Patch 1_.exe 
+    |--> PI-Server_2018-SP3-Patch-3_.exe 
+    |--> PI-Vision_2020_.exe
     |--> pilicense.dat 
     |--> UpdateAFServersUser.sql 
     |--> PI-System-Deployment-Tests.zip 
 |--> LocalNugetPackages 
-    |--> PSDSSupportPIDA.nupkg 
-    |--> PSDSSupportPIVS.nupkg 
+    |--> PSDSSupportPIDA.0.0.0.3.nupkg 
+    |--> PSDSSupportPIVS.0.0.0.3.nupkg 
 |--> nested 
 |--> scripts 
 |--> README.md 
@@ -222,7 +221,7 @@ Once the PI Data Archive(s) are fully deployed, you can generate a full PI licen
 10. Stop and start the PI server and associated services by running: **pisrvstop && pisrvstart**.
 
 ### Replace the Self-signed Certificate with a Trusted Certificate
-OSIsoft strongly recommends using a digital certificate obtained from a trusted third-party Certification Authority (CA) or from your enterprise's private CA. It is recommended that you replace the self-signed certificate generated with the PI Web API Admin Utility during the deployment of PI Vision with your trusted certificate. You can follow the instructions included in the following article to switch from the self-signed certificate to a custom certificate:
+OSIsoft strongly recommends using a digital certificate obtained from a trusted third-party Certification Authority (CA) or from your enterprise's private CA. It is recommended that you replace the self-signed certificate generated during the deployment of PI Vision with your trusted certificate. You can follow the instructions included in the following article to switch from the self-signed certificate to a custom certificate:
 [Replacing a Self-Signed Certificate with a Trusted Certificate](https://customers.osisoft.com/s/knowledgearticle?knowledgeArticleUrl=KB01448)
 
 ### Feedback
@@ -237,4 +236,4 @@ If your support question or issue is related to a non-modified sample (or test) 
 
 ### License
 
-The PI System Deployment Samples are licensed under the [Apache 2 license](https://github.com/osisoft/OSI-Samples/blob/master/LICENSE.md).
+The PI System Deployment Samples are licensed under the [Apache 2 license](https://github.com/osisoft/OSI-Samples-PI-System/blob/master/LICENSE).
