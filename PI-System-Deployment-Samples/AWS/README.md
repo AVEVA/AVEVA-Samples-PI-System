@@ -26,7 +26,7 @@ Optionally, the deployment sample supports the ability to deploy PI System in a 
 >**Note:** The AWS CloudFormation template discussed in this guide (*DSMasterStack.template*) is meant for deployment with a new AWS infrastructure, and not meant to be used on an existing AWS environment.
 
 ### OSIsoft PI System on AWS
-With PI System Deployment Sample for AWS, you deploy a PI System on a new VPC (an end-to-end deployment). The deployment template for a new VPC (`DSMasterStack.template`) builds a new AWS environment consisting of the VPC, private and public subnets, NAT gateways, Internet gateway, security groups, bastion hosts, and other infrastructure components essential for the new PI System. In addition, the deployment includes Active Directory, SQL Server, PI Data Archive, PI AF, PI Analysis Service, PI Vision, PI Web API, and Remote Desktop Service into this new VPC.
+With PI System Deployment Sample for AWS, you deploy a PI System on a new VPC (an end-to-end deployment). The deployment template for a new VPC (`DSMasterStack.template`) builds a new AWS environment consisting of the VPC, private and public subnets, NAT gateways, Internet gateway, security groups, bastion hosts, and other infrastructure components essential for the new PI System. In addition, the deployment includes Active Directory, SQL Server, PI Data Archive, PI AF, PI Analysis Service, PI Vision, and Remote Desktop Service into this new VPC.
 
 Per standard security practices, the environment is accessible via Remote Desktop Service EC2 instances. 
 
@@ -109,7 +109,7 @@ Note that the same AWS CloudFormation template is used for both of these options
 2. Sign in to the [Amazon Management Console](https://console.aws.amazon.com/).
 3.	Select a region using the region selector dropdown list in the top navigation bar. The AWS Region specifies where you want to deploy the PI System on AWS.
 4. Click **Compute** > **EC2** > **Key Pairs** to access the list of key pairs.
-5. Click **Create Key Pair** to create a [key pair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in your selected AWS Region. Public-key cryptography uses key pairs to enable secure access to your EC2 instances. When you launch an instance, you specify the key pair. 
+5. Click **Create Key Pair** to create a [key pair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in your selected AWS Region. Be sure to use the PEM key type for use with OpenSSH so you can decrypt passwords from the AWS console. Public-key cryptography uses key pairs to enable secure access to your EC2 instances. When you launch an instance, you specify the key pair. 
 6.	If necessary, [request a service limit increase](https://console.aws.amazon.com/support/home#/case/create?issueType=service-limit-increase&limitType=service-code-) for the Amazon EC2 M and T instance types. You might need to do this if you already have an existing deployment that uses this instance type, and you think you might exceed the [default limit](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-resource-limits.html) with this deployment. 
 
 > **Note:** Deploying PI System stack into a new VPC will require **7** public IP addresses. The default service limitation for an AWS account is 5 public IP addresses. To successfully deploy the deployment sample, you may need to request a limit increase for this resource. AWS documentation on limit increases can be found under [Amazon EC2 Service Limits](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-resource-limits.html).
@@ -181,7 +181,7 @@ The following sections describe the process for finding and staging these files.
 
 The deployment sample must have access to the aforementioned files in an S3 bucket in your AWS account.
 
->**Note:** Ensure you download and use the exact version of the PI Server (PI Server 2018 SP3 Patch 1) and PI Vision (PI Vision 2019 Patch 1) install kits described in this guide!
+>**Note:** Ensure you download and use the exact version of the PI Server (PI Server 2018 SP3 Patch 3) and PI Vision (PI Vision 2020) install kits described in this guide!
 
 #### Create PI Install Folders in the S3 Bucket
 1.	From the [Amazon Management Console](https://console.aws.amazon.com/), click **Storage** > **S3**.
@@ -193,8 +193,8 @@ The deployment sample must have access to the aforementioned files in an S3 buck
 
 #### Download and Stage the PI Server Install Kit and Temporary License File
 1. From the **Products** page on the OSIsoft [Customer Portal](https://my.osisoft.com), click on the product row for **PI Server**.
-2. Click the **ALL VERSIONS** tab to display the **PI Server 2018 SP3 Patch 1** version of PI Server.
-3. On the row corresponding to the **PI Server 2018 SP3 Patch 1** version of the install kit, click **Download** to display the **License and Service Agreements** page.
+2. Click the **ALL VERSIONS** tab to display the **PI Server 2018 SP3 Patch 3** version of PI Server.
+3. On the row corresponding to the **PI Server 2018 SP3 Patch 3** version of the install kit, click **Download** to display the **License and Service Agreements** page.
 4. Agree to the **OSIsoft, LLC. (“OSIsoft”) Software License and Services Agreement** and click
 **Download**
 5. When prompted to run or save the executable setup file, click **Save** and click **OK**.
@@ -203,8 +203,8 @@ The deployment sample must have access to the aforementioned files in an S3 buck
 
 #### Download and Stage the PI Vision Install Kit
 1. From the **Products** page on the OSIsoft [Customer Portal](https://my.osisoft.com), click on the product row for **PI Vision**.
-2. Select the  **ALL VERSIONS** tab to display the **PI Vision 2019 Patch 1** version of PI Vision.
-3. On the row corresponding to the **PI Vision 2019 Patch 1** version of the install kit, click **Download** to display the **License and Service Agreements** page.
+2. Select the  **ALL VERSIONS** tab to display the **PI Vision 2020** version of PI Vision.
+3. On the row corresponding to the **PI Vision 2020** version of the install kit, click **Download** to display the **License and Service Agreements** page.
 4. Agree to the **OSIsoft, LLC. (“OSIsoft”) Software License and Services Agreement** and click **Download**.
 5. When prompted to run or save the executable setup file, click **Save** and click **OK**.
 6. Upload your PI Vision installer into the `PIVision` folder.
@@ -213,7 +213,7 @@ The deployment sample must have access to the aforementioned files in an S3 buck
 1. Go to the OSIsoft GitHub repository for PI System Deployment Samples at this [page](https://github.com/osisoft/OSI-Samples-PI-System).
 2. Click **Clone or Download** and then **Download Zip** to download the contents of this GitHub repository onto your local machine as a zip file. The deployment samples will configure and run the deployment tests for your environment.
 3. Extract the **PI-System-Deployment-Tests** folder to your local machine.
-4. Create a new zip file from the PI-System-Deployment-Tests folder.  The filename should be PI-System-Deployment-Tests.zip.
+4. Locate the folder called "PI-System-Deployment-Tests", right click on it and select "Send to > Compressed (zipped) folder". The filename should be PI-System-Deployment-Tests.zip.
 5. Upload this zip file into the *SetupKitsFolderName* folder in your S3 bucket on the [Amazon Management Console](https://s3.console.aws.amazon.com/s3/). 
 
 #### Verify your S3 Bucket
@@ -224,9 +224,9 @@ Verify that your bucket has a hierarchy with the files and folders matching the 
 |--> <SetupKitsFolderName>
    |--> PIServer
       |--> pilicense.dat
-      |--> PI Server_2018 SP3 Patch 1_.exe
+      |--> PI-Server_2018-SP3-Patch-3_.exe
    |--> PIVision
-      |--> PI Vision_2019 Patch 1_.exe
+      |--> PI-Vision_2020_.exe
    |--> PI-System-Deployment-Tests.zip
 ```
 ### Step 5: Launch the Deployment Sample
@@ -307,9 +307,9 @@ DSS3BucketRegion | us-west-1 | Region for Deployment Samples S3 Bucket. Used in 
 SetupKitsS3BucketName | *Requires Input* | S3 bucket name for the Setup Kit assets. This contains the install media for a PI System. Bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).
 SetupKitsS3KeyPrefix | osisetupkits | Setup Kits key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash.
 SetupKitsS3BucketRegion | us-west-1 | Region for Setup Kits S3 Bucket. Used in S3 URL
-SetupKitsS3PIFileName | PI Server_2018 SP3 Patch 1_.exe | File Name for the PI Server Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
-SetupKitsS3PIProductID | d47af9e0-e952-4068-b77b-52e5b4cf03b7 | Product ID for the PI Server Setup Kit. Product ID can include numbers, lowercase letters, uppercase letters,and hyphens (-). It cannot start or end with a hyphen (-). This should not be modified.
-SetupKitsS3VisionFileName | PI Vision_2019 Patch 1_.exe | File Name for the PI Vision Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
+SetupKitsS3PIFileName | PI-Server_2018-SP3-Patch-3_.exe | File Name for the PI Server Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
+SetupKitsS3PIProductID | 63819281-e1d6-4c55-b797-b4d1ca9af535 | Product ID for the PI Server Setup Kit. Product ID can include numbers, lowercase letters, uppercase letters,and hyphens (-). It cannot start or end with a hyphen (-). This should not be modified.
+SetupKitsS3VisionFileName | PI-Vision_2020_.exe | File Name for the PI Vision Setup Kit. File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
 TestFileName | PI-System-Deployment-Tests.zip | File Name for the test file. This should be the same as the downloaded zip file (ex: *PI-System-Deployment-Tests.zip*). File name can include numbers, lowercase letters, uppercase letters, underscores (_), and hyphens (-). It cannot start or end with a hyphen (-).
 
 ### Step 6: Replace the Temporary PI License with a Full PI License
@@ -338,7 +338,7 @@ After a successful installation and deployment of PI System, you must generate a
 10. Stop and start the services: **pisrvstop && pisrvstart**.
 
 ### Step 7: Replace the Self-signed Certificate with a Trusted Certificate
-OSIsoft strongly recommends using a digital certificate obtained from a trusted third-party Certification Authority (CA) or from your enterprise's private CA. It is recommended that you replace the self-signed certificate generated with the PI Web API Admin Utility during the deployment of PI Vision with your trusted certificate. You can follow the instructions included in the following article to switch from the self-signed certificate to a custom certificate:
+OSIsoft strongly recommends using a digital certificate obtained from a trusted third-party Certification Authority (CA) or from your enterprise's private CA. It is recommended that you replace the self-signed certificate generated during the deployment of PI Vision with your trusted certificate. You can follow the instructions included in the following article to switch from the self-signed certificate to a custom certificate:
 [Replacing a Self-Signed Certificate with a Trusted Certificate](https://customers.osisoft.com/s/knowledgearticle?knowledgeArticleUrl=KB01448)
 
 ### Step 8: Review the PI System Deployment Tests Results
@@ -456,4 +456,4 @@ If your support question or issue is related to a non-modified sample (or test) 
 
 ### License
 
-PI System Deployment Samples are licensed under the [Apache 2 license](https://github.com/osisoft/OSI-Samples/blob/master/LICENSE.md).
+PI System Deployment Samples are licensed under the [Apache 2 license](https://github.com/osisoft/OSI-Samples-PI-System/blob/master/LICENSE).
