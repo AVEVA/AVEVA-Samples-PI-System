@@ -370,7 +370,7 @@
         },
         "PIWebAppsADGroup": {
             "Type": "String",
-            "Description": "OSIsoft Field Service Technical Standards - PI Vision, PI WebAPI, and PI Web Crawler.",
+            "Description": "OSIsoft Field Service Technical Standards - PI Vision.",
             "Default": "PIWebApps"
         },
         "PIConnectorRelaysADGroup": {
