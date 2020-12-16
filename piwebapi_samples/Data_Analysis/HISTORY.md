@@ -3,6 +3,7 @@
 ## 1.0.7 / 2020-12-16
 
 - Updated dependencies
+- Added StyleCop rules to UploadUtility and resolved issues
 
 ## 1.0.6 / 2020-10-30
 
