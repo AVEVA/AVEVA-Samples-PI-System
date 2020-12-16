@@ -1,19 +1,19 @@
 {
   "name": "angular-seed",
   "private": true,
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "A starter project for AngularJS",
   "repository": "https://github.com/angular/angular-seed",
   "license": "MIT",
   "dependencies": {
-    "angular": "^1.8.0",
-    "angular-loader": "^1.8.0",
-    "angular-route": "^1.8.0",
+    "angular": "^1.8.2",
+    "angular-loader": "^1.8.2",
+    "angular-route": "^1.8.2",
     "html5-boilerplate": "8.0.0"
   },
   "devDependencies": {
-    "angular-mocks": "^1.8.0",
-    "eslint": "^7.10.0",
+    "angular-mocks": "^1.8.2",
+    "eslint": "^7.15.0",
     "eslint-config-google": "^0.14.0",
     "http-server": "^0.12.3",
     "jasmine-core": "^3.6.0",
