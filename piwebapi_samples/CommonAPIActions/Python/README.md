@@ -1,6 +1,6 @@
 # PI Web API Python Sample
 
-**Version:** 1.0.16
+**Version:** 1.0.17
 
 [![Build Status](https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/PIWebAPI_Python?branchName=master)](https://dev.azure.com/osieng/engineering/_build?definitionId=963&branchName=master)
 
