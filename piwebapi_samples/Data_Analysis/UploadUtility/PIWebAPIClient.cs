@@ -1,45 +1,43 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace UploadUtility
 {
-    class PIWebAPIClient
+    public class PIWebAPIClient
     {
-        private HttpClient client;
+        private readonly HttpClient _client;
 
         public PIWebAPIClient()
         {
-            using (var handler = new HttpClientHandler() { UseDefaultCredentials = true })
-            {
-                client = new HttpClient(handler);
-                client.DefaultRequestHeaders.Add("X-Requested-With", "xhr");
-            }
+            using var handler = new HttpClientHandler() { UseDefaultCredentials = true };
+            _client = new HttpClient(handler);
+            _client.DefaultRequestHeaders.Add("X-Requested-With", "xhr");
         }
 
         public PIWebAPIClient(string baseAddress, string username, string password)
         {
-            client = new HttpClient();
+            _client = new HttpClient();
 
-            //Base address must end with a '/'
-            if (baseAddress[baseAddress.Length - 1] != '/')
+            // Base address must end with a '/'
+            if (baseAddress[^1] != '/')
             {
                 baseAddress += "/";
             }
 
-            client.BaseAddress = new Uri(baseAddress);
+            _client.BaseAddress = new Uri(baseAddress);
             string creds = Convert.ToBase64String(
-                System.Text.Encoding.ASCII.GetBytes(String.Format("{0}:{1}", username, password)));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", creds);
-            client.DefaultRequestHeaders.Add("X-Requested-With", "xhr");
+                Encoding.ASCII.GetBytes(string.Format("{0}:{1}", username, password)));
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", creds);
+            _client.DefaultRequestHeaders.Add("X-Requested-With", "xhr");
         }
 
         public async Task<JObject> GetAsync(string uri)
         {
-            HttpResponseMessage response = await client.GetAsync(uri);
+            HttpResponseMessage response = await _client.GetAsync(uri);
 
             Console.WriteLine("GET response code " + response.StatusCode);
             string content = await response.Content.ReadAsStringAsync();
@@ -49,12 +47,13 @@ namespace UploadUtility
                 var responseMessage = "Response status code does not indicate success: " + (int)response.StatusCode + " (" + response.StatusCode + " ). ";
                 throw new HttpRequestException(responseMessage + Environment.NewLine + content);
             }
+
             return JObject.Parse(content);
         }
 
         public async Task PostAsync(string uri, string data)
         {
-            HttpResponseMessage response = await client.PostAsync(
+            HttpResponseMessage response = await _client.PostAsync(
                 uri, new StringContent(data, Encoding.UTF8, "application/json"));
 
             Console.WriteLine("POST response code " + response.StatusCode);
@@ -69,10 +68,10 @@ namespace UploadUtility
 
         public async Task PostXmlAsync(string uri, string data)
         {
-            HttpResponseMessage response = await client.PostAsync(
+            HttpResponseMessage response = await _client.PostAsync(
                 uri, new StringContent(data, Encoding.UTF8, "text/xml"));
 
-            Console.WriteLine("GET response code ", response.StatusCode);
+            Console.WriteLine("GET response code " + response.StatusCode);
             string content = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
@@ -84,7 +83,7 @@ namespace UploadUtility
 
         public async Task DeleteAsync(string uri)
         {
-            HttpResponseMessage response = await client.DeleteAsync(uri);
+            HttpResponseMessage response = await _client.DeleteAsync(uri);
             Console.WriteLine("DELETE response code " + response.StatusCode);
             string content = await response.Content.ReadAsStringAsync();
 
@@ -97,7 +96,7 @@ namespace UploadUtility
 
         public JObject GetRequest(string url)
         {
-            Task<JObject> t = this.GetAsync(url);
+            Task<JObject> t = GetAsync(url);
             t.Wait();
             return t.Result;
         }
@@ -106,25 +105,25 @@ namespace UploadUtility
         {
             if (isXML)
             {
-                Task t = this.PostXmlAsync(url, data);
+                Task t = PostXmlAsync(url, data);
                 t.Wait();
             }
             else
             {
-                Task t = this.PostAsync(url, data);
+                Task t = PostAsync(url, data);
                 t.Wait();
             }
         }
 
         public void DeleteRequest(string url)
         {
-            Task t = this.DeleteAsync(url);
+            Task t = DeleteAsync(url);
             t.Wait();
         }
 
         public void Dispose()
         {
-            client.Dispose();
+            _client.Dispose();
         }
     }
 }
