@@ -46,8 +46,6 @@ describe('AppComponent', () => {
    */
   it('createDatabase should return a status code of 201 when creating a new database', (done) => {
     let returnCode = 0;
-    console.log('e');
-    console.log(testConfig.piWebApiUrl);
     returnCode = scope.createDatabase(
       testConfig.piWebApiUrl,
       testConfig.assetServer,
