@@ -4,16 +4,16 @@
 
 The OSIsoft PI System samples are organized by tasks and accessible through the following table:
 
-| Task                                                                         | Description                                                                                                                                           |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **<a href="piwebapi_samples/">PI Web API</a>**                               | These samples cover programming against the PI Server via the PI Web API. <a href="piwebapi_samples/">Details</a>                                     |
-| **<a href="PI-System-Deployment-Tests/">PI System Deployment Tests</a>**     | These test samples are a lightweight sample testing framework for assessing a PI System deployment. <a href="PI-System-Deployment-Tests/">Details</a> |
-| **<a href="PI-System-Deployment-Samples/">PI System Deployment Samples</a>** | These samples cover deploying the PI System to web services or on premises. <a href="PI-System-Deployment-Samples/">Details</a>                       |
-| **<a href="PI-Vision-Extensibility/">PI Vision Extensibility</a>**           | Inside this repository are PI Vision extensibility symbol samples and extensibility documentation. <a href="PI-Vision-Custom-Symbol/">Details</a>     |
+| Task                                                                                                                       | Description                                                                                                                                                                                             |
+| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **<a href="docs/PI_WEB_API_README.md">PI Web API</a>**                                                                     | These samples cover programming against the PI Server via the PI Web API. <a href="docs/PI_WEB_API_README.md">Details</a>                                                                               |
+| **<a href="https://github.com/osisoft/sample-pi_core-pi_core_deployment_tests-powershell">PI System Deployment Tests</a>** | These test samples are a lightweight sample testing framework for assessing a PI System deployment. <a href="https://github.com/osisoft/sample-pi_core-pi_core_deployment_tests-powershell">Details</a> |
+| **<a href="docs/PI_CORE_DEPLOYMENT_README.md">PI System Deployment Samples</a>**                                           | These samples cover deploying the PI System to web services or on premises. <a href="docs/PI_CORE_DEPLOYMENT_README.md">Details</a>                                                                     |
+| **<a href="docs/PI-Vision-Extensibility-Docs/">PI Vision Extensibility</a>**                                               | Inside this repository are PI Vision extensibility symbol samples and extensibility documentation. <a href="docs/PI-Vision-Extensibility-Docs/">PI Vision Extensibility">Details</a>                    |
 
 ## About this repo
 
-The [style guide](https://github.com/osisoft/OSI-Samples/blob/master/STYLE_GUIDE.md) describes the organization of the repo and the code samples provided. The [test guide](https://github.com/osisoft/OSI-Samples/blob/master/TEST_GUIDE.md) goes into detail about the included automated tests. The [on prem testing](https://github.com/osisoft/OSI-Samples/blob/master/miscellaneous/ON_PREM_TESTING.md) document describes the software installed on our internal OSIsoft build agent.
+The [style guide](https://github.com/osisoft/.github/blob/main/STYLE_GUIDE.md) describes the organization of the repo and the code samples provided. The [test guide](https://github.com/osisoft/.github/blob/main/TEST_GUIDE.md) goes into detail about the included automated tests. The [on prem testing](https://github.com/osisoft/.github/blob/main/ON_PREM_TESTING.md) document describes the software installed on our internal OSIsoft build agent.
 
 ## Feedback
 
@@ -27,7 +27,7 @@ If your support question or issue is related to a non-modified sample (or test) 
 
 ## Contributions
 
-If you wish to contribute please take a look at the [contribution guide](https://github.com/osisoft/OSI-Samples/blob/master/CONTRIBUTING.md).
+If you wish to contribute please take a look at the [contribution guide](https://github.com/osisoft/.github/blob/main/CONTRIBUTING.md).
 
 ## License
 
