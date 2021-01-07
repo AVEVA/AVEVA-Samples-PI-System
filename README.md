@@ -9,7 +9,7 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
 | **<a href="docs/PI_WEB_API_README.md">PI Web API</a>**                                                                     | These samples cover programming against the PI Server via the PI Web API. <a href="docs/PI_WEB_API_README.md">Details</a>                                                                               |
 | **<a href="https://github.com/osisoft/sample-pi_core-pi_core_deployment_tests-powershell">PI System Deployment Tests</a>** | These test samples are a lightweight sample testing framework for assessing a PI System deployment. <a href="https://github.com/osisoft/sample-pi_core-pi_core_deployment_tests-powershell">Details</a> |
 | **<a href="docs/PI_CORE_DEPLOYMENT_README.md">PI System Deployment Samples</a>**                                           | These samples cover deploying the PI System to web services or on premises. <a href="docs/PI_CORE_DEPLOYMENT_README.md">Details</a>                                                                     |
-| **<a href="docs/PI-Vision-Extensibility-Docs/">PI Vision Extensibility</a>**                                               | Inside this repository are PI Vision extensibility symbol samples and extensibility documentation. <a href="docs/PI-Vision-Extensibility-Docs/">PI Vision Extensibility">Details</a>                    |
+| **<a href="docs/PI-Vision-Extensibility-Docs/">PI Vision Extensibility</a>**                                               | Inside this repository are PI Vision extensibility symbol samples and extensibility documentation. <a href="docs/PI-Vision-Extensibility-Docs/">Details</a>                    |
 
 ## About this repo
 
