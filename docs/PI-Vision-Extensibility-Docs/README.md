@@ -1,6 +1,10 @@
 # PI Vision Extensibility
 This repository contains sample HTML/CSS/JavaScript for creating custom symbols for PI Vision.
 
+| Task                                                                                                                     | Description                                                                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Rotating Arrow](https://github.com/osisoft/sample-pi_vision_extensibility-rotating_arrow-js/tree/master/rotating-arrow) | Extend PI Vision with a new custom symbol. The custom symbol is an arrow that rotates 360 degrees based on the data item selected from the search pane. |
+
 ## Overview
 
 Inside this repository are PI Vision extensibility symbol samples and extensibility documentation available under .docs. 
