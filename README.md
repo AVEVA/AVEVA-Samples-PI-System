@@ -7,13 +7,84 @@
 
 The OSIsoft PI System samples are organized by tasks and accessible through the following table:
 
-| Task                                                                                                                       | Description                                                                                                                                                                                             |
-| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **<a href="https://github.com/osisoft/AF-SDK-Getting-Started-Guide/"> AF SDK Getting Started Guide</a>**                   | This course helps you learn the basics of using the AFSDK. <a href="https://github.com/osisoft/AF-SDK-Getting-Started-Guide">Details</a>                                                                |
-| **<a href="docs/PI-Web-API-Docs/">PI Web API</a>**                                                                         | These samples cover programming against the PI Server via the PI Web API. <a href="docs/PI-Web-API-Docs/">Details</a>                                                                                   |
-| **<a href="https://github.com/osisoft/sample-pi_core-pi_core_deployment_tests-powershell">PI System Deployment Tests</a>** | These test samples are a lightweight sample testing framework for assessing a PI System deployment. <a href="https://github.com/osisoft/sample-pi_core-pi_core_deployment_tests-powershell">Details</a> |
-| **<a href="docs/PI-Core-Deployment-Docs/">PI System Deployment Samples</a>**                                               | These samples cover deploying the PI System to web services or on premises. <a href="docs/docs/PI-Core-Deployment-Docs/">Details</a>                                                                    |
-| **<a href="docs/PI-Vision-Extensibility-Docs/">PI Vision Extensibility</a>**                                               | Inside this repository are PI Vision extensibility symbol samples and extensibility documentation. <a href="docs/PI-Vision-Extensibility-Docs/">Details</a>                                             |
+<table align="middle" width="100%">
+  <tr>
+    <th align="middle" colspan="2">
+      <h2>Tasks</h2>
+    </th>
+  </tr>
+  <tr>
+    <td align="middle" valign="top" width="50%">
+      <h3>
+        <a href="https://github.com/osisoft/AF-SDK-Getting-Started-Guide/">
+          AF SDK Getting Started Guide
+        </a>
+      </h3>
+      This course helps you learn the basics of using the AFSDK.
+      <a href="https://github.com/osisoft/AF-SDK-Getting-Started-Guide">
+        Details
+      </a>
+      <br />
+      <br />
+    </td>
+    <td align="middle" valign="top" width="50%">
+      <h3>
+        <a href="docs/PI-Web-API-Docs/"> PI Web API </a>
+      </h3>
+      These samples cover programming against the PI Server via the PI Web API.
+      <a href="docs/PI-Web-API-Docs/"> Details </a>
+      <br />
+      <br />
+    </td>
+  </tr>
+  <tr>
+    <td align="middle" valign="top" width="50%">
+      <h3>
+        <a
+          href="https://github.com/osisoft/sample-pi_core-pi_core_deployment_tests-powershell"
+        >
+          PI System Deployment Tests
+        </a>
+      </h3>
+      These test samples are a lightweight sample testing framework for
+      assessing a PI System deployment.
+      <a
+        href="https://github.com/osisoft/sample-pi_core-pi_core_deployment_tests-powershell"
+      >
+        Details
+      </a>
+      <br />
+      <br />
+    </td>
+    <td align="middle" valign="top" width="50%">
+      <h3>
+        <a href="docs/PI-Core-Deployment-Docs/">
+          PI System Deployment Samples
+        </a>
+      </h3>
+      These samples cover deploying the PI System to web services or on
+      premises.
+      <a href="docs/docs/PI-Core-Deployment-Docs/"> Details </a>
+      <br />
+      <br />
+    </td>
+  </tr>
+  <tr>
+    <td align="middle" valign="top" width="50%">
+      <h3>
+        <a href="docs/PI-Vision-Extensibility-Docs/">
+          PI Vision Extensibility
+        </a>
+      </h3>
+      Inside this repository are PI Vision extensibility symbol samples and
+      extensibility documentation.
+      <a href="docs/PI-Vision-Extensibility-Docs/"> Details </a>
+      <br />
+      <br />
+    </td>
+    <td align="middle" valign="top" width="50%"></td>
+  </tr>
+</table>
 
 ## About this repo
 
