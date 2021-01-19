@@ -64,7 +64,7 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
       </h3>
       These samples cover deploying the PI System to web services or on
       premises.
-      <a href="docs/docs/PI-Core-Deployment-Docs/"> Details </a>
+      <a href="/docs/PI-Core-Deployment-Docs/"> Details </a>
       <br />
       <br />
     </td>
