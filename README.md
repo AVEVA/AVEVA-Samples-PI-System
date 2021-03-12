@@ -1,5 +1,5 @@
 | :loudspeaker: **Notice**: samples have transitioned to being hosted in individual repositories |
-| -----------------------------------------------------------------------------------------------|
+| ---------------------------------------------------------------------------------------------- |
 
 # OSIsoft Samples
 
@@ -108,4 +108,4 @@ If you wish to contribute please take a look at the [contribution guide](https:/
 
 [OSI Samples](https://github.com/osisoft/OSI-Samples) are licensed under the [Apache 2 license](LICENSE).
 
-For the main samples landing page on master [ReadMe](https://github.com/osisoft/OSI-Samples)
+For the main samples landing page [ReadMe](https://github.com/osisoft/OSI-Samples)
