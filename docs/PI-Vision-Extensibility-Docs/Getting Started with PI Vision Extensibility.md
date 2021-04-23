@@ -218,7 +218,7 @@ The definition property is a JSON object (key-value pairs) that sets default att
 	* `Table`:  Multiple data source shape that allows you to specify columns and sorting
 * `configTitle`: This is the text for the configuration menu option that appears in the symbol's context (right-click) menu.
 * `StateVariables`:  Setting this to`['MultistateColor']` enables multi-state source configuration.
-* `supportsCollectons`: This indicates whether you can include the symbol as part of a collection symbol.
+* `supportsCollections`: This indicates whether you can include the symbol as part of a collection symbol.
 * `visObjectType`: This is the name of the function that was extended from `PV.deriveVisualizationFromBase`.
 
 ```javascript
