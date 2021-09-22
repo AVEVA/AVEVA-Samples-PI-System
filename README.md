@@ -29,10 +29,10 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
     </td>
     <td align="middle" valign="top" width="50%">
       <h3>
-        <a href="docs/PI-Web-API-Docs/"> PI Web API </a>
+        <a href="docs/AF-SDK-Custom-Calculations-Docs/"> AF SDK Custom Calculations </a>
       </h3>
-      These samples cover programming against the PI Server via the PI Web API.
-      <a href="docs/PI-Web-API-Docs/"> Details </a>
+      These samples assist in setting up event based or timer based calculations using the AF SDK.
+      <a href="docs/AF-SDK-Custom-Calculations-Docs/"> Details </a>
       <br />
       <br />
     </td>
@@ -82,7 +82,15 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
       <br />
       <br />
     </td>
-    <td align="middle" valign="top" width="50%"></td>
+    <td align="middle" valign="top" width="50%">
+      <h3>
+        <a href="docs/PI-Web-API-Docs/"> PI Web API </a>
+      </h3>
+      These samples cover programming against the PI Server via the PI Web API.
+      <a href="docs/PI-Web-API-Docs/"> Details </a>
+      <br />
+      <br />
+    </td>
   </tr>
 </table>
 
