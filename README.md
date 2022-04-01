@@ -52,11 +52,12 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
       <a href="docs/AF-SDK-Custom-Calculations-Docs/"> Details </a>
       <br />
       <br />
+      <a href="https://github.com/osisoft/sample-afsdk-event_triggered_calculation-dotnet"> Event Triggered </a>
       <table align="middle">
         <tr>
           <td align="middle">
             <a href="https://github.com/osisoft/sample-afsdk-event_triggered_calculation-dotnet">
-              Event Triggered - .NET
+              .NET
             </a>
           </td>
           <td align="middle">
@@ -68,10 +69,13 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
             </a>
           </td>
         </tr>
+      </table>
+      <a href="https://github.com/osisoft/sample-afsdk-timer_triggered_calculation-dotnet"> Timer Triggered </a>
+      <table>
         <tr>
           <td align="middle">
             <a href="https://github.com/osisoft/sample-afsdk-timer_triggered_calculation-dotnet">
-              Timer Triggered - .NET
+              .NET
             </a>
           </td>
           <td align="middle">
@@ -129,27 +133,34 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
       <a href="/docs/PI-Core-Deployment-Docs/"> Details </a>
       <br />
       <br />
+      <a href="https://github.com/osisoft/sample-pi_core-deployment_aws-powershell"> Amazon Web Services </a>
       <table align="middle">
         <tr>
           <td align="middle">
             <a href="https://github.com/osisoft/sample-pi_core-deployment_aws-powershell">
-              Amazon Web Services - Powershell
+              Powershell
             </a>
           </td>
-          <td align="middle">~~~~~~~~~~~~~~~~~~~</td>
+          <td align="middle">~~~~~~~~~~~~</td>
         </tr>
+      </table>
+      <a href="https://github.com/osisoft/sample-pi_core-deployment_azure-powershell"> Azure </a>
+      <table>
         <tr>
           <td align="middle">
             <a href="https://github.com/osisoft/sample-pi_core-deployment_azure-powershell">
-              Azure - Powershell
+              Powershell
             </a>
           </td>
-          <td align="middle">~~~~~~~~~~~~~~~~~~~</td>
+          <td align="middle">~~~~~~~~~~~~</td>
         </tr>
+      </table>
+      <a href="https://github.com/osisoft/sample-pi_core-deployment_on_prem-powershell"> OnPrem </a>
+      <table>
         <tr>
           <td align="middle">
             <a href="https://github.com/osisoft/sample-pi_core-deployment_on_prem-powershell">
-              OnPrem - Powershell
+              Powershell
             </a>
           </td>
           <td align="middle">
@@ -176,11 +187,12 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
       <a href="docs/PI-Vision-Extensibility-Docs/"> Details </a>
       <br />
       <br />
+      <a href="https://github.com/osisoft/sample-pi_vision_extensibility-rotating_arrow-js"> Rotating Arrow </a>
       <table align="middle">
         <tr>
           <td align="middle">
             <a href="https://github.com/osisoft/sample-pi_vision_extensibility-rotating_arrow-js">
-              Rotating Arrow - JavaScript
+              JavaScript
             </a>
           </td>
           <td align="middle">
