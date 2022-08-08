@@ -235,21 +235,6 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
         </tr>
         <tr>
           <td align="middle">
-            <a href="https://github.com/osisoft/sample-pi_web_api-common_actions-angularjs">
-              AngularJS
-            </a>
-          </td>
-          <td align="middle">
-            <a href="https://dev.azure.com/osieng/engineering/_build/latest?definitionId=2667&repoName=osisoft%2Fsample-pi_web_api-common_actions-angularjs&branchName=main">
-              <img
-                src="https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/osisoft.sample-pi_web_api-common_actions-angularjs?repoName=osisoft%2Fsample-pi_web_api-common_actions-angularjs&branchName=main"
-                alt="Build Status"
-              />
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td align="middle">
             <a href="https://github.com/osisoft/sample-pi_web_api-common_actions-jquery">
               JQuery
             </a>
