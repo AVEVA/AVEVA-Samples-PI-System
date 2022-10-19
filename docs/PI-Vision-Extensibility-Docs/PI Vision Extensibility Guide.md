@@ -40,7 +40,8 @@ The guidelines below cover the supported functionality of the PI Vision extensib
 1. The PI Vision extensibility framework enables the development of custom symbols and their associated tool panes as documented in Getting Started with PI Vision Extensibility and the PI Vision Extensibility Guide. 
 	1. This framework does not enable full display automation and therefore does not allow for cross-symbol interactions or time range manipulation.
 	2. Use of PI Vision client libraries that are outside of the extensibility framework is not supported.
-2. Modification of code distributed by PI Vision is not permitted, including the native PI Vision symbols (Value, Trend, Gauge, etc.) as this violates OSIsoft’s Product Usage Terms.
+2. Modification and re-use of code distributed by PI Vision is not permitted, including the native PI Vision symbols (Value, Trend, Gauge, etc.) as this violates OSIsoft’s Product Usage Terms.
+    1. Copying PI Vision code for custom symbols is not permitted.  There are elements of PI Vision code that are not supported within the extensibility framework and may cause unintended consequences in the application when re-used.
 3. Icons used for custom symbols must be visually distinct from existing native PI Vision symbols. 
 4. A license to use PI Vision does not provide a license to use any of the third-party libraries used in PI Vision. For example, use of the Kendo UI library without a separate license is strictly prohibited.
 
