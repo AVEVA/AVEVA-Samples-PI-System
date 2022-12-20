@@ -780,9 +780,9 @@ configOptions: function (context, clickedElement) {
     var options = [{
         title: 'Configure My Symbol', 
         mode: 'configureMySymbol'
-    }, {
-        'separator'
-    }, {
+    },
+    'separator',
+    {
         title: 'Hide',
         action: function (context) { 
             context.def.configure.hide(context.symbol); 
