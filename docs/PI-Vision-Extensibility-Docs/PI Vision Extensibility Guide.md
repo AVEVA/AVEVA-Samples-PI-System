@@ -246,7 +246,6 @@ As a best practice, you should wrap all PI Vision symbols in an immediately-invo
         <ul>
             <li><code>''</code>: Empty string. This allows a symbol to be resized in any direction. (Default)</li>
             <li><code>AutoWidth</code>: This allows a symbol's height to be resized while fitting the width. Used on text-based symbols.</li>
-            <li><code>RetainAspectRatio</code>: This forces a symbol to be resized with the height and width staying proportional.</li>
         </ul>
 </td>
     </tr>
