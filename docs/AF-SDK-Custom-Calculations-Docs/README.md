@@ -9,7 +9,7 @@ The samples in this topic demonstrate how to utilize the AF SDK to perform custo
 
 ## Feedback
 
-If you have a need for a new sample; if there is a feature or capability that should be demonstrated; if there is an existing sample that should be in your favorite language; please reach out to us and give us feedback at [feedback.aveva.com](https://feedback.aveva.com). [Feedback](https://datahub.feedback.aveva.com/ideas/search?category=7135134109509567625&query=sample).
+If you have a need for a new sample; if there is a feature or capability that should be demonstrated; if there is an existing sample that should be in your favorite language; please reach out to us and give us feedback at [feedback.aveva.com](https://feedback.aveva.com) uner the Developer Samples category. [Feedback](https://datahub.feedback.aveva.com/ideas/search?category=7135134109509567625&query=sample).
 
 ## Support
 
