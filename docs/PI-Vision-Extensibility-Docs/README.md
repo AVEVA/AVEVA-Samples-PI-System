@@ -12,7 +12,7 @@ Inside this repository are PI Vision extensibility symbol samples and extensibil
 
 ### Feedback
 
-To request a new sample, if there is a feature or capability you would like demonstrated, or if there is an existing sample you would like in your favorite language, please give us feedback at the [OSIsoft GitHub Feedback Channel](https://feedback.osisoft.com/forums/922279-osisoft-github). To post feedback, submit feature ideas, or report bugs, use the [OSIsoft GitHub Feedback Channel](https://feedback.osisoft.com/forums/922279-osisoft-github).
+To request a new sample, if there is a feature or capability you would like demonstrated, or if there is an existing sample you would like in your favorite language, please give us feedback at [https://feedback.aveva.com](https://feedback.aveva.com) under the Developer Samples category. [Feedback](https://datahub.feedback.aveva.com/ideas/search?category=7135134109509567625&query=sample).
 
 ### Support
 
