@@ -81,7 +81,7 @@ The implementation layer is a JavaScript file that handles all of the symbol’s
 
 ### File layout
 
-You should save all files for a symbol except for the symbol image file in the same directory, in the`ext` folder, under:
+You should save all files for a symbol except for the symbol image file in the same directory, in the `ext` folder, under:
 
 `INSTALLATION\_FOLDER\Scripts\app\editor\symbols\`
 
@@ -89,7 +89,7 @@ The symbols image file should be stored in the `icons` folder under:
 
 `INSTALLATION\_FOLDER\Scripts\app\editor\symbols\ext\icons`
 
-If you have external library files, create a `libraries` subfolder under the `ext` folder and place the external library files in that subfolder.
+If you have external library files, create a `libraries` subfolder under the `ext` folder and place the external library files in that subfolder. Library files (.js) that are not directly within the `libraries` folder and instead within a subfolder will not be loaded by PI Vision.
 
 [Back to top](#top)
 
