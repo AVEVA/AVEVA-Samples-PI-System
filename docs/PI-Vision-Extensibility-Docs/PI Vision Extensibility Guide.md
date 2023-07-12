@@ -29,6 +29,7 @@ Contents
         * [Tool pane file layout](#tool-pane-file-layout)
     * [Tool pane implementation layer](#tool-pane-implementation-layer)
         * [Badging](#badging)
+* [Using OpenID Connect with AVEVA PI Vision and AVEVA PI Web API](#using-openid-connect-with-aveva-pi-vision-and-aveva-pi-web-api)
 
 Guidelines for Usage
 ================
@@ -1076,4 +1077,31 @@ All tool extensions automatically have a property called `Badge` set on their sc
 
 ```javascript
 scope.Badge.raise("10");
+```
+### Using OpenID Connect with AVEVA PI Vision and AVEVA PI Web API
+
+PI Vision 2023 can use OpenID Connect to authenticate users with AVEVA Identity Manager. If your custom symbols retrieve data from PI Web API 2023, you can relay these requests through the PI Vision server and take advantage of single sign-on without the need for any authentication token logic in your own code.
+
+See the PI Vision and PI Web API Administration guides for instructions on configuring OpenID Connect authentication with AVEVA Identity Manager. 
+
+Once PI Vision is configured for OpenID Connect, add this line to the PIVision site’s web.config:
+```code
+<add key="PIWebAPIUrl" value="https://<pi web api machine>[:port]/piwebapi/">
+```
+
+You can verify that the gateway is accessible by browsing to this address:
+```code
+https://<pi vision machine>/PIVision/PIWebApiGateway
+```
+The gateway address is available in JavaScript as: 
+```code
+window.PIVisualization.ClientSettings.PIWebAPIUrl
+```
+
+The gateway route is protected with an anti-forgery token to prevent malicious use. You need to add this token as an HTTP header for each request to the gateway if you are using something other than the AngularJS $http service. This example adds the anti-forgery token to all jQuery ajax requests:
+```javascript
+    $.ajaxSetup({
+        headers: { 'RequestVerificationToken': window.PIVisualization.SecurityContext.RequestVerificationToken }
+    });
+
 ```
