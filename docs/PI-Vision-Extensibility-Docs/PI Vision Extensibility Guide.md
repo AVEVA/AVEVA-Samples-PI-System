@@ -125,6 +125,8 @@ Debug mode disables the PI Vision bundling and minification system; this makes d
 
 Note that in debug mode, PI Vision does not process minified JavaScript files.
 
+The PI Vision minifier may not be compatible with all JavaScript features, emitting code that does not run in production. You can provide your own minimized file by deploying a *.min.js file alongside your source code. If such files are present, PI Vision will bypass its own minimifier and bundle these files instead.
+
 [Back to top](#top)
 
 Implementation layer
