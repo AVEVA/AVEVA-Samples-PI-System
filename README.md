@@ -260,45 +260,9 @@ The OSIsoft PI System samples are organized by tasks and accessible through the 
               />
             </a>
           </td>
-        </tr>
-        <tr>
-          <td align="middle">
-            <a href="https://github.com/osisoft/sample-pi_web_api-common_actions-r">
-              R
-            </a>
-          </td>
-          <td align="middle">
-            <a href="https://dev.azure.com/osieng/engineering/_build/latest?definitionId=2664&repoName=osisoft%2Fsample-pi_web_api-common_actions-r&branchName=main">
-              <img
-                src="https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/osisoft.sample-pi_web_api-common_actions-r?repoName=osisoft%2Fsample-pi_web_api-common_actions-r&branchName=main"
-                alt="Build Status"
-              />
-            </a>
-          </td>
-        </tr>
+        </tr>        
         </br>
-      </table>
-      <a href="https://github.com/osisoft/sample-pi_web_api-data_analysis_jupyter-python">
-          Data Analysis
-        </a>
-      <table>
-        <tr>
-          <td align="middle">
-            <a href="https://github.com/osisoft/sample-pi_web_api-data_analysis_jupyter-python">
-              Jupyter (Python)
-            </a>
-          </td>
-          <td align="middle">
-            <a href="https://dev.azure.com/osieng/engineering/_build/latest?definitionId=3088&branchName=main">
-              <img
-                src="https://dev.azure.com/osieng/engineering/_apis/build/status/product-readiness/PI-System/aveva.sample-pi_web_api-data_analysis_jupyter-python?branchName=main"
-                alt="Build Status"
-              />
-            </a>
-          </td>
-        </tr>
-        </br>
-      </table>
+      </table>     
     </td>
   </tr>
 </table>
