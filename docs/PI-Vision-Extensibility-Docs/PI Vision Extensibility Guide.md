@@ -857,7 +857,7 @@ The fourth option is added to `layoutOptions`, so it will appear at the top of t
 
 #### Legacy pattern
 
-> **Important:** This legacy pattern is not supported in PI Vision 2025.
+> **Note:** This legacy pattern is not supported in PI Vision 2025. Starting in PI Vision 2026, it is supported again for backward compatibility. Options returned this way appear at the top of the context menu in both monitor and layout modes. New symbols should use the `monitorOptions`/`layoutOptions` pattern above.
 
 Previous versions of PI Vision supported implementations that return an array of options directly.
 ```javascript
