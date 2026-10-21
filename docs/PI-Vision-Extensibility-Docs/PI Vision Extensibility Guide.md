@@ -6,6 +6,7 @@ Contents
 ========
 * [Guidelines for Usage](#guidelines-for-usage)
 * [Content Security Policy](#content-security-policy)
+    * [Connecting to PI Web API and other origins](#connecting-to-pi-web-api-and-other-origins)
 * [Symbol extension](#symbol-extension)
     * [Layers of a PI Vision symbol](#layers-of-a-pi-vision-symbol)
         * [File layout](#file-layout)
@@ -57,6 +58,20 @@ Content Security Policy
 Starting in PI Vision 2020, [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) headers are used by PI Vision to enhance protections against cross site scripting and other attacks. These CSP protections might interfere with custom symbols or tool panes built using the PI Vision extensibility framework, because they block scripts and frames that are loaded from remote sources (outside the PI Vision website). OSIsoft recommends keeping these CSP protections enabled if possible, and configuring them to add any additional trusted sources your custom symbols require. If absolutely required, the CSP protections can be disabled entirely.
 
 To add additional trusted sources to the script-src or frame-src directives used by PI Vision, see the PI Vision Installation and Administration Guide section titled [Change content security policy](https://livelibrary.osisoft.com/LiveLibrary/content/en/vision-v4/GUID-9BF912F4-382D-4814-ACE0-85D30B2BDE77).
+
+### Connecting to PI Web API and other origins
+
+Starting in PI Vision 2026, the CSP header includes `default-src 'self'`. Because `connect-src` is not set explicitly, browsers block any request a custom symbol makes to another origin, including PI Web API. The browser console reports an error similar to:
+
+```
+Connecting to 'https://mywebapiserver/piwebapi/batch' violates the following Content Security Policy directive: "default-src 'self'". Note that 'connect-src' was not explicitly set, so 'default-src' is used as a fallback. The action has been blocked.
+```
+
+To allow these requests, add a `CspCustomPolicy` setting to the `appSettings` section of the `web.config` file in the root of your PI Vision installation folder. Include `'self'` and every origin your symbols call:
+
+```xml
+<add key="CspCustomPolicy" value="connect-src 'self' https://mywebapiserver" />
+```
 
 [Back to top](#top)
 
