@@ -31,6 +31,7 @@ Contents
     * [Tool pane implementation layer](#tool-pane-implementation-layer)
         * [Badging](#badging)
 * [Using OpenID Connect with AVEVA PI Vision and AVEVA PI Web API](#using-openid-connect-with-aveva-pi-vision-and-aveva-pi-web-api)
+* [Data Entry](#data-entry)
 
 Guidelines for Usage
 ================
@@ -1189,4 +1190,191 @@ The gateway route is protected with an anti-forgery token to prevent malicious u
         headers: { 'RequestVerificationToken': window.PIVisualization.SecurityContext.RequestVerificationToken }
     });
 
+```
+
+[Back to top](#top)
+
+Data Entry
+=================
+
+Starting in PI Vision 2026, custom symbol authors can write data to PI points and AF attributes using `dataEntryService`. To use this service, add `'dataEntryService'` to the `inject` array and include a corresponding parameter in your symbol’s initialization function.
+
+Why use Data Entry extensibility
+-------------------------------------------------------------------------------
+If your custom symbol writes data by calling PI Web API directly, consider moving those writes to `dataEntryService`. Writing through `dataEntryService`:
+- Uses the same security model as PI Vision data entry. A user can write from a custom symbol only if they are authorized to enter data in PI Vision.
+- Requires no separate authentication or configuration for PI Web API.
+- Includes auditing of data entry operations.
+
+
+Check user permissions for data entry
+-------------------------------------------------------------------------------
+### Function Signature
+`isDataEntryEnabledForUser()`
+
+### Parameters
+None
+
+### Returns
+A boolean indicating whether the current user is authorized to enter data in PI Vision.
+
+This reflects the PI Vision data entry authorization setting configured on the PI Vision Admin site, the same setting that governs the native Data Entry and Value Entry symbols.
+
+Validate input time
+-----------------------------------------------
+### Function Signature
+`validateTime(timeInput)`
+
+### Parameters
+Param | Type | Requirements | Details
+---- | ---- | ---- | ----
+timeInput | string | Required; cannot be null, undefined, or empty | String representation of an AF time, e.g., `*` or `2026-02-24T14:55:16Z`
+
+### Returns
+An object `{ promise, cancel }`:
+- `promise`: A promise indicating whether the input time is valid.
+- `cancel`: A function that cancels the pending validation request. When canceled, the promise rejects with an error whose `xhrStatus` is `'abort'`. This is useful when validating input as the user types because it allows you to cancel previous requests so that only the latest input is evaluated.
+
+The promise will resolve (succeed) if the input time is a valid string accepted by the [AFTime Constructor (String)](https://docs.aveva.com/bundle/af-sdk/page/html/M_OSIsoft_AF_Time_AFTime__ctor_7.htm), including [PI Time](https://docs.aveva.com/bundle/pi-vision/page/1009763.html) (interpreted using the client’s current time zone and culture) and ISO 8601 timestamp strings (which can explicitly specify another time zone such as UTC).
+
+The promise will reject (fail) if the input time cannot be parsed as a valid AF time.
+
+
+Write values
+-----------------------------------------------
+### Function Signature
+`writeValues(values, updateMode)`
+
+### Parameters
+Param | Type | Requirements | Details
+---- | ---- | ---- | ----
+values | Array\<``DataValue``\> | Required; cannot be null, undefined, or empty | Array of `DataValue` objects, each representing a single event (timestamp and value) to be written to a single data item
+updateMode | `AFUpdateOption` | Required; cannot be null, undefined, or empty | Specifies how to handle writing a value when there is already a value at the specified timestamp for each `DataValue`
+
+### Returns
+A promise representing the status of the write operation.
+
+Success: `Array<DataResult>`, in the same order as the array of `DataValue` inputs (order is stable).
+
+The promise will resolve (succeed) if the PI Vision server successfully processes the overall request. Success conditions include:
+- All data items were successfully written.
+- Some data items were successfully written, but others could not be written.
+- All data items failed to be written (but the PI Vision server correctly processed the operation).
+
+Note: The promise will resolve even if some or all of the data items failed to be written. The caller should check each `DataResult` for the presence of an `Error` field to determine the status for each data item.
+
+Failure: The AngularJS `$http` response object for the failed request (with `status`, `statusText`, and `data`).
+
+Failure conditions:
+- The request body is invalid.
+- The user is not authorized to enter data in PI Vision.
+- The PI Vision server could not process the request, for example, because of server unavailability, network problems, or an internal server error.
+
+### Types
+
+#### AFUpdateOption: string
+
+Type | Requirements | Supported values
+--- | --- | ---
+string | Must match a defined member name in the [AFUpdateOption Enumeration](https://docs.aveva.com/bundle/af-sdk/page/html/T_OSIsoft_AF_Data_AFUpdateOption.htm) except for `Remove`, which is not supported. | <ul><li><code>Replace</code></li><li><code>Insert</code></li><li><code>NoReplace</code></li><li><code>ReplaceOnly</code></li><li><code>InsertNoCompression</code></li></ul>
+
+#### DataValue
+
+Property | Type | Requirements | Description
+--- | --- | --- | ---
+Path | string | Required; cannot be null, undefined, or empty | A path in the format `prefix:path?Id`, taken from the symbol’s `scope.symbol.DataSources` configuration. Only PI points (`pi:` prefix) and AF attributes (`af:` prefix) are supported.<br>Examples:<ul><li><code>pi:\\MyPIDataArchive?123-456-789\sinusoid?1</code></li><li><code>af:\\MyAFServer\MyDatabase\MyElement?234-567-890\|MyAttribute?345-678-901</code></li></ul>
+Timestamp | string | Required; cannot be null, undefined, or empty | Any valid string input to the [AFTime Constructor (String)](https://docs.aveva.com/bundle/af-sdk/page/html/M_OSIsoft_AF_Time_AFTime__ctor_7.htm), including [PI Time](https://docs.aveva.com/bundle/pi-vision/page/1009763.html) (interpreted using the client’s current time zone and culture) and ISO 8601 timestamp strings (which can explicitly specify UTC).<br>Examples:<ul><li><code>*</code></li><li><code>t+8h</code></li><li><code>2026-02-24T14:55:16Z</code></li></ul>
+Value | string | Required if `SystemStateCode` is not specified; cannot be null or undefined but can be empty | Ignored when `SystemStateCode` is specified, even if `Value` is also provided.
+SystemStateCode | number | Only defined, non-zero numerical values from the [AFSystemStateCode enumeration](https://docs.aveva.com/bundle/af-sdk/page/html/T_OSIsoft_AF_Asset_AFSystemStateCode.htm) are supported | When specified (non-null/non-undefined), the `Value` field is ignored, and the specified system state is written instead.
+
+#### DataResult
+
+Property | Type | Description
+--- | --- | ---
+Path | string | Resolved path. May contain IDs if PI Vision was unable to resolve all or part of the input path. May contain a prefix if the corresponding input `Path` starts with an unsupported prefix. See the examples below.
+Error | string (optional) | If absent (null/undefined), interpret the write result according to the data item, buffering configuration, and update mode as described below.
+
+Path examples (based on the example `DataValue` input paths listed above):
+
+Resolution scenario | PI point path | AF attribute path
+--- | --- | ---
+PI Vision could fully resolve the input path (typical case) | `\\MyPIDataArchive\sinusoid` | `\\MyAFServer\MyDatabase\MyElement\|MyAttribute`
+PI Vision could fully resolve the input path and the data item had been renamed | `\\MyPIDataArchive\sinusoidNewName` | `\\MyAFServer\MyDatabase\MyElementNewName\|MyAttributeNewName`
+PI Vision was unable to resolve the input path | `\\MyPIDataArchive?123-456-789\sinusoid?1` | `\\MyAFServer\MyDatabase\MyElement?234-567-890\|MyAttribute?345-678-901`
+
+Write status when `Error` is absent (null/undefined):
+
+Data item | AF SDK buffering on the PI Vision machine | AFUpdateOption | Interpretation
+--- | --- | --- | ---
+AF attribute not backed by a PI point | Not applicable | Any supported value | The data value was successfully written to the AF attribute.
+PI point or AF attribute backed by a PI point | Configured | Any supported value | The data value was successfully sent to the PI Buffer Subsystem. If the PI Buffer Subsystem subsequently encounters an error while writing to PI—for example, because the account running the PI Buffer Subsystem lacks permission to write to the data item—PI Vision will not report the error.
+PI point or AF attribute backed by a PI point | Not configured | `Replace` or `Insert` | The data value was successfully written to PI.
+PI point or AF attribute backed by a PI point | Not configured | <ul><li><code>NoReplace</code></li><li><code>ReplaceOnly</code></li><li><code>InsertNoCompression</code></li></ul> | Whether a write occurs depends on the presence or absence of an event at the same timestamp. For example, for `NoReplace`, an absent (null/undefined) `Error` only indicates that the data value was successfully sent to PI. It does not indicate whether an existing event at the same timestamp prevented the write.
+
+Example usage of `dataEntryService` in a custom symbol
+-----------------------------------------------------
+```javascript
+(PV => {
+    function myCustomSymbol() { }
+    PV.deriveVisualizationFromBase(myCustomSymbol);
+
+    myCustomSymbol.prototype.init = function (scope, element, dataEntryService) {
+
+        scope.onSubmitButtonClicked = () => {
+            if (!dataEntryService.isDataEntryEnabledForUser()) {
+                // Indicate to the user that they are not authorized to enter data in PI Vision
+                return;
+            }
+            const updateMode = 'Insert'; // This could be set instead based on user input in the symbol configuration
+            const values = scope.getUserSubmittedValues(); // Gets each DataValue including Path, Timestamp, and Value/SystemStateCode
+            dataEntryService.writeValues(values, updateMode)
+                .then(results => {
+                    for (const dataItemResult of results) {
+                        if (dataItemResult.Error) {
+                            // Indicate an error for this data item
+                        } else {
+                            // Indicate that this data item's value was successfully sent
+                        }
+                    }
+                })
+                .catch(error => {
+                    // Indicate that the entire write operation failed
+                });
+        }
+
+        scope.getUserSubmittedValues = () => {
+            // Simulating reading this from a form on the symbol
+            return [
+                { /* 1st data item value */},
+                { /* 2nd data item value */},
+            ]
+        }
+
+        let pendingTimeValidation;
+        scope.validateUserTimeInput = timeInput => {
+            // Simulating validating user input for a single input time string
+            if (pendingTimeValidation) {
+                // Cancel any previous validation so only the latest input is evaluated
+                pendingTimeValidation.cancel();
+            }
+            pendingTimeValidation = dataEntryService.validateTime(timeInput);
+            return pendingTimeValidation.promise
+                .then(() => 'VALID')
+                .catch(e => {
+                    if (e.xhrStatus === 'abort') {
+                        return 'CANCELED';
+                    }
+                    return 'INVALID';
+                });
+        }
+    }
+
+    PV.symbolCatalog.register({
+        typeName: 'myCustom',
+        visObjectType : myCustomSymbol,
+        datasourceBehavior: PV.Extensibility.Enums.DatasourceBehaviors.Multiple,
+        inject: ['dataEntryService']
+        // ...
+    });
+})(window.PIVisualization);
 ```
