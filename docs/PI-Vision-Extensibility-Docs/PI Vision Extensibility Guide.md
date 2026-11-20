@@ -412,6 +412,18 @@ Callback functions set inside the init function:
 * `this.onConfigChange`: This function is called by the PI Vision infrastructure anytime the configuration of a symbol is updated. It takes in the new configuration and the old configuration.
 * `this.onDestroy`: This function is called by the PI Vision infrastructure when the symbol is destroyed.
 
+#### User settings
+
+The `scope` passed to `init` includes a read-only `scope.userSettings` object that reflects the current user's PI Vision user settings. It contains the following property:
+
+* `ShowStatusFlags`: Boolean. `true` if the user has chosen to show data status flags in the PI Vision **User Settings** dialog. See [Data status fields](#data-status-fields).
+
+`scope.userSettings` is read-only; attempting to change its properties throws an error. When the user saves new settings, PI Vision refreshes data for all symbols, so read `scope.userSettings` inside `onDataUpdate` to pick up changes. Earlier versions of PI Vision do not provide `scope.userSettings`, so check that it exists before using it:
+
+```javascript
+var showStatusFlags = !!(scope.userSettings && scope.userSettings.ShowStatusFlags);
+```
+
 Here is an example `init` function definition:
 
 ```javascript
@@ -543,6 +555,8 @@ A Trend is a multiple data source shape that is used by the PI Vision Trend symb
 * `ValueScaleSetting`: See the Gauge symbol configuration object above. Defaults are 0, Autorange.
 
 You can set the `FormatType` independently for each trace by including them in a `TraceSettings` array.
+
+> **Note:** Data status flags (`Questionable`, `Substituted`, `Annotated`) are not currently supported for the Trend data shape. See [Data status fields](#data-status-fields).
 
 ##### Example data returned to `onDataUpdate` when `DataShape` equals `Trend` and `datasourceBehavior` equals `DatasourceBehaviors.Single`
 
@@ -723,6 +737,66 @@ If data cannot be retrieved for a data item, the `IsGood` field is added to the 
     </tr>
 </table>    
 
+#### Data status fields
+
+PI data can carry status flags that describe the quality of a value. When a value is flagged, the following Boolean fields are added to the object that holds that value:
+
+* `Questionable`: The value is marked as questionable.
+* `Substituted`: The value was substituted (manually or by an interface).
+* `Annotated`: The value has an annotation.
+
+Each field is `true` when the flag is set. When the flag is not set, the field is either `false` or omitted, so test for a truthy value rather than comparing to `false`. A value can carry more than one flag at a time. Native PI Vision symbols show only one flag, using the precedence `Questionable` > `Substituted` > `Annotated`; we recommend that custom symbols do the same.
+
+Respect the user's choice to show or hide status flags by checking `scope.userSettings.ShowStatusFlags` before displaying them. See [User settings](#user-settings).
+
+<table>
+    <tr>
+        <th><code>DataShape</code></th>
+        <th>Location of data status fields</th>
+    </tr>
+    <tr>
+        <td><code>Value</code></td>
+        <td>On the data object passed to <code>dataUpdate</code>, alongside <code>Value</code> and <code>Time</code>.</td>
+    </tr>
+    <tr>
+        <td><code>Gauge</code></td>
+        <td>On the data object passed to <code>dataUpdate</code>, alongside <code>Value</code> and <code>Time</code>.</td>
+    </tr>
+    <tr>
+        <td><code>Trend</code></td>
+        <td>Not supported. Data status fields for the <code>Trend</code> data shape are not available to custom symbols at this time.</td>
+    </tr>
+    <tr>
+        <td><code>Table</code></td>
+        <td>On each object in the <code>Rows</code> array. The flags describe the row's current value; summary columns do not carry flags.</td>
+    </tr>
+    <tr>
+        <td><code>TimeSeries</code></td>
+        <td>On each object in the <code>Values</code> array of each item in <code>Data</code>, so every individual event carries its own flags. The data source item itself does not carry flags.</td>
+    </tr>
+</table>
+
+The following example shows how a symbol using the `Value` or `Gauge` data shape can choose a single flag to display:
+
+```javascript
+function getStatusFlag(data) {
+    if (data.Questionable) {
+        return 'questionable';
+    }
+    if (data.Substituted) {
+        return 'substituted';
+    }
+    if (data.Annotated) {
+        return 'annotated';
+    }
+    return null;
+}
+
+this.onDataUpdate = function (data) {
+    var showStatusFlags = !!(scope.userSettings && scope.userSettings.ShowStatusFlags);
+    scope.statusFlag = showStatusFlags ? getStatusFlag(data) : null;
+};
+```
 
 [Back to top](#top)
 
